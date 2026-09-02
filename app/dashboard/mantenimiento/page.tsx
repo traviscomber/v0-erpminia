@@ -11,7 +11,7 @@ import { StatePanel } from '@/components/ui/state-panel';
 
 type ActionItem = { id:string; kind:string; priority:number; title:string; description:string; evidence:string; href:string; assetHref?:string|null };
 type Response = {
-  summary?: { openWorkOrders:number; overdueHourSchedules:number; unplannedOverdueHourSchedules:number; plannedOverdueHourSchedules:number; operationallyBlocked:number; pendingPlanSteps:number; readyToClose:number; recurringReliabilityAssets:number; totalActions:number };
+  summary?: { openWorkOrders:number; overdueHourSchedules:number; unplannedOverdueHourSchedules:number; plannedOverdueHourSchedules:number; pendingOperationalReviews:number; outOfServiceOperationalReviews:number; operationallyBlocked:number; pendingPlanSteps:number; readyToClose:number; recurringReliabilityAssets:number; totalActions:number };
   actions?: ActionItem[];
 };
 
@@ -23,6 +23,7 @@ const fetcher = async (url:string):Promise<Response> => {
 };
 
 const kindCopy: Record<string,{label:string; icon:any; variant:'default'|'secondary'|'destructive'|'outline'}> = {
+  operational_review:{ label:'Revisión operacional', icon:AlertTriangle, variant:'destructive' },
   preventive_overdue:{ label:'Preventivo vencido', icon:Clock3, variant:'destructive' },
   meter_review:{ label:'Horómetro', icon:Gauge, variant:'outline' },
   operational_blocker:{ label:'Bloqueo operacional', icon:ShieldAlert, variant:'destructive' },
@@ -37,6 +38,7 @@ export default function MantenimientoPage(){
   const summary=data?.summary;
   const actions=data?.actions || [];
   const metrics=[
+    ['Revisiones operativas',summary?.pendingOperationalReviews ?? '—','/dashboard/mantenimiento/ordenes-trabajo/create'],
     ['Preventivos por planificar',summary?.unplannedOverdueHourSchedules ?? '—','/dashboard/mantenimiento/preventivo-horas'],
     ['OT abiertas',summary?.openWorkOrders ?? '—','/dashboard/mantenimiento/ordenes-trabajo'],
     ['Bloqueos operacionales',summary?.operationallyBlocked ?? '—','/dashboard/mantenimiento/ordenes-trabajo/cierre'],
@@ -50,7 +52,7 @@ export default function MantenimientoPage(){
       <PageHeaderContent>
         <PageHeaderEyebrow>Mantenimiento · Centro operacional</PageHeaderEyebrow>
         <PageHeaderTitle>Qué requiere acción ahora</PageHeaderTitle>
-        <PageHeaderDescription>Una sola bandeja priorizada desde evidencia real de preventivos, OT, abastecimiento, ejecución, cierre y confiabilidad.</PageHeaderDescription>
+        <PageHeaderDescription>Una sola bandeja priorizada desde señales de terreno, preventivos, OT, abastecimiento, ejecución, cierre y confiabilidad.</PageHeaderDescription>
       </PageHeaderContent>
       <PageHeaderActions>
         <Button variant="outline" onClick={()=>void mutate()} disabled={isLoading}><RefreshCw className="h-4 w-4"/>Actualizar</Button>
@@ -58,16 +60,18 @@ export default function MantenimientoPage(){
       </PageHeaderActions>
     </PageHeader>
 
-    <section aria-label="Estado de mantenimiento" className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-6">
+    <section aria-label="Estado de mantenimiento" className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
       {metrics.map(([label,value,href])=><Link key={label} href={href} className="bg-card px-4 py-4 transition-colors hover:bg-muted/50"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold tracking-tight">{isLoading?'—':value}</p></Link>)}
     </section>
+
+    {!isLoading&&!error&&Number(summary?.outOfServiceOperationalReviews || 0)>0?<StatePanel tone="warning" title={`${summary?.outOfServiceOperationalReviews} equipo(s) fuera de servicio requieren revisión humana`} description="La observación de terreno se mantiene como evidencia y no genera una OT automáticamente. Revísala en la bandeja y crea la orden sólo después de validar la intervención." className="min-h-0 py-5"/>:null}
 
     {error?<StatePanel tone="error" title="No fue posible cargar el centro de mantenimiento" description={error.message} actions={<Button variant="outline" onClick={()=>void mutate()}>Reintentar</Button>} className="min-h-0 py-5"/>:null}
 
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between gap-4"><div><CardTitle className="text-base">Bandeja priorizada</CardTitle><CardDescription>Motil ordena primero vencimientos y bloqueos, luego ejecución, cierre y señales de confiabilidad.</CardDescription></div>{!isLoading&&!error?<Badge variant="outline">{actions.length} acciones</Badge>:null}</CardHeader>
+      <CardHeader className="flex flex-row items-start justify-between gap-4"><div><CardTitle className="text-base">Bandeja priorizada</CardTitle><CardDescription>Motil ordena primero equipos fuera de servicio, vencimientos y bloqueos; luego observaciones, ejecución, cierre y señales de confiabilidad.</CardDescription></div>{!isLoading&&!error?<Badge variant="outline">{actions.length} acciones</Badge>:null}</CardHeader>
       <CardContent>
-        {isLoading?<StatePanel tone="loading" title="Calculando prioridades" className="min-h-64 border-0 bg-transparent"/>:!error&&actions.length===0?<StatePanel tone="neutral" title="No hay acciones pendientes" description="No existen vencimientos, bloqueos ni evidencias de cierre pendientes en las fuentes actuales." className="min-h-64 border-0 bg-transparent"/>:!error?<div className="divide-y rounded-lg border">{actions.map((action,index)=>{const meta=kindCopy[action.kind]||kindCopy.closure_evidence;const Icon=meta.icon;return <div key={action.id} className="grid gap-3 p-4 md:grid-cols-[40px_1fr_auto] md:items-center"><div className="flex h-9 w-9 items-center justify-center rounded-md border bg-background"><Icon className="h-4 w-4"/></div><Link href={action.href} className="min-w-0 rounded-sm outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"><div className="flex flex-wrap items-center gap-2"><span className="text-xs tabular-nums text-muted-foreground">#{index+1}</span><Badge variant={meta.variant}>{meta.label}</Badge><p className="font-medium">{action.title}</p></div><p className="mt-1 text-sm text-muted-foreground">{action.description}</p><p className="mt-1 text-xs text-muted-foreground">Evidencia: {action.evidence}</p></Link><div className="flex items-center gap-2">{action.assetHref?<Button asChild variant="outline" size="sm"><Link href={action.assetHref}>Ficha 360</Link></Button>:null}<Button asChild variant="ghost" size="icon-sm" aria-label="Abrir acción"><Link href={action.href}><ArrowRight className="h-4 w-4"/></Link></Button></div></div>})}</div>:null}
+        {isLoading?<StatePanel tone="loading" title="Calculando prioridades" className="min-h-64 border-0 bg-transparent"/>:!error&&actions.length===0?<StatePanel tone="neutral" title="No hay acciones pendientes" description="No existen revisiones de terreno, vencimientos, bloqueos ni evidencias de cierre pendientes en las fuentes actuales." className="min-h-64 border-0 bg-transparent"/>:!error?<div className="divide-y rounded-lg border">{actions.map((action,index)=>{const meta=kindCopy[action.kind]||kindCopy.closure_evidence;const Icon=meta.icon;return <div key={action.id} className="grid gap-3 p-4 md:grid-cols-[40px_1fr_auto] md:items-center"><div className="flex h-9 w-9 items-center justify-center rounded-md border bg-background"><Icon className="h-4 w-4"/></div><Link href={action.href} className="min-w-0 rounded-sm outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"><div className="flex flex-wrap items-center gap-2"><span className="text-xs tabular-nums text-muted-foreground">#{index+1}</span><Badge variant={meta.variant}>{meta.label}</Badge><p className="font-medium">{action.title}</p></div><p className="mt-1 text-sm text-muted-foreground">{action.description}</p><p className="mt-1 text-xs text-muted-foreground">Evidencia: {action.evidence}</p></Link><div className="flex items-center gap-2">{action.assetHref?<Button asChild variant="outline" size="sm"><Link href={action.assetHref}>Ficha 360</Link></Button>:null}<Button asChild variant="ghost" size="icon-sm" aria-label="Abrir acción"><Link href={action.href}><ArrowRight className="h-4 w-4"/></Link></Button></div></div>})}</div>:null}
       </CardContent>
     </Card>
 
