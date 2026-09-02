@@ -26,6 +26,20 @@ test('successful login response is non-cacheable and clears stale cargo when abs
   assert.match(loginRoute, /else \{\s*response\.cookies\.set\('user_cargo', '', \{[\s\S]*maxAge: 0/);
 });
 
+test('stale legacy hashes can recover only through the linked Supabase Auth identity', () => {
+  const legacyCheck = loginRoute.indexOf('bcrypt.compare(password, profile.password_hash)');
+  const authFallback = loginRoute.indexOf('auth.signInWithPassword({ email, password })');
+  const identityLookup = loginRoute.indexOf(".from('auth_profile_identity_links')");
+  const exactProfileCheck = loginRoute.indexOf('identityLink?.profile_id === profile.id');
+
+  assert.ok(legacyCheck >= 0, 'expected legacy bcrypt verification');
+  assert.ok(authFallback > legacyCheck, 'Supabase Auth should be a recovery path after legacy verification fails');
+  assert.ok(identityLookup > authFallback, 'recovered Auth identity must be resolved through the canonical link');
+  assert.ok(exactProfileCheck > identityLookup, 'recovered identity must match the exact canonical profile');
+  assert.match(loginRoute, /NEXT_PUBLIC_SUPABASE_ANON_KEY/);
+  assert.doesNotMatch(loginRoute, /encrypted_password/);
+});
+
 test('login confirms the authenticated session before redirecting', () => {
   const loginRequest = loginPage.indexOf("fetch('/api/auth/login'");
   const sessionCheck = loginPage.indexOf("fetch('/api/me/access'");
