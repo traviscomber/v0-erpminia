@@ -28,17 +28,25 @@ test('preventive hour views are backend only', () => {
   assert.match(migration, /grant select .* service_role/i);
 });
 
-test('preventive hours API is maintenance authorized and tenant scoped', () => {
+test('preventive hours API is maintenance authorized, tenant scoped and reports live plan coverage', () => {
   assert.match(api, /requireModuleAccess\(request, MODULE_KEYS\.MANT_OPERACIONES\)/);
   assert.match(api, /preventive_maintenance_hour_summary_v1/);
   assert.match(api, /preventive_maintenance_hour_status_v1/);
+  assert.match(api, /maintenance_standard_job_plans/);
+  assert.match(api, /maintenance_standard_job_plan_applications/);
+  assert.match(api, /standardPlans/);
+  assert.match(api, /approvedPlansResult\.count/);
+  assert.match(api, /linkedPlansResult\.count/);
   assert.match(api, /eq\('organization_id', context\.organizationId\)/);
 });
 
-test('preventive hours UI exposes real source and honest alert semantics', () => {
+test('preventive hours UI exposes real source, honest alert semantics and data-driven standard-plan readiness', () => {
   assert.match(page, /Preventivo por horómetro/);
   assert.match(page, /No existen umbrales genéricos/);
   assert.match(page, /Planificar intervención/);
   assert.match(page, /Revisar horómetro/);
+  assert.match(page, /Procedimientos estándar disponibles/);
+  assert.match(page, /standardPlans\.approved>0/);
+  assert.doesNotMatch(page, /hoy no existen planes estándar aprobados/);
   assert.match(runtimePage, /preventivo-horas/);
 });
