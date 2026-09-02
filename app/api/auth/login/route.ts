@@ -17,6 +17,7 @@ export async function POST(request: NextRequest) {
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
       console.error('[auth] Missing Supabase server configuration');
@@ -39,11 +40,39 @@ export async function POST(request: NextRequest) {
     }
 
     const profile = profileData?.[0];
-    if (!profile?.password_hash) {
+    if (!profile) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
-    const passwordMatch = await bcrypt.compare(password, profile.password_hash).catch(() => false);
+    let passwordMatch = profile.password_hash
+      ? await bcrypt.compare(password, profile.password_hash).catch(() => false)
+      : false;
+
+    // Linked identities can recover through canonical Supabase Auth when the
+    // legacy profile hash is stale. The returned Auth identity must resolve to
+    // this exact canonical profile before Motil issues its custom session.
+    if (!passwordMatch && supabaseAnonKey) {
+      const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+        auth: { persistSession: false, autoRefreshToken: false },
+      });
+      const { data: authData, error: authError } = await authClient.auth.signInWithPassword({ email, password });
+
+      if (!authError && authData.user?.id) {
+        const { data: identityLink, error: identityLinkError } = await supabase
+          .from('auth_profile_identity_links')
+          .select('profile_id')
+          .eq('auth_user_id', authData.user.id)
+          .maybeSingle();
+
+        if (identityLinkError) {
+          console.error('[auth] Identity link lookup failed:', identityLinkError.message);
+          return NextResponse.json({ error: 'Error del servidor' }, { status: 500 });
+        }
+
+        passwordMatch = identityLink?.profile_id === profile.id;
+      }
+    }
+
     if (!passwordMatch) {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
@@ -86,6 +115,7 @@ export async function POST(request: NextRequest) {
         cargo: cargoName,
       },
     });
+    response.headers.set('Cache-Control', 'no-store');
 
     const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production';
     const cookieOptions = {
@@ -113,6 +143,14 @@ export async function POST(request: NextRequest) {
     if (cargoName) {
       response.cookies.set('user_cargo', cargoName, {
         ...cookieOptions,
+        httpOnly: false,
+      });
+    } else {
+      response.cookies.set('user_cargo', '', {
+        path: '/',
+        maxAge: 0,
+        secure: isProduction,
+        sameSite: 'lax',
         httpOnly: false,
       });
     }

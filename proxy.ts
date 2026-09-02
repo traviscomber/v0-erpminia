@@ -14,13 +14,28 @@ const CONTENT_SECURITY_POLICY = [
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://vercel.live wss://ws-us3.pusher.com https://*.blob.vercel-storage.com https://*.private.blob.vercel-storage.com https://*.public.blob.vercel-storage.com https://blob.vercel-storage.com",
 ].join('; ');
 
+const PUBLIC_API_ROUTES = new Set([
+  '/api/health',
+  '/api/auth/login',
+  '/api/auth/register',
+  '/api/auth/logout',
+]);
+
+function isPublicApiRoute(pathname: string) {
+  return (
+    PUBLIC_API_ROUTES.has(pathname) ||
+    pathname === '/api/portal/subcontratistas' ||
+    pathname.startsWith('/api/portal/subcontratistas/')
+  );
+}
+
 function withSecurityHeaders(response: NextResponse) {
   response.headers.set('Content-Security-Policy', CONTENT_SECURITY_POLICY);
   return response;
 }
 
 function clearCustomSession(response: NextResponse) {
-  for (const name of ['auth_token', 'user_role', 'user_email']) {
+  for (const name of ['auth_token', 'user_role', 'user_email', 'user_cargo']) {
     response.cookies.set(name, '', {
       path: '/',
       maxAge: 0,
@@ -85,6 +100,19 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  const pathname = request.nextUrl.pathname;
+
+  if (pathname.startsWith('/api/debug') || pathname.startsWith('/api/test')) {
+    return withSecurityHeaders(NextResponse.json({ error: 'Debug endpoints disabled in production' }, { status: 404 }));
+  }
+
+  // Public auth endpoints must run before custom-session validation. If an old
+  // auth_token is invalid, clearing it in middleware on the login request can
+  // conflict with the fresh Set-Cookie emitted by the login route.
+  if (pathname.startsWith('/api/') && isPublicApiRoute(pathname)) {
+    return withSecurityHeaders(response);
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -97,28 +125,12 @@ export async function proxy(request: NextRequest) {
     response = clearCustomSession(response);
   }
 
-  if (request.nextUrl.pathname.startsWith('/api/')) {
-    const publicApiRoutes = [
-      '/api/health',
-      '/api/auth/login',
-      '/api/auth/register',
-      '/api/auth/logout',
-      '/api/portal/subcontratistas',
-    ];
-    const isPublicRoute = publicApiRoutes.some((route) => request.nextUrl.pathname.startsWith(route));
+  if (pathname.startsWith('/api/')) {
     const isDemoMode = process.env.DEMO_PUBLIC_READ === 'true';
     const isReadRequest = request.method === 'GET';
 
-    if (request.nextUrl.pathname.startsWith('/api/debug') || request.nextUrl.pathname.startsWith('/api/test')) {
-      return withSecurityHeaders(NextResponse.json({ error: 'Debug endpoints disabled in production' }, { status: 404 }));
-    }
-
-    if (isPublicRoute) {
-      return withSecurityHeaders(response);
-    }
-
     // Admin canonical import is guarded by ADMIN_INIT_TOKEN instead of a session.
-    if (request.nextUrl.pathname.startsWith('/api/admin/canonical-import') || request.nextUrl.pathname.startsWith('/api/admin/hse-canonical-import') || request.nextUrl.pathname.startsWith('/api/admin/hse-workbooks-import')) {
+    if (pathname.startsWith('/api/admin/canonical-import') || pathname.startsWith('/api/admin/hse-canonical-import') || pathname.startsWith('/api/admin/hse-workbooks-import')) {
       const adminToken = process.env.ADMIN_INIT_TOKEN;
       const authHeader = request.headers.get('authorization') || '';
       const bearer = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : '';
@@ -140,11 +152,11 @@ export async function proxy(request: NextRequest) {
   }
 
   const protectedPaths = ['/dashboard', '/admin', '/setup'];
-  const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path));
+  const isProtectedPath = protectedPaths.some((path) => pathname.startsWith(path));
 
   if (isProtectedPath && !isAuthenticated) {
     const loginUrl = new URL('/auth/login', request.url);
-    loginUrl.searchParams.set('redirect', `${request.nextUrl.pathname}${request.nextUrl.search}`);
+    loginUrl.searchParams.set('redirect', `${pathname}${request.nextUrl.search}`);
     return withSecurityHeaders(clearCustomSession(NextResponse.redirect(loginUrl)));
   }
 
