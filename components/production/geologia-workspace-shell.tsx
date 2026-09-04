@@ -42,25 +42,19 @@ export function GeologiaWorkspaceShell() {
     <div className="space-y-5">
       <style>{`
         button[aria-label="Abrir Asistente Senior de Geología"] {
+          width: 58px;
+          min-width: 58px;
+          height: 58px;
+          padding: 0;
+          border-radius: 9999px;
           background-image: url('${GEOLOGY_CHAT_ICON}');
-          background-position: 10px center;
+          background-position: center;
           background-repeat: no-repeat;
-          background-size: 34px 34px;
-          min-width: 132px;
-          padding-left: 52px;
-          padding-right: 16px;
+          background-size: 46px 46px;
         }
-        button[aria-label="Abrir Asistente Senior de Geología"] > svg {
-          display: none;
-        }
-        @media (max-width: 639px) {
-          button[aria-label="Abrir Asistente Senior de Geología"] {
-            width: 52px;
-            min-width: 52px;
-            padding: 0;
-            background-position: center;
-            background-size: 36px 36px;
-          }
+        button[aria-label="Abrir Asistente Senior de Geología"] > svg,
+        button[aria-label="Abrir Asistente Senior de Geología"] > span {
+          display: none !important;
         }
       `}</style>
 
