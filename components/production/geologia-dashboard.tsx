@@ -5,15 +5,12 @@ import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import {
   AlertTriangle,
-  ArrowRight,
   ArrowUpDown,
   Beaker,
   CheckCircle2,
   Drill,
-  FileSearch,
   Layers3,
   MapPinned,
-  Mountain,
   Search,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -21,6 +18,7 @@ import { PageHeader, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow
 import { StatePanel } from '@/components/ui/state-panel';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { periodUrl, useDashboardPeriod } from '@/components/dashboard/dashboard-period-provider';
+import { GeologiaTodayDecisionBoard } from '@/components/production/geologia-today-decision-board';
 
 type Hole = {
   id:string; hole_code:string; drilling_domain:string|null; mine_source_id:string|null; mine_sector_id:string|null;
@@ -42,28 +40,20 @@ type Sample = {
   validation_status:string|null; validation_notes:string|null;
 };
 
-type ExternalContext = {
-  id:string; source_provider:string|null; source_dataset:string|null; source_record_key:string|null; record_type:string|null;
-  mine_source_id:string|null; mine_sector_id:string|null; title:string|null; status:string|null; valid_from:string|null; valid_to:string|null;
-  geometry_geojson:unknown; source_url:string|null; retrieved_at:string|null; validation_status:string|null; validation_notes:string|null;
-};
-
 type GeologyData = {
   canWrite:boolean;
   summary:{
     mines:number; sectors:number; drillingReports:number; drilledMeters:number; mineLinkCoveragePct:number; sectorLinkCoveragePct:number; holeLinkCoveragePct:number;
     holes:number; canonicalDrilledMeters:number; locatedHoles:number; orientedHoles:number; purposeHoles:number; intervals:number; samples:number;
-    samplesValidated:number; samplesReview:number; externalContext:number; sernageominRecords:number; unresolvedLocations:number;
+    samplesValidated:number; samplesReview:number; unresolvedLocations:number;
   };
   mines:Array<{ id:string; code:string|null; name:string; status:string|null; sectors:number; drillingReports:number; drilledMeters:number }>;
   holes:Hole[];
   intervals:Interval[];
   samples:Sample[];
-  externalContext:ExternalContext[];
   locationReview:Array<{ drill_hole_id:string; hole_code:string; resolution_state:string|null; review_priority:number|null; recommended_action:string|null; proposed_mine_name:string|null; proposed_sector_name:string|null }>;
   recentDrilling:Array<{ id:string; operation_date:string|null; hole_code_raw:string|null; mine_raw:string|null; sector_raw:string|null; drilled_meters:number|null; reconciliation_status:string|null; canonical_mine_source_id:string|null; canonical_mine_sector_id:string|null; canonical_drill_hole_id:string|null }>;
-  contextQuality:{ external_records:number; sernageomin_records:number; mine_linked_records:number; sector_linked_records:number; georeferenced_records:number; valid_records:number; review_records:number };
-  intelligenceStatus:{ geologicalSamplesCanonical:boolean; assaysCanonical:boolean; drillHolesCanonical:boolean; sernageominContextAvailable:boolean; note:string };
+  intelligenceStatus:{ geologicalSamplesCanonical:boolean; assaysCanonical:boolean; drillHolesCanonical:boolean; note:string };
 };
 
 const fetcher=async(url:string):Promise<GeologyData>=>{
@@ -81,7 +71,6 @@ const tabs=[
   ['holes','Mapa y sondajes'],
   ['results','Resultados'],
   ['pending','Pendientes'],
-  ['context','Contexto'],
 ] as const;
 type TabKey=typeof tabs[number][0];
 
@@ -141,7 +130,7 @@ export function GeologiaDashboard(){
   const noPurpose=(data?.holes||[]).filter((h)=>!h.geological_purpose?.trim());
 
   return <div className="space-y-6">
-    <PageHeader><PageHeaderContent><PageHeaderEyebrow>Producción · La Patagua</PageHeaderEyebrow><PageHeaderTitle>Geología</PageHeaderTitle><PageHeaderDescription>Vista operativa para responder cuatro preguntas: dónde están los sondajes, qué sabemos de cada uno, qué resultados existen y qué falta resolver.</PageHeaderDescription></PageHeaderContent></PageHeader>
+    <PageHeader><PageHeaderContent><PageHeaderEyebrow>Producción · La Patagua</PageHeaderEyebrow><PageHeaderTitle>Geología</PageHeaderTitle><PageHeaderDescription>Mesa operativa para convertir evidencia canónica en prioridades, interpretación y acciones geológicas.</PageHeaderDescription></PageHeaderContent></PageHeader>
 
     {error?<StatePanel tone="error" title="No fue posible cargar Geología" description="Reintenta la consulta." actions={<Button variant="outline" onClick={()=>void mutate()}>Reintentar</Button>} className="min-h-0 py-5"/>:null}
 
@@ -156,17 +145,7 @@ export function GeologiaDashboard(){
 
     <nav className="flex flex-wrap gap-2 border-b pb-3" aria-label="Vistas de Geología">{tabs.map(([key,label])=><Button key={key} size="sm" variant={tab===key?'default':'ghost'} onClick={()=>setTab(key)}>{label}</Button>)}</nav>
 
-    {data&&tab==='today'?<div className="space-y-5">
-      <div className="grid gap-4 lg:grid-cols-3">
-        <button type="button" onClick={()=>setTab('holes')} className="rounded-lg border bg-card p-5 text-left transition-colors hover:bg-muted/20"><div className="flex items-start justify-between"><MapPinned className="h-5 w-5 text-muted-foreground"/><ArrowRight className="h-4 w-4 text-muted-foreground"/></div><p className="mt-5 font-medium">¿Dónde están los sondajes?</p><p className="mt-1 text-sm text-muted-foreground">{s?.locatedHoles||0} de {s?.holes||0} tienen collar georreferenciado.</p></button>
-        <button type="button" onClick={()=>setTab('results')} className="rounded-lg border bg-card p-5 text-left transition-colors hover:bg-muted/20"><div className="flex items-start justify-between"><Beaker className="h-5 w-5 text-muted-foreground"/><ArrowRight className="h-4 w-4 text-muted-foreground"/></div><p className="mt-5 font-medium">¿Qué encontramos?</p><p className="mt-1 text-sm text-muted-foreground">{s?.samples||0} muestras y {s?.intervals||0} intervalos de logging disponibles.</p></button>
-        <button type="button" onClick={()=>setTab('pending')} className="rounded-lg border bg-card p-5 text-left transition-colors hover:bg-muted/20"><div className="flex items-start justify-between"><AlertTriangle className="h-5 w-5 text-muted-foreground"/><ArrowRight className="h-4 w-4 text-muted-foreground"/></div><p className="mt-5 font-medium">¿Qué falta resolver?</p><p className="mt-1 text-sm text-muted-foreground">{s?.unresolvedLocations||0} ubicaciones pendientes · {s?.samplesReview||0} muestras por revisar.</p></button>
-      </div>
-
-      <section className="rounded-lg border bg-card p-5"><div className="flex items-center gap-2"><FileSearch className="h-4 w-4 text-muted-foreground"/><p className="font-medium">Estado de la información</p></div><div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-4"><Metric label="Collar georreferenciado" value={`${s?.locatedHoles||0}/${s?.holes||0}`} detail="Ubicación utilizable"/><Metric label="Orientación completa" value={`${s?.orientedHoles||0}/${s?.holes||0}`} detail="Azimut + inclinación"/><Metric label="Propósito geológico" value={`${s?.purposeHoles||0}/${s?.holes||0}`} detail="Objetivo documentado"/><Metric label="Muestras validadas" value={`${s?.samplesValidated||0}/${s?.samples||0}`} detail="Calidad disponible"/></div></section>
-
-      {s?.intervals===0?<div className="flex items-start gap-3 rounded-lg border bg-card px-4 py-4 text-sm"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">Falta logging geológico</p><p className="mt-1 text-muted-foreground">Existen sondajes canónicos, pero aún no hay intervalos cargados de litología, alteración o mineralización. Motil no los infiere ni los inventa.</p></div></div>:null}
-    </div>:null}
+    {data&&tab==='today'?<GeologiaTodayDecisionBoard summary={data.summary} pending={topPending} onOpenHoles={()=>setTab('holes')} onOpenResults={()=>setTab('results')} onOpenPending={()=>setTab('pending')}/>:null}
 
     {data&&tab==='holes'?<div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,.85fr)]">
       <div className="space-y-5">
@@ -192,11 +171,6 @@ export function GeologiaDashboard(){
       {topPending.length?<section className="overflow-hidden rounded-lg border bg-card"><div className="border-b px-4 py-3"><p className="font-medium">Cola de resolución</p><p className="mt-1 text-sm text-muted-foreground">Problemas que requieren decisión humana antes de consolidar la ubicación canónica.</p></div><div className="divide-y">{topPending.slice(0,100).map((row)=><div key={row.drill_hole_id} className="grid gap-3 px-4 py-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center"><div><p className="font-medium">{row.hole_code}</p><p className="mt-1 text-xs text-muted-foreground">{row.resolution_state||'Pendiente'}</p></div><div><p className="text-sm">{row.recommended_action||'Revisar evidencia y confirmar ubicación'}</p><p className="mt-1 text-xs text-muted-foreground">{row.proposed_mine_name||'Sin mina propuesta'}{row.proposed_sector_name?` · ${row.proposed_sector_name}`:''}</p></div><span className="text-xs text-muted-foreground">P{row.review_priority??'—'}</span></div>)}</div></section>:<Empty title="Sin ubicaciones pendientes" description="No hay elementos en la cola de revisión de ubicación."/>}
 
       <section className="overflow-hidden rounded-lg border bg-card"><div className="border-b px-4 py-3"><p className="font-medium">Evidencia de sondaje pendiente de reconciliación</p><p className="mt-1 text-sm text-muted-foreground">Asignar una mina sólo cuando la evidencia lo justifique. Sector y pozo no se infieren.</p></div><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-muted/30 text-left text-xs text-muted-foreground"><tr><th className="px-4 py-3">{drillingHeading('Fecha','operation_date')}</th><th className="px-4 py-3">{drillingHeading('Pozo','hole_code_raw')}</th><th className="px-4 py-3">{drillingHeading('Mina / sector fuente','mine_raw')}</th><th className="px-4 py-3 text-right">{drillingHeading('Metros','drilled_meters')}</th><th className="px-4 py-3">Estado</th>{data.canWrite?<th className="px-4 py-3">Asignar mina</th>:null}</tr></thead><tbody className="divide-y">{sortedDrilling.filter((r)=>!r.canonical_mine_source_id||!r.canonical_mine_sector_id||!r.canonical_drill_hole_id).slice(0,100).map((r)=><tr key={r.id}><td className="px-4 py-3 whitespace-nowrap">{r.operation_date||'—'}</td><td className="px-4 py-3 font-medium">{r.hole_code_raw||'—'}</td><td className="px-4 py-3"><p>{r.mine_raw&&r.mine_raw !== '#ERROR!'?r.mine_raw:'Sin mina en fuente'}</p><p className="text-xs text-muted-foreground">{r.sector_raw||'Sin sector fuente'}</p></td><td className="px-4 py-3 text-right tabular-nums">{Number(r.drilled_meters||0).toLocaleString('es-CL',{maximumFractionDigits:1})}</td><td className="px-4 py-3 text-xs text-muted-foreground">{r.canonical_mine_source_id?'Mina ✓':'Mina pendiente'} · {r.canonical_mine_sector_id?'Sector ✓':'Sector pendiente'} · {r.canonical_drill_hole_id?'Pozo ✓':'Pozo pendiente'}</td>{data.canWrite?<td className="min-w-[280px] px-4 py-3"><div className="flex items-center gap-2"><Select value={selectedMines[r.id]||''} onValueChange={(value)=>setSelectedMines((current)=>({...current,[r.id]:value}))}><SelectTrigger className="h-9"><SelectValue placeholder="Seleccionar mina"/></SelectTrigger><SelectContent>{data.mines.map((m)=><SelectItem key={m.id} value={m.id}>{m.name}{m.code?` · ${m.code}`:''}</SelectItem>)}</SelectContent></Select><Button size="sm" disabled={!selectedMines[r.id]||savingId===r.id} onClick={()=>void assignMine(r.id)}>{savingId===r.id?'Guardando…':'Asignar'}</Button></div></td>:null}</tr>)}</tbody></table></div></section>
-    </div>:null}
-
-    {data&&tab==='context'?<div className="space-y-5">
-      <div className="rounded-lg border bg-card p-5"><div className="flex items-start gap-3"><Mountain className="mt-0.5 h-5 w-5 text-muted-foreground"/><div><p className="font-medium">Contexto SERNAGEOMIN</p><p className="mt-1 text-sm text-muted-foreground">Se usa como antecedente externo para contrastar la información interna de La Patagua. No modifica automáticamente minas, sectores, sondajes ni interpretación canónica.</p></div></div></div>
-      {data.externalContext.length?<section className="overflow-hidden rounded-lg border bg-card"><div className="divide-y">{data.externalContext.map((row)=><div key={row.id} className="grid gap-3 px-4 py-4 md:grid-cols-[1.2fr_1fr_auto]"><div><p className="font-medium">{row.title||row.source_record_key||'Registro geológico externo'}</p><p className="mt-1 text-xs text-muted-foreground">{row.source_provider||'Fuente externa'} · {row.source_dataset||'Dataset no informado'}</p></div><div className="text-sm"><p>{row.record_type||'Sin tipo'}</p><p className="mt-1 text-xs text-muted-foreground">{row.validation_status||'Sin validar'} · recuperado {row.retrieved_at?new Date(row.retrieved_at).toLocaleDateString('es-CL'):'—'}</p></div><div className="text-xs text-muted-foreground">{row.geometry_geojson?'Georreferenciado':'Sin geometría'}</div></div>)}</div></section>:<Empty title="SERNAGEOMIN aún no cargado" description="La estructura está preparada, pero esta organización todavía no tiene contexto oficial incorporado. Esto no impide operar con los datos internos disponibles."/>}
     </div>:null}
   </div>;
 }
