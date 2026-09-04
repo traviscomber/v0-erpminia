@@ -43,6 +43,20 @@ test('floating geology chat is fixed, transparent, alive, accessible and never e
   assert.match(shell, /GeologiaAiFloatingChat/);
 });
 
+test('conversation UI stays bounded while full history remains archived', async () => {
+  const [route, chat] = await Promise.all([readFile(routeUrl, 'utf8'), readFile(chatUrl, 'utf8')]);
+  assert.match(route, /const UI_MESSAGE_LIMIT = 20/);
+  assert.match(route, /const SESSION_IDLE_MS = 8 \* 60 \* 60 \* 1000/);
+  assert.match(route, /status: 'archived'/);
+  assert.match(route, /body\?\.action === 'archive'/);
+  assert.match(route, /query\.lt\('created_at', before\)/);
+  assert.match(route, /oldestMessageAt/);
+  assert.match(chat, /Cargar anteriores/);
+  assert.match(chat, /action: 'archive'/);
+  assert.match(chat, /8 horas sin actividad/);
+  assert.match(route, /\.neq\('id', userMessage\.id\)/);
+});
+
 test('agent canonical context is tenant scoped and La Patagua only', async () => {
   const context = await readFile(contextUrl, 'utf8');
   for (const source of [
