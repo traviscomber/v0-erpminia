@@ -39,6 +39,8 @@ test('geology exposes canonical historical assays without inventing drill-hole l
   ]);
   assert.match(api, /production_chemistry_results/);
   assert.match(api, /production_chemistry_results'[\s\S]*eq\('organization_id',\s*context\.organizationId\)/);
+  assert.match(api, /production_drilling_operational_summary_v1/);
+  assert.match(api, /production_drilling_operational_summary_v1'[\s\S]*eq\('organization_id',\s*context\.organizationId\)/);
   assert.match(api, /sampleById/);
   assert.match(api, /mineById/);
   assert.match(api, /drill_hole_id:\s*sample\?\.drill_hole_id\s*\|\|\s*null/);
@@ -46,7 +48,8 @@ test('geology exposes canonical historical assays without inventing drill-hole l
   assert.match(history, /Histórico canónico de La Patagua/);
   assert.match(history, /Motil sólo las conecta cuando existe una relación canónica explícita/);
   assert.match(history, /Resultados históricos/);
-  assert.match(history, /Sin inferir vínculos históricos/);
+  assert.match(history, /no los adhiere a los 400 pozos por similitud o fecha/);
+  assert.match(history, /Evidencia operacional fuente/);
   assert.match(history, /row\.drill_hole_id\?'Canónico':'No asignado'/);
 });
 
