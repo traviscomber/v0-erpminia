@@ -72,7 +72,8 @@ export async function GET(request: NextRequest) {
       .from('production_drill_holes')
       .select('id,campaign_id,hole_code,drilling_domain,mine_source_id,mine_sector_id,collar_easting,collar_northing,collar_elevation,coordinate_reference,azimuth_deg,dip_deg,planned_depth_m,drilled_depth_m,diameter_mm,start_at,completed_at,status,geological_purpose,operational_purpose,source_type,source_reference')
       .eq('organization_id', context.organizationId)
-      .order('hole_code')
+      .order('start_at', { ascending: false, nullsFirst: false })
+      .order('hole_code', { ascending: true })
       .limit(1000),
     context.supabase
       .from('production_drill_intervals')
