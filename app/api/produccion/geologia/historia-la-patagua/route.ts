@@ -12,13 +12,19 @@ type MetallurgyRow = {
   validation_status:string|null;
 };
 
+type DrillingRow = {
+  operation_date:string|null;
+  hole_code_raw:string|null;
+  drilled_meters:number|null;
+};
+
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_GEOLOGIA);
   if (!access.authorized) return access.response;
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const [metallurgy, plans, planLines] = await Promise.all([
+  const [metallurgy, plans, planLines, drilling] = await Promise.all([
     context.supabase
       .from('production_metallurgy_automatic_v1')
       .select('operation_date,head_grade,source_file,source_sheet,validation_status')
@@ -37,9 +43,16 @@ export async function GET(request: NextRequest) {
       .eq('organization_id', context.organizationId)
       .order('priority', { ascending: true })
       .limit(2000),
+    context.supabase
+      .from('production_drilling_source_reports')
+      .select('operation_date,hole_code_raw,drilled_meters')
+      .eq('organization_id', context.organizationId)
+      .order('operation_date', { ascending: false })
+      .order('source_row', { ascending: false })
+      .limit(6000),
   ]);
 
-  const error = metallurgy.error || plans.error || planLines.error;
+  const error = metallurgy.error || plans.error || planLines.error || drilling.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const rows = (metallurgy.data || []) as MetallurgyRow[];
@@ -85,6 +98,14 @@ export async function GET(request: NextRequest) {
     .filter((value): value is string => Boolean(value))
     .sort();
 
+  const drillingRows = (drilling.data || []) as DrillingRow[];
+  const drillingDates = drillingRows
+    .map((row) => row.operation_date)
+    .filter((value): value is string => Boolean(value))
+    .sort();
+  const drillingMeters = drillingRows.reduce((sum, row) => sum + Number(row.drilled_meters || 0), 0);
+  const drillingHoles = new Set(drillingRows.map((row) => row.hole_code_raw).filter(Boolean)).size;
+
   return NextResponse.json({
     provenance: 'La Patagua',
     chronology: 'newest_first',
@@ -96,6 +117,14 @@ export async function GET(request: NextRequest) {
       months: headGradeHistory.length,
       latestMonth: headGradeHistory[0]?.month || null,
       latestAvgHeadGradePct: headGradeHistory[0]?.avgHeadGradePct ?? null,
+    },
+    drillingSummary: {
+      reportRows: drillingRows.length,
+      holes: drillingHoles,
+      drilledMeters: drillingMeters,
+      firstDate: drillingDates[0] || null,
+      lastDate: drillingDates[drillingDates.length - 1] || null,
+      source: 'production_drilling_source_reports',
     },
     headGradeHistory,
     minePlans,
