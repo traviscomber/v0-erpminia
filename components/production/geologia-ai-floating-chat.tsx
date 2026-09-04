@@ -17,6 +17,9 @@ type ChatMessage = {
 type ChatState = {
   conversation?: { id: string; title?: string | null } | null;
   messages?: ChatMessage[];
+  hasMore?: boolean;
+  oldestMessageAt?: string | null;
+  sessionIdleHours?: number;
   memoryCount?: number;
   cargo?: string | null;
   agent?: string;
@@ -62,7 +65,6 @@ function GeologyAiIcon() {
         <path d="M38 60 46 40 58 49 53 69Z" fill="url(#geo-copper)" stroke="#b95c1d" strokeWidth="1.4" strokeLinejoin="round" />
         <path d="M59 49 68 34 72 51 62 61Z" fill="#9b4b19" stroke="#e89b4f" strokeWidth="1.4" strokeLinejoin="round" />
         <path d="M22 57 36 60 52 79 34 70Z" fill="#5e2b12" stroke="#c86a24" strokeWidth="1.4" strokeLinejoin="round" />
-
         <path d="M56 51h19c8.3 0 15 6.7 15 15s-6.7 15-15 15H62l-10 8V66c0-8.3 6.7-15 15-15Z" fill="#0d0f10" stroke="#f0a14f" strokeWidth="2.6" strokeLinejoin="round" />
         <circle cx="64" cy="66" r="2.7" fill="#f7b75f" />
         <circle cx="72" cy="66" r="2.7" fill="#f7b75f" />
@@ -77,12 +79,16 @@ export function GeologiaAiFloatingChat() {
   const [loaded, setLoaded] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [oldestMessageAt, setOldestMessageAt] = useState<string | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [memoryCount, setMemoryCount] = useState(0);
   const [cargo, setCargo] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const suppressAutoScrollRef = useRef(false);
 
   useEffect(() => {
     if (!open || loaded) return;
@@ -94,6 +100,8 @@ export function GeologiaAiFloatingChat() {
         if (!active) return;
         setConversationId(data.conversation?.id || null);
         setMessages(data.messages || []);
+        setHasMore(Boolean(data.hasMore));
+        setOldestMessageAt(data.oldestMessageAt || null);
         setMemoryCount(data.memoryCount || 0);
         setCargo(data.cargo || null);
         setLoaded(true);
@@ -108,8 +116,39 @@ export function GeologiaAiFloatingChat() {
 
   useEffect(() => {
     if (!open) return;
+    if (suppressAutoScrollRef.current) {
+      suppressAutoScrollRef.current = false;
+      return;
+    }
     bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   }, [open, messages, sending]);
+
+  const loadOlder = async () => {
+    if (!conversationId || !hasMore || !oldestMessageAt || loadingOlder) return;
+    setLoadingOlder(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ conversationId, before: oldestMessageAt });
+      const response = await fetch(`/api/produccion/geologia/assistant?${params.toString()}`, {
+        credentials: 'include',
+        cache: 'no-store',
+      });
+      const data = (await response.json().catch(() => null)) as ChatState & { error?: string };
+      if (!response.ok) throw new Error(data?.error || 'No fue posible cargar mensajes anteriores');
+      const older = data.messages || [];
+      suppressAutoScrollRef.current = true;
+      setMessages((current) => {
+        const existing = new Set(current.map((message) => message.id).filter(Boolean));
+        return [...older.filter((message) => !message.id || !existing.has(message.id)), ...current];
+      });
+      setHasMore(Boolean(data.hasMore));
+      setOldestMessageAt(data.oldestMessageAt || oldestMessageAt);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No fue posible cargar mensajes anteriores');
+    } finally {
+      setLoadingOlder(false);
+    }
+  };
 
   const submit = async (event?: FormEvent) => {
     event?.preventDefault();
@@ -148,29 +187,37 @@ export function GeologiaAiFloatingChat() {
     }
   };
 
-  const startNewConversation = () => {
-    setConversationId(null);
-    setMessages([]);
+  const startNewConversation = async () => {
+    if (sending) return;
     setError(null);
-    setInput('');
+    try {
+      if (conversationId) {
+        const response = await fetch('/api/produccion/geologia/assistant', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'archive', conversationId }),
+        });
+        const data = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(data?.error || 'No fue posible cerrar la conversación');
+      }
+      setConversationId(null);
+      setMessages([]);
+      setHasMore(false);
+      setOldestMessageAt(null);
+      setInput('');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No fue posible cerrar la conversación');
+    }
   };
 
   return (
     <>
       <style>{`
         @keyframes geology-ai-alive {
-          0%, 100% {
-            transform: translateY(0) scale(1);
-            filter: saturate(1) brightness(1);
-          }
-          48% {
-            transform: translateY(-2px) scale(1.065);
-            filter: saturate(1.18) brightness(1.16);
-          }
-          58% {
-            transform: translateY(-1px) scale(1.04);
-            filter: saturate(1.1) brightness(1.08);
-          }
+          0%, 100% { transform: translateY(0) scale(1); filter: saturate(1) brightness(1); }
+          48% { transform: translateY(-2px) scale(1.065); filter: saturate(1.18) brightness(1.16); }
+          58% { transform: translateY(-1px) scale(1.04); filter: saturate(1.1) brightness(1.08); }
         }
         @keyframes geology-ai-aura {
           0%, 100% { opacity: 0.18; transform: scale(0.86); }
@@ -235,7 +282,7 @@ export function GeologiaAiFloatingChat() {
                 </div>
               </div>
               <div className="flex shrink-0 items-center gap-1">
-                <Button type="button" variant="ghost" size="icon-sm" onClick={startNewConversation} aria-label="Nueva conversación" title="Nueva conversación">
+                <Button type="button" variant="ghost" size="icon-sm" onClick={() => void startNewConversation()} disabled={sending} aria-label="Nueva conversación" title="Archivar conversación y comenzar una nueva">
                   <RotateCcw className="h-4 w-4" />
                 </Button>
                 <Button type="button" variant="ghost" size="icon-sm" onClick={() => setOpen(false)} aria-label="Cerrar asistente">
@@ -253,6 +300,7 @@ export function GeologiaAiFloatingChat() {
                 <div className="rounded-lg border bg-card p-4">
                   <div className="flex items-center gap-2 text-sm font-medium"><Sparkles className="h-4 w-4 text-primary" />Consulta Geología como conversación</div>
                   <p className="mt-2 text-sm leading-6 text-muted-foreground">Puedo analizar plan, ley cabeza, sondajes, ensayes, cobertura y pendientes; separar dato de interpretación; y adaptar recomendaciones a tu cargo. Si falta evidencia, lo diré explícitamente.</p>
+                  <p className="mt-2 text-xs leading-5 text-muted-foreground">La conversación activa se archiva después de 8 horas sin actividad. Tu memoria de trabajo se conserva separada.</p>
                 </div>
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-muted-foreground">Puedes partir por:</p>
@@ -270,6 +318,13 @@ export function GeologiaAiFloatingChat() {
               </div>
             ) : (
               <div className="space-y-4">
+                {hasMore ? (
+                  <div className="flex justify-center">
+                    <Button type="button" variant="ghost" size="sm" onClick={() => void loadOlder()} disabled={loadingOlder}>
+                      {loadingOlder ? 'Cargando…' : 'Cargar anteriores'}
+                    </Button>
+                  </div>
+                ) : null}
                 {messages.map((message, index) => (
                   <article key={message.id || `${message.role}-${index}`} className={cn('flex', message.role === 'user' ? 'justify-end' : 'justify-start')}>
                     <div className={cn(
