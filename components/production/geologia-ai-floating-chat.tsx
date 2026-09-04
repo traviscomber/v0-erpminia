@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
-import { Bot, Database, MessageCircle, RotateCcw, Send, Sparkles, X } from 'lucide-react';
+import { Bot, Database, RotateCcw, Send, Sparkles, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +28,48 @@ const starters = [
   '¿Qué sabemos realmente de Peumo y qué evidencia geológica nos falta?',
   'Revisa los sondajes más recientes y dime qué requiere atención.',
 ];
+
+function GeologyAiIcon() {
+  return (
+    <svg
+      viewBox="0 0 96 96"
+      aria-hidden="true"
+      className="geology-ai-mark h-[62px] w-[62px] overflow-visible"
+    >
+      <defs>
+        <linearGradient id="geo-copper" x1="18" y1="14" x2="74" y2="80" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#ffd08a" />
+          <stop offset="0.34" stopColor="#d98a3a" />
+          <stop offset="0.72" stopColor="#9f4d18" />
+          <stop offset="1" stopColor="#6b2d0c" />
+        </linearGradient>
+        <linearGradient id="geo-copper-light" x1="30" y1="18" x2="61" y2="60" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#fff0c7" />
+          <stop offset="0.45" stopColor="#f6b45e" />
+          <stop offset="1" stopColor="#b95c1d" />
+        </linearGradient>
+        <filter id="geo-glow" x="-35%" y="-35%" width="170%" height="170%">
+          <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.48" />
+          <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#ea580c" floodOpacity="0.24" />
+        </filter>
+      </defs>
+
+      <g filter="url(#geo-glow)">
+        <path d="M19 58 29 31l14 7 8-23 17 17-5 16 15-6 9 15-16 8-18 17-20-10Z" fill="#0f1113" stroke="#4a2412" strokeWidth="2.5" strokeLinejoin="round" />
+        <path d="M30 33 43 39 36 59 24 55Z" fill="url(#geo-copper)" stroke="#f2a65d" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M44 38 52 16 67 32 58 48Z" fill="url(#geo-copper-light)" stroke="#ffd08a" strokeWidth="1.5" strokeLinejoin="round" />
+        <path d="M38 60 46 40 58 49 53 69Z" fill="url(#geo-copper)" stroke="#b95c1d" strokeWidth="1.4" strokeLinejoin="round" />
+        <path d="M59 49 68 34 72 51 62 61Z" fill="#9b4b19" stroke="#e89b4f" strokeWidth="1.4" strokeLinejoin="round" />
+        <path d="M22 57 36 60 52 79 34 70Z" fill="#5e2b12" stroke="#c86a24" strokeWidth="1.4" strokeLinejoin="round" />
+
+        <path d="M56 51h19c8.3 0 15 6.7 15 15s-6.7 15-15 15H62l-10 8V66c0-8.3 6.7-15 15-15Z" fill="#0d0f10" stroke="#f0a14f" strokeWidth="2.6" strokeLinejoin="round" />
+        <circle cx="64" cy="66" r="2.7" fill="#f7b75f" />
+        <circle cx="72" cy="66" r="2.7" fill="#f7b75f" />
+        <circle cx="80" cy="66" r="2.7" fill="#f7b75f" />
+      </g>
+    </svg>
+  );
+}
 
 export function GeologiaAiFloatingChat() {
   const [open, setOpen] = useState(false);
@@ -114,19 +156,27 @@ export function GeologiaAiFloatingChat() {
 
   return (
     <>
-      <Button
+      <style>{`
+        @keyframes geology-ai-alive {
+          0%, 100% { transform: translateY(0) scale(1); filter: saturate(1); }
+          50% { transform: translateY(-1px) scale(1.035); filter: saturate(1.08); }
+        }
+        .geology-ai-mark { transform-origin: 50% 55%; animation: geology-ai-alive 4.8s ease-in-out infinite; }
+        @media (prefers-reduced-motion: reduce) { .geology-ai-mark { animation: none; } }
+      `}</style>
+
+      <button
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          'fixed bottom-5 right-5 z-50 h-12 gap-2 rounded-full px-4 shadow-xl transition-transform hover:-translate-y-0.5',
+          'fixed bottom-4 right-4 z-50 grid h-[72px] w-[72px] place-items-center border-0 bg-transparent p-0 outline-none transition-[opacity,transform] duration-200 hover:scale-[1.04] focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           open && 'pointer-events-none scale-95 opacity-0',
         )}
         aria-label="Abrir Asistente Senior de Geología"
+        title="Asistente Senior de Geología"
       >
-        <Sparkles className="h-4 w-4" />
-        <span className="hidden sm:inline">Geólogo IA</span>
-        <MessageCircle className="h-4 w-4 sm:hidden" />
-      </Button>
+        <GeologyAiIcon />
+      </button>
 
       {open ? (
         <section
