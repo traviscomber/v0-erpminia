@@ -18,12 +18,16 @@ test('geology AI uses server-side OPENAI_API_KEY directly and enforces geology a
   assert.doesNotMatch(route, /NEXT_PUBLIC_OPENAI/i);
 });
 
-test('floating geology chat never exposes the OpenAI key to the browser', async () => {
+test('floating geology chat is fixed, transparent, accessible and never exposes the OpenAI key', async () => {
   const [chat, shell] = await Promise.all([readFile(chatUrl, 'utf8'), readFile(shellUrl, 'utf8')]);
-  assert.match(chat, /fixed bottom-5 right-5/);
-  assert.match(chat, /Geólogo IA/);
+  assert.match(chat, /fixed bottom-4 right-4/);
+  assert.match(chat, /bg-transparent/);
+  assert.match(chat, /border-0/);
+  assert.match(chat, /aria-label="Abrir Asistente Senior de Geología"/);
+  assert.match(chat, /GeologyAiIcon/);
   assert.match(chat, /\/api\/produccion\/geologia\/assistant/);
   assert.doesNotMatch(chat, /OPENAI_API_KEY/);
+  assert.doesNotMatch(shell, /GEOLOGY_CHAT_ICON|data:image\/webp|background-image/);
   assert.match(shell, /GeologiaAiFloatingChat/);
 });
 
