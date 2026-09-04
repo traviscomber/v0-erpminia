@@ -11,6 +11,8 @@ const DEFAULT_MODEL = 'gpt-5.6-terra';
 const DEFAULT_MEMORY_MODEL = 'gpt-5.6-luna';
 const MAX_MESSAGE_CHARS = 12000;
 const HISTORY_LIMIT = 40;
+const UI_MESSAGE_LIMIT = 20;
+const SESSION_IDLE_MS = 8 * 60 * 60 * 1000;
 
 function extractResponseText(payload: any) {
   for (const item of payload?.output || []) {
@@ -57,6 +59,24 @@ function conversationTranscript(rows: any[]) {
   return rows
     .map((row) => `${row.role === 'assistant' ? 'ASISTENTE' : 'USUARIO'}: ${row.content}`)
     .join('\n\n');
+}
+
+function isExpired(lastMessageAt?: string | null) {
+  if (!lastMessageAt) return false;
+  const timestamp = new Date(lastMessageAt).getTime();
+  return Number.isFinite(timestamp) && Date.now() - timestamp >= SESSION_IDLE_MS;
+}
+
+async function archiveConversation(
+  context: Extract<Awaited<ReturnType<typeof getOrganizationContext>>, { ok: true }>,
+  conversationId: string,
+) {
+  return context.supabase
+    .from('geology_ai_conversations')
+    .update({ status: 'archived', updated_at: new Date().toISOString() })
+    .eq('id', conversationId)
+    .eq('organization_id', context.organizationId)
+    .eq('user_id', context.userId);
 }
 
 async function resolveCargo(context: Extract<Awaited<ReturnType<typeof getOrganizationContext>>, { ok: true }>) {
@@ -108,21 +128,23 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   const requestedId = request.nextUrl.searchParams.get('conversationId');
+  const before = request.nextUrl.searchParams.get('before');
   let conversation: any = null;
 
   if (requestedId) {
     const { data } = await context.supabase
       .from('geology_ai_conversations')
-      .select('id,title,last_message_at,created_at')
+      .select('id,title,status,last_message_at,created_at')
       .eq('id', requestedId)
       .eq('organization_id', context.organizationId)
       .eq('user_id', context.userId)
+      .eq('status', 'active')
       .maybeSingle();
     conversation = data;
   } else {
     const { data } = await context.supabase
       .from('geology_ai_conversations')
-      .select('id,title,last_message_at,created_at')
+      .select('id,title,status,last_message_at,created_at')
       .eq('organization_id', context.organizationId)
       .eq('user_id', context.userId)
       .eq('status', 'active')
@@ -132,17 +154,32 @@ export async function GET(request: NextRequest) {
     conversation = data;
   }
 
+  if (conversation?.id && isExpired(conversation.last_message_at)) {
+    await archiveConversation(context, conversation.id);
+    conversation = null;
+  }
+
   let messages: any[] = [];
+  let hasMore = false;
+  let oldestMessageAt: string | null = null;
+
   if (conversation?.id) {
-    const { data } = await context.supabase
+    let query = context.supabase
       .from('geology_ai_messages')
       .select('id,role,content,source_refs,model,created_at')
       .eq('conversation_id', conversation.id)
       .eq('organization_id', context.organizationId)
       .eq('user_id', context.userId)
-      .order('created_at', { ascending: true })
-      .limit(200);
-    messages = data || [];
+      .order('created_at', { ascending: false })
+      .limit(UI_MESSAGE_LIMIT + 1);
+
+    if (before) query = query.lt('created_at', before);
+
+    const { data } = await query;
+    const rows = data || [];
+    hasMore = rows.length > UI_MESSAGE_LIMIT;
+    messages = rows.slice(0, UI_MESSAGE_LIMIT).reverse();
+    oldestMessageAt = messages[0]?.created_at || null;
   }
 
   const [{ data: memories }, cargo] = await Promise.all([
@@ -160,6 +197,9 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     conversation,
     messages,
+    hasMore,
+    oldestMessageAt,
+    sessionIdleHours: SESSION_IDLE_MS / (60 * 60 * 1000),
     memoryCount: memories?.length || 0,
     cargo,
     agent: 'Asistente Senior de Geología La Patagua',
@@ -173,8 +213,14 @@ export async function POST(request: NextRequest) {
   if (!context.ok) return context.response;
 
   const body = await request.json().catch(() => null);
-  const message = typeof body?.message === 'string' ? body.message.trim() : '';
   const requestedConversationId = typeof body?.conversationId === 'string' ? body.conversationId : null;
+
+  if (body?.action === 'archive') {
+    if (requestedConversationId) await archiveConversation(context, requestedConversationId);
+    return NextResponse.json({ archived: Boolean(requestedConversationId) });
+  }
+
+  const message = typeof body?.message === 'string' ? body.message.trim() : '';
   if (!message) return NextResponse.json({ error: 'Escribe una consulta' }, { status: 400 });
   if (message.length > MAX_MESSAGE_CHARS) return NextResponse.json({ error: 'La consulta es demasiado larga' }, { status: 400 });
 
@@ -182,13 +228,18 @@ export async function POST(request: NextRequest) {
   if (requestedConversationId) {
     const { data } = await context.supabase
       .from('geology_ai_conversations')
-      .select('id,title')
+      .select('id,title,last_message_at')
       .eq('id', requestedConversationId)
       .eq('organization_id', context.organizationId)
       .eq('user_id', context.userId)
       .eq('status', 'active')
       .maybeSingle();
     conversation = data;
+  }
+
+  if (conversation?.id && isExpired(conversation.last_message_at)) {
+    await archiveConversation(context, conversation.id);
+    conversation = null;
   }
 
   if (!conversation) {
@@ -225,6 +276,7 @@ export async function POST(request: NextRequest) {
       .eq('conversation_id', conversation.id)
       .eq('organization_id', context.organizationId)
       .eq('user_id', context.userId)
+      .neq('id', userMessage.id)
       .order('created_at', { ascending: false })
       .limit(HISTORY_LIMIT),
     context.supabase
