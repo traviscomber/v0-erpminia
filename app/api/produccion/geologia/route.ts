@@ -38,6 +38,7 @@ export async function GET(request: NextRequest) {
     sectors,
     drilling,
     recentDrilling,
+    drillingHistory,
     quality,
     chemistryIntelligence,
     holes,
@@ -59,6 +60,11 @@ export async function GET(request: NextRequest) {
       .order('name'),
     drillingQuery,
     recentDrillingQuery,
+    context.supabase
+      .from('production_drilling_operational_summary_v1')
+      .select('report_rows,holes,rigs,operators,drilled_meters,min_date,max_date,meter_capture_pct')
+      .eq('organization_id', context.organizationId)
+      .maybeSingle(),
     context.supabase
       .from('production_geology_context_quality_v1')
       .select('*')
@@ -111,6 +117,7 @@ export async function GET(request: NextRequest) {
     sectors.error ||
     drilling.error ||
     recentDrilling.error ||
+    drillingHistory.error ||
     quality.error ||
     chemistryIntelligence.error ||
     holes.error ||
@@ -218,6 +225,7 @@ export async function GET(request: NextRequest) {
       sernageominRecords: Number(q.sernageomin_records || 0),
       unresolvedLocations,
     },
+    drillingHistory: drillingHistory.data || null,
     mines: mineSummary,
     holes: holeRows,
     intervals: intervalRows,
