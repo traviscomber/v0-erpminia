@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { GeologiaDashboard } from '@/components/production/geologia-dashboard';
 import { GeologiaHistoricalCanonical } from '@/components/production/geologia-historical-canonical';
+import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floating-chat';
 
 const tabs = [
   ['today', 'Hoy'],
@@ -59,6 +60,7 @@ export function GeologiaWorkspaceShell() {
       </div>
 
       {tab === 'history' ? <GeologiaHistoricalCanonical /> : null}
+      <GeologiaAiFloatingChat />
     </div>
   );
 }
