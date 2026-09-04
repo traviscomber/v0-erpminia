@@ -5,6 +5,9 @@ import { readFile } from 'node:fs/promises';
 const apiUrl = new URL('../app/api/produccion/geologia/route.ts', import.meta.url);
 const historyApiUrl = new URL('../app/api/produccion/geologia/historia-la-patagua/route.ts', import.meta.url);
 const dashboardUrl = new URL('../components/production/geologia-dashboard.tsx', import.meta.url);
+const todayUrl = new URL('../components/production/geologia-today-decision-board.tsx', import.meta.url);
+const resultsUrl = new URL('../components/production/geologia-results-decision-board.tsx', import.meta.url);
+const pendingUrl = new URL('../components/production/geologia-pending-decision-queue.tsx', import.meta.url);
 const historyUrl = new URL('../components/production/geologia-historical-canonical.tsx', import.meta.url);
 const shellUrl = new URL('../components/production/geologia-workspace-shell.tsx', import.meta.url);
 const pageUrl = new URL('../app/dashboard/produccion/geologia/page.tsx', import.meta.url);
@@ -18,15 +21,24 @@ test('geology mine assignment requires write access and remains organization sco
 });
 
 test('geology dashboard follows the La Patagua operating workflow', async () => {
-  const [dashboard, shell, page] = await Promise.all([
+  const [dashboard, today, results, pending, shell, page] = await Promise.all([
     readFile(dashboardUrl, 'utf8'),
+    readFile(todayUrl, 'utf8'),
+    readFile(resultsUrl, 'utf8'),
+    readFile(pendingUrl, 'utf8'),
     readFile(shellUrl, 'utf8'),
     readFile(pageUrl, 'utf8'),
   ]);
-  assert.match(dashboard, /data\.canWrite/);
-  assert.match(dashboard, /Seleccionar mina/);
+  assert.match(dashboard, /GeologiaTodayDecisionBoard/);
+  assert.match(dashboard, /GeologiaResultsDecisionBoard/);
+  assert.match(dashboard, /GeologiaPendingDecisionQueue/);
   assert.match(dashboard, /JSON\.stringify\(\{reportId,mineId\}\)/);
-  assert.match(dashboard, /Motil no los infiere ni los inventa/);
+  assert.match(today, /No se infiere geología inexistente/);
+  assert.match(results, /no estimar ni inferir Cu/);
+  assert.match(results, /más recientes primero/);
+  assert.match(pending, /Seleccionar mina/);
+  assert.match(pending, /sector y pozo no se infieren/i);
+  assert.match(pending, /Más reciente primero/);
   assert.match(shell, /Hoy/);
   assert.match(shell, /Mapa y sondajes/);
   assert.match(shell, /Resultados/);
