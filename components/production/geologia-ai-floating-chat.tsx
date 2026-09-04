@@ -34,7 +34,7 @@ function GeologyAiIcon() {
     <svg
       viewBox="0 0 96 96"
       aria-hidden="true"
-      className="geology-ai-mark h-[62px] w-[62px] overflow-visible"
+      className="geology-ai-mark h-[82px] w-[82px] overflow-visible"
     >
       <defs>
         <linearGradient id="geo-copper" x1="18" y1="14" x2="74" y2="80" gradientUnits="userSpaceOnUse">
@@ -48,9 +48,10 @@ function GeologyAiIcon() {
           <stop offset="0.45" stopColor="#f6b45e" />
           <stop offset="1" stopColor="#b95c1d" />
         </linearGradient>
-        <filter id="geo-glow" x="-35%" y="-35%" width="170%" height="170%">
-          <feDropShadow dx="0" dy="4" stdDeviation="4" floodColor="#000" floodOpacity="0.48" />
-          <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#ea580c" floodOpacity="0.24" />
+        <filter id="geo-glow" x="-55%" y="-55%" width="210%" height="210%">
+          <feDropShadow dx="0" dy="5" stdDeviation="5" floodColor="#000" floodOpacity="0.5" />
+          <feDropShadow dx="0" dy="0" stdDeviation="4" floodColor="#ea580c" floodOpacity="0.38" />
+          <feDropShadow dx="0" dy="0" stdDeviation="9" floodColor="#f59e0b" floodOpacity="0.14" />
         </filter>
       </defs>
 
@@ -158,18 +159,50 @@ export function GeologiaAiFloatingChat() {
     <>
       <style>{`
         @keyframes geology-ai-alive {
-          0%, 100% { transform: translateY(0) scale(1); filter: saturate(1); }
-          50% { transform: translateY(-1px) scale(1.035); filter: saturate(1.08); }
+          0%, 100% {
+            transform: translateY(0) scale(1);
+            filter: saturate(1) brightness(1);
+          }
+          48% {
+            transform: translateY(-2px) scale(1.065);
+            filter: saturate(1.18) brightness(1.16);
+          }
+          58% {
+            transform: translateY(-1px) scale(1.04);
+            filter: saturate(1.1) brightness(1.08);
+          }
         }
-        .geology-ai-mark { transform-origin: 50% 55%; animation: geology-ai-alive 4.8s ease-in-out infinite; }
-        @media (prefers-reduced-motion: reduce) { .geology-ai-mark { animation: none; } }
+        @keyframes geology-ai-aura {
+          0%, 100% { opacity: 0.18; transform: scale(0.86); }
+          50% { opacity: 0.72; transform: scale(1.12); }
+        }
+        .geology-ai-mark {
+          transform-origin: 50% 55%;
+          animation: geology-ai-alive 4.6s cubic-bezier(.4,0,.2,1) infinite;
+          position: relative;
+          z-index: 1;
+        }
+        .geology-ai-launcher::before {
+          content: '';
+          position: absolute;
+          inset: 11px;
+          border-radius: 9999px;
+          background: radial-gradient(circle, rgba(234,88,12,.34) 0%, rgba(245,158,11,.12) 42%, rgba(234,88,12,0) 72%);
+          filter: blur(8px);
+          pointer-events: none;
+          animation: geology-ai-aura 4.6s cubic-bezier(.4,0,.2,1) infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .geology-ai-mark,
+          .geology-ai-launcher::before { animation: none; }
+        }
       `}</style>
 
       <button
         type="button"
         onClick={() => setOpen(true)}
         className={cn(
-          'fixed bottom-4 right-4 z-50 grid h-[72px] w-[72px] place-items-center border-0 bg-transparent p-0 outline-none transition-[opacity,transform] duration-200 hover:scale-[1.04] focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          'geology-ai-launcher fixed bottom-4 right-4 z-50 grid h-[94px] w-[94px] place-items-center border-0 bg-transparent p-0 outline-none transition-[opacity,transform] duration-200 hover:scale-[1.04] focus-visible:ring-2 focus-visible:ring-primary/70 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
           open && 'pointer-events-none scale-95 opacity-0',
         )}
         aria-label="Abrir Asistente Senior de Geología"
