@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
       .from('production_metallurgy_automatic_v1')
       .select('operation_date,head_grade,source_file,source_sheet,validation_status')
       .eq('organization_id', context.organizationId)
-      .order('operation_date', { ascending: true })
+      .order('operation_date', { ascending: false })
       .limit(15000),
     context.supabase
       .from('production_monthly_plans')
@@ -60,30 +60,42 @@ export async function GET(request: NextRequest) {
     byMonth.set(month, current);
   }
 
-  const headGradeHistory = [...byMonth.entries()].map(([month, value]) => ({
-    month: `${month}-01`,
-    records: value.count,
-    avgHeadGradePct: value.count ? value.sum / value.count : null,
-    minHeadGradePct: value.min,
-    maxHeadGradePct: value.max,
-    sourceFiles: [...value.sources],
-  }));
+  const headGradeHistory = [...byMonth.entries()]
+    .map(([month, value]) => ({
+      month: `${month}-01`,
+      records: value.count,
+      avgHeadGradePct: value.count ? value.sum / value.count : null,
+      minHeadGradePct: value.min,
+      maxHeadGradePct: value.max,
+      sourceFiles: [...value.sources].sort(),
+    }))
+    .sort((a, b) => b.month.localeCompare(a.month));
 
   const planRows = plans.data || [];
   const lineRows = planLines.data || [];
   const minePlans = planRows.map((plan) => ({
     ...plan,
-    lines: lineRows.filter((line) => line.plan_id === plan.id),
+    lines: lineRows
+      .filter((line) => line.plan_id === plan.id)
+      .sort((a, b) => Number(a.priority ?? 9999) - Number(b.priority ?? 9999)),
   }));
+
+  const validDates = validRows
+    .map((row) => row.operation_date)
+    .filter((value): value is string => Boolean(value))
+    .sort();
 
   return NextResponse.json({
     provenance: 'La Patagua',
+    chronology: 'newest_first',
     headGradeSummary: {
       validRecords: validRows.length,
       reviewRecords: reviewRows.length,
-      firstDate: validRows[0]?.operation_date || null,
-      lastDate: validRows[validRows.length - 1]?.operation_date || null,
+      firstDate: validDates[0] || null,
+      lastDate: validDates[validDates.length - 1] || null,
       months: headGradeHistory.length,
+      latestMonth: headGradeHistory[0]?.month || null,
+      latestAvgHeadGradePct: headGradeHistory[0]?.avgHeadGradePct ?? null,
     },
     headGradeHistory,
     minePlans,
