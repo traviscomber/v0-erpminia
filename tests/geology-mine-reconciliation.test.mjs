@@ -53,7 +53,7 @@ test('geology exposes canonical historical assays without inventing drill-hole l
   assert.match(history, /Sólo datos La Patagua/);
 });
 
-test('La Patagua historical geology endpoint exposes validated current-first head grade and mine plan', async () => {
+test('La Patagua historical geology endpoint exposes validated current-first head grade, live drilling and mine plan', async () => {
   const [historyApi, history] = await Promise.all([readFile(historyApiUrl, 'utf8'), readFile(historyUrl, 'utf8')]);
   assert.match(historyApi, /production_metallurgy_automatic_v1/);
   assert.match(historyApi, /production_metallurgy_automatic_v1'[\s\S]*eq\('organization_id',\s*context\.organizationId\)/);
@@ -61,6 +61,8 @@ test('La Patagua historical geology endpoint exposes validated current-first hea
   assert.match(historyApi, /chronology: 'newest_first'/);
   assert.match(historyApi, /production_monthly_plans/);
   assert.match(historyApi, /production_monthly_plan_lines/);
+  assert.match(historyApi, /production_drilling_source_reports/);
+  assert.match(historyApi, /source: 'production_drilling_source_reports'/);
   assert.match(historyApi, /validation_status/);
   assert.match(historyApi, /=== 'valid'/);
   assert.match(historyApi, /provenance: 'La Patagua'/);
@@ -68,6 +70,7 @@ test('La Patagua historical geology endpoint exposes validated current-first hea
   assert.match(history, /Plan minero vigente/);
   assert.match(history, /Ley cabeza · más reciente primero/);
   assert.match(history, /Ensayes · más reciente primero/);
+  assert.match(history, /Calculado directamente desde la tabla canónica vigente/);
   assert.match(history, /La lectura siempre prioriza el dato más reciente/);
   assert.doesNotMatch(history, /SERNAGEOMIN/i);
 });
