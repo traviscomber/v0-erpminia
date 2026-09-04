@@ -41,6 +41,16 @@ export function GeologiaWorkspaceShell() {
   return (
     <div className="space-y-5">
       <style>{`
+        @keyframes geology-assistant-breathe {
+          0%, 100% {
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34), 0 0 0 0 rgba(234, 88, 12, 0);
+            filter: saturate(1);
+          }
+          50% {
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34), 0 0 0 7px rgba(234, 88, 12, 0.11);
+            filter: saturate(1.06);
+          }
+        }
         button[aria-label="Abrir Asistente Senior de Geología"] {
           width: 58px;
           min-width: 58px;
@@ -51,10 +61,16 @@ export function GeologiaWorkspaceShell() {
           background-position: center;
           background-repeat: no-repeat;
           background-size: 46px 46px;
+          animation: geology-assistant-breathe 4.2s ease-in-out infinite;
         }
         button[aria-label="Abrir Asistente Senior de Geología"] > svg,
         button[aria-label="Abrir Asistente Senior de Geología"] > span {
           display: none !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          button[aria-label="Abrir Asistente Senior de Geología"] {
+            animation: none;
+          }
         }
       `}</style>
 
