@@ -19,7 +19,6 @@ type Mine = {
 
 type Data = {
   summary:{holes:number;canonicalDrilledMeters:number;samples:number;assays:number;assaysValidated:number};
-  drillingHistory:{report_rows:number|null;holes:number|null;drilled_meters:number|null;min_date:string|null;max_date:string|null;meter_capture_pct:number|null}|null;
   mines:Mine[];
   chemistryResults:ChemistryResult[];
 };
@@ -43,6 +42,7 @@ type MinePlan = {
 type HistoryData = {
   provenance:'La Patagua'; chronology:'newest_first';
   headGradeSummary:{validRecords:number;reviewRecords:number;firstDate:string|null;lastDate:string|null;months:number;latestMonth:string|null;latestAvgHeadGradePct:number|null};
+  drillingSummary:{reportRows:number;holes:number;drilledMeters:number;firstDate:string|null;lastDate:string|null;source:'production_drilling_source_reports'};
   headGradeHistory:GradeMonth[];
   minePlans:MinePlan[];
 };
@@ -90,7 +90,7 @@ export function GeologiaHistoricalCanonical(){
   const chemistryMines=(data?.mines||[])
     .filter((mine)=>mine.chemistry&&Number(mine.chemistry.results||0)>0)
     .sort((a,b)=>String(b.chemistry?.last_sample_date||'').localeCompare(String(a.chemistry?.last_sample_date||'')));
-  const history=data?.drillingHistory;
+  const drilling=historyData?.drillingSummary;
   const gradeMonths=[...(historyData?.headGradeHistory||[])].sort((a,b)=>b.month.localeCompare(a.month));
   const recentGrades=gradeMonths.slice(0,24);
   const latestGrade=gradeMonths[0]||null;
@@ -113,7 +113,7 @@ export function GeologiaHistoricalCanonical(){
       <div className="mt-3 grid gap-px overflow-hidden rounded-md border bg-border sm:grid-cols-2 lg:grid-cols-4">
         <div className="bg-background p-4"><p className="text-xs text-muted-foreground">Plan minero vigente</p><p className="mt-2 text-xl font-semibold">{historyLoading?'—':formatMonth(latestPlan?.period_start||null)}</p><p className="mt-1 text-xs text-muted-foreground">Ley objetivo {latestPlan?.target_cu_grade_pct!=null?cu(latestPlan.target_cu_grade_pct):'—'}</p></div>
         <div className="bg-background p-4"><div className="flex items-center gap-2 text-xs text-muted-foreground"><TrendingUp className="h-3.5 w-3.5"/>Última ley cabeza validada</div><p className="mt-2 text-xl font-semibold">{historyLoading?'—':cu(latestGrade?.avgHeadGradePct??null)}</p><p className="mt-1 text-xs text-muted-foreground">{latestGrade?`${formatMonth(latestGrade.month)} · ${latestGrade.records} registros`:'Sin dato'}</p></div>
-        <div className="bg-background p-4"><div className="flex items-center gap-2 text-xs text-muted-foreground"><Drill className="h-3.5 w-3.5"/>Última evidencia de sondaje</div><p className="mt-2 text-xl font-semibold">{isLoading?'—':formatDate(history?.max_date||null)}</p><p className="mt-1 text-xs text-muted-foreground">{Number(history?.report_rows||0).toLocaleString('es-CL')} reportes · {num(history?.drilled_meters??null,' m')}</p></div>
+        <div className="bg-background p-4"><div className="flex items-center gap-2 text-xs text-muted-foreground"><Drill className="h-3.5 w-3.5"/>Última evidencia de sondaje</div><p className="mt-2 text-xl font-semibold">{historyLoading?'—':formatDate(drilling?.lastDate||null)}</p><p className="mt-1 text-xs text-muted-foreground">{Number(drilling?.reportRows||0).toLocaleString('es-CL')} reportes · {num(drilling?.drilledMeters??null,' m')}</p></div>
         <div className="bg-background p-4"><p className="text-xs text-muted-foreground">Maestro de sondajes</p><p className="mt-2 text-xl font-semibold">{isLoading?'—':Number(data?.summary.holes||0).toLocaleString('es-CL')}</p><p className="mt-1 text-xs text-muted-foreground">{num(data?.summary.canonicalDrilledMeters??null,' m canónicos')}</p></div>
       </div>
     </div>
@@ -137,11 +137,12 @@ export function GeologiaHistoricalCanonical(){
     <div className="rounded-md border p-4">
       <div className="flex items-center gap-2"><Drill className="h-4 w-4 text-muted-foreground"/><p className="font-medium">3. Histórico de sondajes · 2023–2026</p></div>
       <div className="mt-4 grid gap-4 sm:grid-cols-4">
-        <div><p className="text-xs text-muted-foreground">Último registro</p><p className="mt-1 font-medium">{formatDate(history?.max_date||null)}</p></div>
-        <div><p className="text-xs text-muted-foreground">Desde</p><p className="mt-1 font-medium">{formatDate(history?.min_date||null)}</p></div>
-        <div><p className="text-xs text-muted-foreground">Reportes</p><p className="mt-1 font-medium">{Number(history?.report_rows||0).toLocaleString('es-CL')}</p></div>
-        <div><p className="text-xs text-muted-foreground">Metros reportados</p><p className="mt-1 font-medium">{num(history?.drilled_meters??null,' m')}</p></div>
+        <div><p className="text-xs text-muted-foreground">Último registro</p><p className="mt-1 font-medium">{formatDate(drilling?.lastDate||null)}</p></div>
+        <div><p className="text-xs text-muted-foreground">Desde</p><p className="mt-1 font-medium">{formatDate(drilling?.firstDate||null)}</p></div>
+        <div><p className="text-xs text-muted-foreground">Reportes</p><p className="mt-1 font-medium">{Number(drilling?.reportRows||0).toLocaleString('es-CL')}</p></div>
+        <div><p className="text-xs text-muted-foreground">Metros reportados</p><p className="mt-1 font-medium">{num(drilling?.drilledMeters??null,' m')}</p></div>
       </div>
+      <p className="mt-3 text-xs text-muted-foreground">Calculado directamente desde la tabla canónica vigente de reportes, no desde snapshots históricos.</p>
     </div>
 
     <div>
