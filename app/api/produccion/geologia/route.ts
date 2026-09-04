@@ -157,6 +157,7 @@ export async function GET(request: NextRequest) {
     valid_records: 0,
     review_records: 0,
   };
+  const separationInvariant = 'El contexto geológico auxiliar se mantiene separado de la evidencia operacional y no crea relaciones canónicas por inferencia.';
 
   return NextResponse.json({
     period: period.month || 'all',
@@ -196,8 +197,8 @@ export async function GET(request: NextRequest) {
       drillHolesCanonical: holeRows.length > 0,
       sernageominContextAvailable: Number(q.sernageomin_records || 0) > 0,
       note: intervalRows.length === 0
-        ? 'Hay sondajes canónicos, pero todavía no existen intervalos de logging geológico. La interfaz mantiene ese vacío explícito y no inventa litología, alteración ni mineralización.'
-        : 'El logging geológico se muestra desde intervalos canónicos y mantiene separado el contexto externo de la evidencia operacional.',
+        ? `${separationInvariant} Hay sondajes canónicos, pero todavía no existen intervalos de logging geológico. La interfaz mantiene ese vacío explícito y no inventa litología, alteración ni mineralización.`
+        : `${separationInvariant} El logging geológico se muestra desde intervalos canónicos.`,
     },
   });
 }
