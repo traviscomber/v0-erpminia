@@ -3,22 +3,14 @@
 import useSWR from 'swr';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
-import {
-  AlertTriangle,
-  ArrowUpDown,
-  Beaker,
-  CheckCircle2,
-  Drill,
-  Layers3,
-  MapPinned,
-  Search,
-} from 'lucide-react';
+import { AlertTriangle, Beaker, Drill, Layers3, MapPinned, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageHeader, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { periodUrl, useDashboardPeriod } from '@/components/dashboard/dashboard-period-provider';
 import { GeologiaTodayDecisionBoard } from '@/components/production/geologia-today-decision-board';
+import { GeologiaResultsDecisionBoard } from '@/components/production/geologia-results-decision-board';
+import { GeologiaPendingDecisionQueue } from '@/components/production/geologia-pending-decision-queue';
 
 type Hole = {
   id:string; hole_code:string; drilling_domain:string|null; mine_source_id:string|null; mine_sector_id:string|null;
@@ -90,7 +82,6 @@ export function GeologiaDashboard(){
   const [holeSearch,setHoleSearch]=useState('');
   const [selectedMines,setSelectedMines]=useState<Record<string,string>>({});
   const [savingId,setSavingId]=useState<string|null>(null);
-  const [drillingSort,setDrillingSort]=useState<{key:'operation_date'|'hole_code_raw'|'mine_raw'|'drilled_meters';direction:1|-1}>({key:'operation_date',direction:-1});
   const s=data?.summary;
 
   const filteredHoles=useMemo(()=>{
@@ -107,8 +98,6 @@ export function GeologiaDashboard(){
     const ys=locatedHoles.map((h)=>Number(h.collar_northing));
     return {minX:Math.min(...xs),maxX:Math.max(...xs),minY:Math.min(...ys),maxY:Math.max(...ys)};
   },[locatedHoles]);
-  const sortedDrilling=useMemo(()=>[...(data?.recentDrilling||[])].sort((a,b)=>String(a[drillingSort.key]??'').localeCompare(String(b[drillingSort.key]??''),'es',{numeric:true})*drillingSort.direction),[data?.recentDrilling,drillingSort]);
-  const drillingHeading=(label:string,key:typeof drillingSort.key)=><button onClick={()=>setDrillingSort((current)=>({key,direction:current.key===key&&current.direction===1?-1:1}))} className="inline-flex items-center gap-1">{label}<ArrowUpDown className="h-3 w-3"/></button>;
 
   async function assignMine(reportId:string){
     const mineId=selectedMines[reportId];
@@ -161,16 +150,8 @@ export function GeologiaDashboard(){
         <section className="rounded-lg border bg-card p-5"><p className="font-medium">Muestras vinculadas</p><p className="mt-1 text-sm text-muted-foreground">{selectedSamples.length} muestras asociadas al pozo.</p>{selectedSamples.length?<div className="mt-4 space-y-2">{selectedSamples.slice(0,8).map((sample)=><div key={sample.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm"><div><p className="font-medium">{sample.sample_code}</p><p className="text-xs text-muted-foreground">{sample.depth_from_m??'—'}–{sample.depth_to_m??'—'} m</p></div><span className="text-xs text-muted-foreground">{sample.validation_status||'Sin validar'}</span></div>)}</div>:null}</section></>:<Empty title="Sin sondajes" description="No hay sondajes canónicos disponibles para mostrar."/>}</aside>
     </div>:null}
 
-    {data&&tab==='results'?<div className="space-y-5">
-      <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-3"><div className="bg-card p-5"><Metric label="Muestras" value={s?.samples||0} detail="Registros canónicos"/></div><div className="bg-card p-5"><Metric label="Validadas" value={s?.samplesValidated||0} detail="Disponibles para uso"/></div><div className="bg-card p-5"><Metric label="Por revisar" value={s?.samplesReview||0} detail="Requieren atención"/></div></section>
-      {(data.samples||[]).length?<section className="overflow-hidden rounded-lg border bg-card"><div className="border-b px-4 py-3"><p className="font-medium">Muestras y resultados disponibles</p><p className="mt-1 text-sm text-muted-foreground">Trazabilidad hacia sondaje, profundidad y archivo fuente.</p></div><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-muted/30 text-left text-xs text-muted-foreground"><tr><th className="px-4 py-3">Muestra</th><th className="px-4 py-3">Fecha</th><th className="px-4 py-3">Sondaje</th><th className="px-4 py-3">Intervalo</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Fuente</th></tr></thead><tbody className="divide-y">{data.samples.map((sample)=>{const hole=data.holes.find((row)=>row.id===sample.drill_hole_id);return <tr key={sample.id}><td className="px-4 py-3 font-medium">{sample.sample_code}</td><td className="px-4 py-3">{sample.sample_date||'—'}</td><td className="px-4 py-3">{hole?.hole_code||'Sin vínculo'}</td><td className="px-4 py-3">{sample.depth_from_m??'—'}–{sample.depth_to_m??'—'} m</td><td className="px-4 py-3"><span className="inline-flex items-center gap-1 text-xs"><CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground"/>{sample.validation_status||'Sin validar'}</span></td><td className="px-4 py-3 text-xs text-muted-foreground">{sample.source_file||'—'}</td></tr>})}</tbody></table></div></section>:<Empty title="Sin muestras cargadas" description="Los resultados aparecerán aquí cuando exista evidencia química canónica vinculada a la operación."/>}
-    </div>:null}
+    {data&&tab==='results'?<GeologiaResultsDecisionBoard samples={data.samples} holes={data.holes} samplesValidated={data.summary.samplesValidated} samplesReview={data.summary.samplesReview} assaysCanonical={data.intelligenceStatus.assaysCanonical}/>:null}
 
-    {data&&tab==='pending'?<div className="space-y-5">
-      <div className="grid gap-4 lg:grid-cols-3"><section className="rounded-lg border bg-card p-5"><Metric label="Ubicación pendiente" value={unlocated.length} detail="Sondajes sin collar completo"/></section><section className="rounded-lg border bg-card p-5"><Metric label="Sin propósito" value={noPurpose.length} detail="Objetivo geológico no documentado"/></section><section className="rounded-lg border bg-card p-5"><Metric label="Muestras por revisar" value={s?.samplesReview||0} detail="Calidad / validación"/></section></div>
-      {topPending.length?<section className="overflow-hidden rounded-lg border bg-card"><div className="border-b px-4 py-3"><p className="font-medium">Cola de resolución</p><p className="mt-1 text-sm text-muted-foreground">Problemas que requieren decisión humana antes de consolidar la ubicación canónica.</p></div><div className="divide-y">{topPending.slice(0,100).map((row)=><div key={row.drill_hole_id} className="grid gap-3 px-4 py-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center"><div><p className="font-medium">{row.hole_code}</p><p className="mt-1 text-xs text-muted-foreground">{row.resolution_state||'Pendiente'}</p></div><div><p className="text-sm">{row.recommended_action||'Revisar evidencia y confirmar ubicación'}</p><p className="mt-1 text-xs text-muted-foreground">{row.proposed_mine_name||'Sin mina propuesta'}{row.proposed_sector_name?` · ${row.proposed_sector_name}`:''}</p></div><span className="text-xs text-muted-foreground">P{row.review_priority??'—'}</span></div>)}</div></section>:<Empty title="Sin ubicaciones pendientes" description="No hay elementos en la cola de revisión de ubicación."/>}
-
-      <section className="overflow-hidden rounded-lg border bg-card"><div className="border-b px-4 py-3"><p className="font-medium">Evidencia de sondaje pendiente de reconciliación</p><p className="mt-1 text-sm text-muted-foreground">Asignar una mina sólo cuando la evidencia lo justifique. Sector y pozo no se infieren.</p></div><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-muted/30 text-left text-xs text-muted-foreground"><tr><th className="px-4 py-3">{drillingHeading('Fecha','operation_date')}</th><th className="px-4 py-3">{drillingHeading('Pozo','hole_code_raw')}</th><th className="px-4 py-3">{drillingHeading('Mina / sector fuente','mine_raw')}</th><th className="px-4 py-3 text-right">{drillingHeading('Metros','drilled_meters')}</th><th className="px-4 py-3">Estado</th>{data.canWrite?<th className="px-4 py-3">Asignar mina</th>:null}</tr></thead><tbody className="divide-y">{sortedDrilling.filter((r)=>!r.canonical_mine_source_id||!r.canonical_mine_sector_id||!r.canonical_drill_hole_id).slice(0,100).map((r)=><tr key={r.id}><td className="px-4 py-3 whitespace-nowrap">{r.operation_date||'—'}</td><td className="px-4 py-3 font-medium">{r.hole_code_raw||'—'}</td><td className="px-4 py-3"><p>{r.mine_raw&&r.mine_raw !== '#ERROR!'?r.mine_raw:'Sin mina en fuente'}</p><p className="text-xs text-muted-foreground">{r.sector_raw||'Sin sector fuente'}</p></td><td className="px-4 py-3 text-right tabular-nums">{Number(r.drilled_meters||0).toLocaleString('es-CL',{maximumFractionDigits:1})}</td><td className="px-4 py-3 text-xs text-muted-foreground">{r.canonical_mine_source_id?'Mina ✓':'Mina pendiente'} · {r.canonical_mine_sector_id?'Sector ✓':'Sector pendiente'} · {r.canonical_drill_hole_id?'Pozo ✓':'Pozo pendiente'}</td>{data.canWrite?<td className="min-w-[280px] px-4 py-3"><div className="flex items-center gap-2"><Select value={selectedMines[r.id]||''} onValueChange={(value)=>setSelectedMines((current)=>({...current,[r.id]:value}))}><SelectTrigger className="h-9"><SelectValue placeholder="Seleccionar mina"/></SelectTrigger><SelectContent>{data.mines.map((m)=><SelectItem key={m.id} value={m.id}>{m.name}{m.code?` · ${m.code}`:''}</SelectItem>)}</SelectContent></Select><Button size="sm" disabled={!selectedMines[r.id]||savingId===r.id} onClick={()=>void assignMine(r.id)}>{savingId===r.id?'Guardando…':'Asignar'}</Button></div></td>:null}</tr>)}</tbody></table></div></section>
-    </div>:null}
+    {data&&tab==='pending'?<GeologiaPendingDecisionQueue unlocatedCount={unlocated.length} noPurposeCount={noPurpose.length} samplesReview={data.summary.samplesReview} pending={topPending} recentDrilling={data.recentDrilling} mines={data.mines} canWrite={data.canWrite} selectedMines={selectedMines} savingId={savingId} onSelectMine={(reportId,mineId)=>setSelectedMines((current)=>({...current,[reportId]:mineId}))} onAssignMine={(reportId)=>void assignMine(reportId)}/>:null}
   </div>;
 }
