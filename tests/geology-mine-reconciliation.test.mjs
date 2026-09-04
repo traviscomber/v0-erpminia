@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const apiUrl = new URL('../app/api/produccion/geologia/route.ts', import.meta.url);
 const dashboardUrl = new URL('../components/production/geologia-dashboard.tsx', import.meta.url);
+const historyUrl = new URL('../components/production/geologia-historical-canonical.tsx', import.meta.url);
 
 test('geology mine assignment requires write access and remains organization scoped', async () => {
   const api = await readFile(apiUrl, 'utf8');
@@ -29,6 +30,24 @@ test('geology dashboard keeps canonical reconciliation and follows the La Patagu
   assert.match(dashboard, /Motil no los infiere ni los inventa/);
   assert.match(dashboard, /dónde están los sondajes/);
   assert.match(dashboard, /qué resultados existen/);
+});
+
+test('geology exposes canonical historical assays without inventing drill-hole links', async () => {
+  const [api, history] = await Promise.all([
+    readFile(apiUrl, 'utf8'),
+    readFile(historyUrl, 'utf8'),
+  ]);
+  assert.match(api, /production_chemistry_results/);
+  assert.match(api, /production_chemistry_results'[\s\S]*eq\('organization_id',\s*context\.organizationId\)/);
+  assert.match(api, /sampleById/);
+  assert.match(api, /mineById/);
+  assert.match(api, /drill_hole_id:\s*sample\?\.drill_hole_id\s*\|\|\s*null/);
+  assert.match(api, /no se asignan a sondajes sin evidencia/);
+  assert.match(history, /Histórico canónico de La Patagua/);
+  assert.match(history, /Motil sólo las conecta cuando existe una relación canónica explícita/);
+  assert.match(history, /Resultados históricos/);
+  assert.match(history, /Sin inferir vínculos históricos/);
+  assert.match(history, /row\.drill_hole_id\?'Canónico':'No asignado'/);
 });
 
 test('geology API exposes external context without turning it into canonical evidence', async () => {
