@@ -15,6 +15,10 @@ const productionWriteRoles = new Set([
   'operaciones-supervisor',
 ]);
 
+const productionSelfServiceMutationPaths = new Set([
+  '/api/produccion/geologia/assistant',
+]);
+
 export type OrganizationContext =
   | {
       ok: false;
@@ -50,6 +54,13 @@ function isMutation(request: NextRequest, prefix: string) {
   );
 }
 
+function isProductionSelfServiceMutation(request: NextRequest) {
+  return (
+    !['GET', 'HEAD', 'OPTIONS'].includes(request.method.toUpperCase()) &&
+    productionSelfServiceMutationPaths.has(request.nextUrl.pathname)
+  );
+}
+
 export async function getOrganizationContext(
   request: NextRequest
 ): Promise<OrganizationContext> {
@@ -74,7 +85,11 @@ export async function getOrganizationContext(
     };
   }
 
-  if (isMutation(request, '/api/produccion/') && !productionWriteRoles.has(role)) {
+  if (
+    isMutation(request, '/api/produccion/') &&
+    !isProductionSelfServiceMutation(request) &&
+    !productionWriteRoles.has(role)
+  ) {
     return {
       ok: false,
       response: NextResponse.json(
