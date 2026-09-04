@@ -75,6 +75,13 @@ test('La Patagua historical geology endpoint exposes validated current-first hea
   assert.doesNotMatch(history, /SERNAGEOMIN/i);
 });
 
+test('geology drill lists prioritize the latest activity while pending work remains priority ordered', async () => {
+  const api = await readFile(apiUrl, 'utf8');
+  assert.match(api, /production_drill_holes'[\s\S]*order\('start_at', \{ ascending: false, nullsFirst: false \}\)[\s\S]*order\('hole_code', \{ ascending: true \}\)/);
+  assert.match(api, /recentDrillingQuery[\s\S]*order\('operation_date', \{ ascending: false \}\)[\s\S]*order\('source_row', \{ ascending: false \}\)/);
+  assert.match(api, /production_drill_hole_location_review_queue_v5'[\s\S]*order\('operational_priority', \{ ascending: true \}\)/);
+});
+
 test('La Patagua geology API does not expose external geology context to the client', async () => {
   const api = await readFile(apiUrl, 'utf8');
   assert.doesNotMatch(api, /externalContext:\s*contextRows/);
