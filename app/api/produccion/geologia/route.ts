@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     period,
     'operation_date',
   );
+
   const recentDrillingQuery = applyDatePeriod(
     context.supabase
       .from('production_drilling_source_reports')
@@ -39,13 +40,11 @@ export async function GET(request: NextRequest) {
     drilling,
     recentDrilling,
     drillingHistory,
-    quality,
     chemistryIntelligence,
     holes,
     intervals,
     samples,
     chemistryResults,
-    externalContext,
     locationReview,
   ] = await Promise.all([
     context.supabase
@@ -63,11 +62,6 @@ export async function GET(request: NextRequest) {
     context.supabase
       .from('production_drilling_operational_summary_v1')
       .select('report_rows,holes,rigs,operators,drilled_meters,min_date,max_date,meter_capture_pct')
-      .eq('organization_id', context.organizationId)
-      .maybeSingle(),
-    context.supabase
-      .from('production_geology_context_quality_v1')
-      .select('*')
       .eq('organization_id', context.organizationId)
       .maybeSingle(),
     context.supabase
@@ -99,12 +93,6 @@ export async function GET(request: NextRequest) {
       .order('result_date', { ascending: false })
       .limit(1000),
     context.supabase
-      .from('production_geology_external_context')
-      .select('id,source_provider,source_dataset,source_record_key,record_type,mine_source_id,mine_sector_id,title,status,valid_from,valid_to,geometry_geojson,source_url,retrieved_at,validation_status,validation_notes')
-      .eq('organization_id', context.organizationId)
-      .order('retrieved_at', { ascending: false })
-      .limit(500),
-    context.supabase
       .from('production_drill_hole_location_review_queue_v5')
       .select('drill_hole_id,hole_code,evidence_count,verified_evidence_count,verified_target_count,proposed_mine_name,proposed_sector_name,resolution_state,report_count,last_report_date,source_site,candidate_evidence_count,candidate_mine_name,review_lane,review_priority,recommended_action,operational_bucket,operational_priority')
       .eq('organization_id', context.organizationId)
@@ -118,13 +106,11 @@ export async function GET(request: NextRequest) {
     drilling.error ||
     recentDrilling.error ||
     drillingHistory.error ||
-    quality.error ||
     chemistryIntelligence.error ||
     holes.error ||
     intervals.error ||
     samples.error ||
     chemistryResults.error ||
-    externalContext.error ||
     locationReview.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
@@ -135,12 +121,11 @@ export async function GET(request: NextRequest) {
   const intervalRows = intervals.data || [];
   const sampleRows = samples.data || [];
   const chemistryResultRows = chemistryResults.data || [];
-  const contextRows = externalContext.data || [];
   const reviewRows = locationReview.data || [];
 
-  const linkedMineReports = drillingRows.filter((r) => r.canonical_mine_source_id).length;
-  const linkedSectorReports = drillingRows.filter((r) => r.canonical_mine_sector_id).length;
-  const linkedHoleReports = drillingRows.filter((r) => r.canonical_drill_hole_id).length;
+  const linkedMineReports = drillingRows.filter((row) => row.canonical_mine_source_id).length;
+  const linkedSectorReports = drillingRows.filter((row) => row.canonical_mine_sector_id).length;
+  const linkedHoleReports = drillingRows.filter((row) => row.canonical_drill_hole_id).length;
   const totalMeters = drillingRows.reduce((sum, row) => sum + Number(row.drilled_meters || 0), 0);
   const canonicalDrilledMeters = holeRows.reduce((sum, row) => sum + Number(row.drilled_depth_m || 0), 0);
   const locatedHoles = holeRows.filter((row) => row.collar_easting != null && row.collar_northing != null).length;
@@ -187,17 +172,6 @@ export async function GET(request: NextRequest) {
     };
   });
 
-  const q = quality.data || {
-    external_records: 0,
-    sernageomin_records: 0,
-    mine_linked_records: 0,
-    sector_linked_records: 0,
-    georeferenced_records: 0,
-    valid_records: 0,
-    review_records: 0,
-  };
-  const separationInvariant = 'El contexto geológico auxiliar se mantiene separado de la evidencia operacional y no crea relaciones canónicas por inferencia.';
-
   return NextResponse.json({
     period: period.month || 'all',
     canWrite: access.canWrite,
@@ -221,8 +195,6 @@ export async function GET(request: NextRequest) {
       assays: chemistryResultRows.length,
       assaysValidated,
       historicalAssays: historicalAssays.length,
-      externalContext: contextRows.length,
-      sernageominRecords: Number(q.sernageomin_records || 0),
       unresolvedLocations,
     },
     drillingHistory: drillingHistory.data || null,
@@ -231,18 +203,15 @@ export async function GET(request: NextRequest) {
     intervals: intervalRows,
     samples: sampleRows,
     chemistryResults: historicalAssays,
-    externalContext: contextRows,
     locationReview: reviewRows,
     recentDrilling: recentDrilling.data || [],
-    contextQuality: q,
     intelligenceStatus: {
       geologicalSamplesCanonical: intervalRows.length > 0,
       assaysCanonical: chemistryResultRows.length > 0,
       drillHolesCanonical: holeRows.length > 0,
-      sernageominContextAvailable: Number(q.sernageomin_records || 0) > 0,
       note: intervalRows.length === 0
-        ? `${separationInvariant} Hay sondajes canónicos, pero todavía no existen intervalos de logging geológico. Los ensayes históricos se muestran por su relación canónica real con muestra y mina; no se asignan a sondajes sin evidencia.`
-        : `${separationInvariant} El logging geológico se muestra desde intervalos canónicos.`,
+        ? 'Hay sondajes canónicos, pero todavía no existen intervalos de logging geológico. Los ensayes históricos se muestran por su relación canónica real con muestra y mina; no se asignan a sondajes sin evidencia.'
+        : 'El logging geológico se muestra desde intervalos canónicos de La Patagua.',
     },
   });
 }
@@ -286,6 +255,7 @@ export async function PATCH(request: NextRequest) {
       .maybeSingle();
     if (!sector) sectorId = null;
   }
+
   const reconciledAt = new Date().toISOString();
   const reviewer = access.user.id;
   const { data: updated, error } = await context.supabase
