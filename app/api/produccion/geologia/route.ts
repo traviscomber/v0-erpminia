@@ -43,6 +43,7 @@ export async function GET(request: NextRequest) {
     holes,
     intervals,
     samples,
+    chemistryResults,
     externalContext,
     locationReview,
   ] = await Promise.all([
@@ -86,6 +87,12 @@ export async function GET(request: NextRequest) {
       .order('sample_date', { ascending: false })
       .limit(500),
     context.supabase
+      .from('production_chemistry_results')
+      .select('id,sample_id,analyte_code,analyte_name,result_value,result_unit,detection_limit,method_code,laboratory,result_date,source_file,source_sheet,validation_status,validation_notes')
+      .eq('organization_id', context.organizationId)
+      .order('result_date', { ascending: false })
+      .limit(1000),
+    context.supabase
       .from('production_geology_external_context')
       .select('id,source_provider,source_dataset,source_record_key,record_type,mine_source_id,mine_sector_id,title,status,valid_from,valid_to,geometry_geojson,source_url,retrieved_at,validation_status,validation_notes')
       .eq('organization_id', context.organizationId)
@@ -109,6 +116,7 @@ export async function GET(request: NextRequest) {
     holes.error ||
     intervals.error ||
     samples.error ||
+    chemistryResults.error ||
     externalContext.error ||
     locationReview.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
@@ -119,6 +127,7 @@ export async function GET(request: NextRequest) {
   const holeRows = holes.data || [];
   const intervalRows = intervals.data || [];
   const sampleRows = samples.data || [];
+  const chemistryResultRows = chemistryResults.data || [];
   const contextRows = externalContext.data || [];
   const reviewRows = locationReview.data || [];
 
@@ -132,7 +141,30 @@ export async function GET(request: NextRequest) {
   const purposeHoles = holeRows.filter((row) => Boolean(row.geological_purpose?.trim())).length;
   const samplesValidated = sampleRows.filter((row) => String(row.validation_status || '').toLowerCase() === 'valid').length;
   const samplesReview = sampleRows.filter((row) => ['review', 'pending', 'invalid'].includes(String(row.validation_status || '').toLowerCase())).length;
+  const assaysValidated = chemistryResultRows.filter((row) => String(row.validation_status || '').toLowerCase() === 'valid').length;
   const unresolvedLocations = reviewRows.filter((row) => !['resolved', 'verified', 'matched'].includes(String(row.resolution_state || '').toLowerCase())).length;
+
+  const sampleById = new Map(sampleRows.map((sample) => [sample.id, sample]));
+  const mineById = new Map(mineRows.map((mine) => [mine.id, mine]));
+  const historicalAssays = chemistryResultRows.map((result) => {
+    const sample = sampleById.get(result.sample_id) || null;
+    const mine = sample?.mine_source_id ? mineById.get(sample.mine_source_id) || null : null;
+    return {
+      ...result,
+      sample_code: sample?.sample_code || null,
+      sample_type: sample?.sample_type || null,
+      sample_date: sample?.sample_date || result.result_date || null,
+      mine_source_id: sample?.mine_source_id || null,
+      mine_name: mine?.name || null,
+      mine_sector_id: sample?.mine_sector_id || null,
+      drill_hole_id: sample?.drill_hole_id || null,
+      depth_from_m: sample?.depth_from_m || null,
+      depth_to_m: sample?.depth_to_m || null,
+      sample_source_file: sample?.source_file || null,
+      sample_source_sheet: sample?.source_sheet || null,
+      sample_validation_status: sample?.validation_status || null,
+    };
+  });
 
   const mineSummary = mineRows.map((mine) => {
     const reports = drillingRows.filter((row) => row.canonical_mine_source_id === mine.id);
@@ -179,6 +211,9 @@ export async function GET(request: NextRequest) {
       samples: sampleRows.length,
       samplesValidated,
       samplesReview,
+      assays: chemistryResultRows.length,
+      assaysValidated,
+      historicalAssays: historicalAssays.length,
       externalContext: contextRows.length,
       sernageominRecords: Number(q.sernageomin_records || 0),
       unresolvedLocations,
@@ -187,17 +222,18 @@ export async function GET(request: NextRequest) {
     holes: holeRows,
     intervals: intervalRows,
     samples: sampleRows,
+    chemistryResults: historicalAssays,
     externalContext: contextRows,
     locationReview: reviewRows,
     recentDrilling: recentDrilling.data || [],
     contextQuality: q,
     intelligenceStatus: {
       geologicalSamplesCanonical: intervalRows.length > 0,
-      assaysCanonical: sampleRows.length > 0,
+      assaysCanonical: chemistryResultRows.length > 0,
       drillHolesCanonical: holeRows.length > 0,
       sernageominContextAvailable: Number(q.sernageomin_records || 0) > 0,
       note: intervalRows.length === 0
-        ? `${separationInvariant} Hay sondajes canónicos, pero todavía no existen intervalos de logging geológico. La interfaz mantiene ese vacío explícito y no inventa litología, alteración ni mineralización.`
+        ? `${separationInvariant} Hay sondajes canónicos, pero todavía no existen intervalos de logging geológico. Los ensayes históricos se muestran por su relación canónica real con muestra y mina; no se asignan a sondajes sin evidencia.`
         : `${separationInvariant} El logging geológico se muestra desde intervalos canónicos.`,
     },
   });
