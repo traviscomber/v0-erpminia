@@ -17,12 +17,15 @@ test('dashboard exposes optional historical month selection through the URL',asy
   assert.match(helper,/\.gte\(column,period\.start\)\.lt\(column,period\.end\)/);
 });
 
-test('geology month filters indicators, rows and reconciliation queue by canonical date',async()=>{
+test('geology month filters operational drilling evidence while canonical geology remains available',async()=>{
   const [api,dashboard]=await Promise.all([readFile(geologyApiUrl,'utf8'),readFile(geologyDashboardUrl,'utf8')]);
   assert.match(api,/applyDatePeriod[\s\S]*production_drilling_source_reports[\s\S]*operation_date/);
-  assert.match(api,/period:period\.month\|\|'all'/);
+  assert.match(api,/period:\s*period\.month\s*\|\|\s*'all'/);
+  assert.match(api,/production_drill_holes/);
+  assert.match(api,/production_drill_intervals/);
+  assert.match(api,/production_chemistry_samples/);
   assert.match(dashboard,/periodUrl\('\/api\/produccion\/geologia',month\)/);
-  assert.match(dashboard,/sortedMines\.map/);
-  assert.match(dashboard,/sortedDrilling\.map/);
+  assert.match(dashboard,/sortedDrilling/);
   assert.match(dashboard,/ArrowUpDown/);
+  assert.match(dashboard,/filteredHoles/);
 });
