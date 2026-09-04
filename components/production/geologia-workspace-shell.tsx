@@ -4,6 +4,9 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { GeologiaDashboard } from '@/components/production/geologia-dashboard';
 import { GeologiaHistoricalCanonical } from '@/components/production/geologia-historical-canonical';
+import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floating-chat';
+
+const GEOLOGY_CHAT_ICON = 'data:image/webp;base64,UklGRtoBAABXRUJQVlA4IM4BAACwCwCdASpAAEAAPqFMoE0mJCMrogqpcBQJZQDJvF1Z5hYA3uE7hYiTdhw6xjVrHZs7R3GQGWvooB8o+sePZf/UuuqyHyCs8yGgEEydNdcoJw8hLr5xOb3RVyPjk68Cg4ywxnAtf2gAxQERaaemn/EMB5LRgQZWfj0yW6L+5UrT1nay7DeBUzq4Xcpd9vBIU2TkzB7LsU08i3DWdTxFsrHD2CfQMLQQ8/ed1owu8dnV2SmaPuwcVUUu+xRfamACWEEOvKFiHKzFqKyKFjB0qB8P+53oOA7LDnO8T0RY1GeFYl9Ok8eZp8T94fdk87w9ut/3GQk2vr57GUfwgeNNvK1EPVHKTu4MLBoFOm/dbVb5kN9TI+iR6+rP7MtxIvIW/4LUIfdfpfrG+TD1rAsDhFYccTkla3iOs4SHpGjGtlmNFFIOHSOO8tK/WeBZEB74g01Dz8KcE1BPeU/rMAhqt9nNpIIyP6FbW78698Y12pxSenZuRe6iMdMX1AJWRIcxzZs0qQuB5gO9pQ2PorC0I7hZLcy9rHwZvH0G+99dVeBZ9/b0UdFB5TvbEenAvcI1Ln9txudQTzVPuQDocjN/WWTV8PoIWxALM0AigdnWKAA=';
 
 const tabs = [
   ['today', 'Hoy'],
@@ -37,6 +40,27 @@ export function GeologiaWorkspaceShell() {
 
   return (
     <div className="space-y-5">
+      <style>{`
+        button[aria-label="Abrir Asistente Senior de Geología"] {
+          background-image: linear-gradient(rgba(12, 14, 16, 0.18), rgba(12, 14, 16, 0.18)), url('${GEOLOGY_CHAT_ICON}');
+          background-position: center;
+          background-repeat: no-repeat;
+          background-size: 46px 46px;
+          min-width: 56px;
+          padding-left: 58px;
+        }
+        button[aria-label="Abrir Asistente Senior de Geología"] > svg {
+          display: none;
+        }
+        @media (max-width: 639px) {
+          button[aria-label="Abrir Asistente Senior de Geología"] {
+            width: 56px;
+            padding: 0;
+            background-size: 46px 46px;
+          }
+        }
+      `}</style>
+
       <nav
         className="sticky top-0 z-30 -mx-1 flex flex-wrap gap-2 border-b bg-background/95 px-1 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80"
         aria-label="Vistas principales de Geología"
@@ -59,6 +83,7 @@ export function GeologiaWorkspaceShell() {
       </div>
 
       {tab === 'history' ? <GeologiaHistoricalCanonical /> : null}
+      <GeologiaAiFloatingChat />
     </div>
   );
 }
