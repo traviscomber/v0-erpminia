@@ -6,6 +6,7 @@ const apiUrl = new URL('../app/api/produccion/geologia/route.ts', import.meta.ur
 const historyApiUrl = new URL('../app/api/produccion/geologia/historia-la-patagua/route.ts', import.meta.url);
 const dashboardUrl = new URL('../components/production/geologia-dashboard.tsx', import.meta.url);
 const historyUrl = new URL('../components/production/geologia-historical-canonical.tsx', import.meta.url);
+const shellUrl = new URL('../components/production/geologia-workspace-shell.tsx', import.meta.url);
 const pageUrl = new URL('../app/dashboard/produccion/geologia/page.tsx', import.meta.url);
 
 test('geology mine assignment requires write access and remains organization scoped', async () => {
@@ -17,16 +18,23 @@ test('geology mine assignment requires write access and remains organization sco
 });
 
 test('geology dashboard follows the La Patagua operating workflow', async () => {
-  const [dashboard, page] = await Promise.all([readFile(dashboardUrl, 'utf8'), readFile(pageUrl, 'utf8')]);
+  const [dashboard, shell, page] = await Promise.all([
+    readFile(dashboardUrl, 'utf8'),
+    readFile(shellUrl, 'utf8'),
+    readFile(pageUrl, 'utf8'),
+  ]);
   assert.match(dashboard, /data\.canWrite/);
   assert.match(dashboard, /Seleccionar mina/);
   assert.match(dashboard, /JSON\.stringify\(\{reportId,mineId\}\)/);
-  assert.match(dashboard, /Mapa y sondajes/);
-  assert.match(dashboard, /Resultados/);
-  assert.match(dashboard, /Pendientes/);
   assert.match(dashboard, /Motil no los infiere ni los inventa/);
-  assert.match(page, /Vistas de Geología/);
-  assert.match(page, /button:last-child \{ display: none !important; \}/);
+  assert.match(shell, /Hoy/);
+  assert.match(shell, /Mapa y sondajes/);
+  assert.match(shell, /Resultados/);
+  assert.match(shell, /Pendientes/);
+  assert.match(shell, /Histórico/);
+  assert.match(shell, /sticky top-0/);
+  assert.match(shell, /Vistas principales de Geología/);
+  assert.match(page, /GeologiaWorkspaceShell/);
 });
 
 test('geology exposes canonical historical assays without inventing drill-hole links', async () => {
