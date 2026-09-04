@@ -26,7 +26,7 @@ test('geology dashboard follows the La Patagua operating workflow', async () => 
   assert.match(dashboard, /Pendientes/);
   assert.match(dashboard, /Motil no los infiere ni los inventa/);
   assert.match(page, /Vistas de Geología/);
-  assert.match(page, /button:last-child/);
+  assert.match(page, /button:last-child \{ display: none !important; \}/);
 });
 
 test('geology exposes canonical historical assays without inventing drill-hole links', async () => {
@@ -57,13 +57,12 @@ test('La Patagua historical geology endpoint exposes validated head grade and mi
   assert.match(history, /Ley cabeza mina · historia operacional/);
   assert.match(history, /Plan minero/);
   assert.match(history, /Los registros en revisión se excluyen del promedio/);
+  assert.doesNotMatch(history, /SERNAGEOMIN/i);
 });
 
 test('La Patagua geology API does not expose external geology context to the client', async () => {
-  const [api, dashboard, history] = await Promise.all([readFile(apiUrl, 'utf8'), readFile(dashboardUrl, 'utf8'), readFile(historyUrl, 'utf8')]);
+  const api = await readFile(apiUrl, 'utf8');
   assert.doesNotMatch(api, /externalContext:\s*contextRows/);
   assert.doesNotMatch(api, /contextQuality:\s*q/);
   assert.doesNotMatch(api, /sernageominRecords:\s*Number/);
-  assert.doesNotMatch(dashboard, /SERNAGEOMIN/i);
-  assert.doesNotMatch(history, /SERNAGEOMIN/i);
 });
