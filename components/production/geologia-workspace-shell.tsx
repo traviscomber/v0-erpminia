@@ -6,8 +6,6 @@ import { GeologiaDashboard } from '@/components/production/geologia-dashboard';
 import { GeologiaHistoricalCanonical } from '@/components/production/geologia-historical-canonical';
 import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floating-chat';
 
-const GEOLOGY_CHAT_ICON = 'data:image/webp;base64,UklGRtoBAABXRUJQVlA4IM4BAACwCwCdASpAAEAAPqFMoE0mJCMrogqpcBQJZQDJvF1Z5hYA3uE7hYiTdhw6xjVrHZs7R3GQGWvooB8o+sePZf/UuuqyHyCs8yGgEEydNdcoJw8hLr5xOb3RVyPjk68Cg4ywxnAtf2gAxQERaaemn/EMB5LRgQZWfj0yW6L+5UrT1nay7DeBUzq4Xcpd9vBIU2TkzB7LsU08i3DWdTxFsrHD2CfQMLQQ8/ed1owu8dnV2SmaPuwcVUUu+xRfamACWEEOvKFiHKzFqKyKFjB0qB8P+53oOA7LDnO8T0RY1GeFYl9Ok8eZp8T94fdk87w9ut/3GQk2vr57GUfwgeNNvK1EPVHKTu4MLBoFOm/dbVb5kN9TI+iR6+rP7MtxIvIW/4LUIfdfpfrG+TD1rAsDhFYccTkla3iOs4SHpGjGtlmNFFIOHSOO8tK/WeBZEB74g01Dz8KcE1BPeU/rMAhqt9nNpIIyP6FbW78698Y12pxSenZuRe6iMdMX1AJWRIcxzZs0qQuB5gO9pQ2PorC0I7hZLcy9rHwZvH0G+99dVeBZ9/b0UdFB5TvbEenAvcI1Ln9txudQTzVPuQDocjN/WWTV8PoIWxALM0AigdnWKAA=';
-
 const tabs = [
   ['today', 'Hoy'],
   ['holes', 'Mapa y sondajes'],
@@ -40,40 +38,6 @@ export function GeologiaWorkspaceShell() {
 
   return (
     <div className="space-y-5">
-      <style>{`
-        @keyframes geology-assistant-breathe {
-          0%, 100% {
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34), 0 0 0 0 rgba(234, 88, 12, 0);
-            filter: saturate(1);
-          }
-          50% {
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34), 0 0 0 7px rgba(234, 88, 12, 0.11);
-            filter: saturate(1.06);
-          }
-        }
-        button[aria-label="Abrir Asistente Senior de Geología"] {
-          width: 58px;
-          min-width: 58px;
-          height: 58px;
-          padding: 0;
-          border-radius: 9999px;
-          background-image: url('${GEOLOGY_CHAT_ICON}');
-          background-position: center;
-          background-repeat: no-repeat;
-          background-size: 46px 46px;
-          animation: geology-assistant-breathe 4.2s ease-in-out infinite;
-        }
-        button[aria-label="Abrir Asistente Senior de Geología"] > svg,
-        button[aria-label="Abrir Asistente Senior de Geología"] > span {
-          display: none !important;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          button[aria-label="Abrir Asistente Senior de Geología"] {
-            animation: none;
-          }
-        }
-      `}</style>
-
       <nav
         className="sticky top-0 z-30 -mx-1 flex flex-wrap gap-2 border-b bg-background/95 px-1 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80"
         aria-label="Vistas principales de Geología"
