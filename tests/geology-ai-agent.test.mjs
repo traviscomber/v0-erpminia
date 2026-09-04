@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const routeUrl = new URL('../app/api/produccion/geologia/assistant/route.ts', import.meta.url);
+const organizationContextUrl = new URL('../lib/api/organization-context.ts', import.meta.url);
 const contextUrl = new URL('../lib/geology-ai/canonical-context.ts', import.meta.url);
 const promptUrl = new URL('../lib/geology-ai/prompt.ts', import.meta.url);
 const chatUrl = new URL('../components/production/geologia-ai-floating-chat.tsx', import.meta.url);
@@ -18,11 +19,22 @@ test('geology AI uses server-side OPENAI_API_KEY directly and enforces geology a
   assert.doesNotMatch(route, /NEXT_PUBLIC_OPENAI/i);
 });
 
-test('floating geology chat is fixed, transparent, accessible and never exposes the OpenAI key', async () => {
+test('geology assistant POST is a scoped self-service write, not a production operation write', async () => {
+  const orgContext = await readFile(organizationContextUrl, 'utf8');
+  assert.match(orgContext, /productionSelfServiceMutationPaths/);
+  assert.match(orgContext, /'\/api\/produccion\/geologia\/assistant'/);
+  assert.match(orgContext, /!isProductionSelfServiceMutation\(request\)/);
+  assert.match(orgContext, /Forbidden: production write role required/);
+});
+
+test('floating geology chat is fixed, transparent, alive, accessible and never exposes the OpenAI key', async () => {
   const [chat, shell] = await Promise.all([readFile(chatUrl, 'utf8'), readFile(shellUrl, 'utf8')]);
   assert.match(chat, /fixed bottom-4 right-4/);
   assert.match(chat, /bg-transparent/);
   assert.match(chat, /border-0/);
+  assert.match(chat, /geology-ai-launcher/);
+  assert.match(chat, /geology-ai-alive/);
+  assert.match(chat, /geology-ai-aura/);
   assert.match(chat, /aria-label="Abrir Asistente Senior de Geología"/);
   assert.match(chat, /GeologyAiIcon/);
   assert.match(chat, /\/api\/produccion\/geologia\/assistant/);
