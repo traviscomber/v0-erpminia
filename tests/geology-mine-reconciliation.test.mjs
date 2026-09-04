@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const apiUrl = new URL('../app/api/produccion/geologia/route.ts', import.meta.url);
+const historyApiUrl = new URL('../app/api/produccion/geologia/historia-la-patagua/route.ts', import.meta.url);
 const dashboardUrl = new URL('../components/production/geologia-dashboard.tsx', import.meta.url);
 const historyUrl = new URL('../components/production/geologia-historical-canonical.tsx', import.meta.url);
 const pageUrl = new URL('../app/dashboard/produccion/geologia/page.tsx', import.meta.url);
@@ -38,15 +39,31 @@ test('geology exposes canonical historical assays without inventing drill-hole l
   assert.match(api, /drill_hole_id:\s*sample\?\.drill_hole_id\s*\|\|\s*null/);
   assert.match(api, /no se asignan a sondajes sin evidencia/);
   assert.match(history, /Histórico canónico de La Patagua/);
-  assert.match(history, /Motil sólo las conecta cuando existe una relación canónica explícita/);
-  assert.match(history, /Resultados históricos/);
-  assert.match(history, /no los adhiere a los 400 pozos por similitud o fecha/);
-  assert.match(history, /Evidencia operacional fuente/);
+  assert.match(history, /Motil sólo relaciona registros cuando existe vínculo canónico explícito/);
+  assert.match(history, /Ensayes históricos/);
+  assert.match(history, /no se adhieren a pozos por similitud o fecha/);
+  assert.match(history, /Sólo datos La Patagua/);
+});
+
+test('La Patagua historical geology endpoint exposes validated head grade and mine plan only', async () => {
+  const [historyApi, history] = await Promise.all([readFile(historyApiUrl, 'utf8'), readFile(historyUrl, 'utf8')]);
+  assert.match(historyApi, /production_metallurgy_automatic_v1/);
+  assert.match(historyApi, /production_metallurgy_automatic_v1'[\s\S]*eq\('organization_id',\s*context\.organizationId\)/);
+  assert.match(historyApi, /production_monthly_plans/);
+  assert.match(historyApi, /production_monthly_plan_lines/);
+  assert.match(historyApi, /validation_status/);
+  assert.match(historyApi, /=== 'valid'/);
+  assert.match(historyApi, /provenance: 'La Patagua'/);
+  assert.match(history, /Ley cabeza mina · historia operacional/);
+  assert.match(history, /Plan minero/);
+  assert.match(history, /Los registros en revisión se excluyen del promedio/);
 });
 
 test('La Patagua geology API does not expose external geology context to the client', async () => {
-  const api = await readFile(apiUrl, 'utf8');
+  const [api, dashboard, history] = await Promise.all([readFile(apiUrl, 'utf8'), readFile(dashboardUrl, 'utf8'), readFile(historyUrl, 'utf8')]);
   assert.doesNotMatch(api, /externalContext:\s*contextRows/);
   assert.doesNotMatch(api, /contextQuality:\s*q/);
   assert.doesNotMatch(api, /sernageominRecords:\s*Number/);
+  assert.doesNotMatch(dashboard, /SERNAGEOMIN/i);
+  assert.doesNotMatch(history, /SERNAGEOMIN/i);
 });
