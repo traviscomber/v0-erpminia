@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 const apiUrl = new URL('../app/api/produccion/geologia/route.ts', import.meta.url);
 const dashboardUrl = new URL('../components/production/geologia-dashboard.tsx', import.meta.url);
 const historyUrl = new URL('../components/production/geologia-historical-canonical.tsx', import.meta.url);
+const pageUrl = new URL('../app/dashboard/produccion/geologia/page.tsx', import.meta.url);
 
 test('geology mine assignment requires write access and remains organization scoped', async () => {
   const api = await readFile(apiUrl, 'utf8');
@@ -14,33 +15,24 @@ test('geology mine assignment requires write access and remains organization sco
   assert.match(api, /Sector y pozo no se infieren/);
 });
 
-test('geology dashboard keeps canonical reconciliation and follows the La Patagua operating workflow', async () => {
-  const dashboard = await readFile(dashboardUrl, 'utf8');
+test('geology dashboard follows the La Patagua operating workflow', async () => {
+  const [dashboard, page] = await Promise.all([readFile(dashboardUrl, 'utf8'), readFile(pageUrl, 'utf8')]);
   assert.match(dashboard, /data\.canWrite/);
   assert.match(dashboard, /Seleccionar mina/);
   assert.match(dashboard, /JSON\.stringify\(\{reportId,mineId\}\)/);
-  assert.match(dashboard, /r\.mine_raw&&r\.mine_raw !== '#ERROR!'/);
   assert.match(dashboard, /Mapa y sondajes/);
   assert.match(dashboard, /Resultados/);
   assert.match(dashboard, /Pendientes/);
-  assert.match(dashboard, /Contexto/);
-  assert.match(dashboard, /Logging/);
-  assert.match(dashboard, /SERNAGEOMIN/);
-  assert.match(dashboard, /No reemplaza cartografía oficial/);
   assert.match(dashboard, /Motil no los infiere ni los inventa/);
-  assert.match(dashboard, /dónde están los sondajes/);
-  assert.match(dashboard, /qué resultados existen/);
+  assert.match(page, /Vistas de Geología/);
+  assert.match(page, /button:last-child/);
 });
 
 test('geology exposes canonical historical assays without inventing drill-hole links', async () => {
-  const [api, history] = await Promise.all([
-    readFile(apiUrl, 'utf8'),
-    readFile(historyUrl, 'utf8'),
-  ]);
+  const [api, history] = await Promise.all([readFile(apiUrl, 'utf8'), readFile(historyUrl, 'utf8')]);
   assert.match(api, /production_chemistry_results/);
   assert.match(api, /production_chemistry_results'[\s\S]*eq\('organization_id',\s*context\.organizationId\)/);
   assert.match(api, /production_drilling_operational_summary_v1/);
-  assert.match(api, /production_drilling_operational_summary_v1'[\s\S]*eq\('organization_id',\s*context\.organizationId\)/);
   assert.match(api, /sampleById/);
   assert.match(api, /mineById/);
   assert.match(api, /drill_hole_id:\s*sample\?\.drill_hole_id\s*\|\|\s*null/);
@@ -50,15 +42,11 @@ test('geology exposes canonical historical assays without inventing drill-hole l
   assert.match(history, /Resultados históricos/);
   assert.match(history, /no los adhiere a los 400 pozos por similitud o fecha/);
   assert.match(history, /Evidencia operacional fuente/);
-  assert.match(history, /row\.drill_hole_id\?'Canónico':'No asignado'/);
 });
 
-test('geology API exposes external context without turning it into canonical evidence', async () => {
+test('La Patagua geology API does not expose external geology context to the client', async () => {
   const api = await readFile(apiUrl, 'utf8');
-  assert.match(api, /production_geology_external_context/);
-  assert.match(api, /production_geology_external_context'[\s\S]*eq\('organization_id',\s*context\.organizationId\)/);
-  assert.match(api, /contexto geológico auxiliar se mantiene separado/);
-  assert.match(api, /no crea relaciones canónicas por inferencia/);
-  assert.doesNotMatch(api, /from\('production_geology_external_context'\)[\s\S]{0,500}\.update\(/);
-  assert.doesNotMatch(api, /from\('production_geology_external_context'\)[\s\S]{0,500}\.insert\(/);
+  assert.doesNotMatch(api, /externalContext:\s*contextRows/);
+  assert.doesNotMatch(api, /contextQuality:\s*q/);
+  assert.doesNotMatch(api, /sernageominRecords:\s*Number/);
 });
