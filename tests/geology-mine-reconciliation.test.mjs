@@ -47,24 +47,28 @@ test('geology exposes canonical historical assays without inventing drill-hole l
   assert.match(api, /drill_hole_id:\s*sample\?\.drill_hole_id\s*\|\|\s*null/);
   assert.match(api, /no se asignan a sondajes sin evidencia/);
   assert.match(history, /Histórico canónico de La Patagua/);
-  assert.match(history, /Motil sólo relaciona registros cuando existe vínculo canónico explícito/);
+  assert.match(history, /vínculo canónico explícito/);
   assert.match(history, /Ensayes históricos/);
   assert.match(history, /no se adhieren a pozos por similitud o fecha/);
   assert.match(history, /Sólo datos La Patagua/);
 });
 
-test('La Patagua historical geology endpoint exposes validated head grade and mine plan only', async () => {
+test('La Patagua historical geology endpoint exposes validated current-first head grade and mine plan', async () => {
   const [historyApi, history] = await Promise.all([readFile(historyApiUrl, 'utf8'), readFile(historyUrl, 'utf8')]);
   assert.match(historyApi, /production_metallurgy_automatic_v1/);
   assert.match(historyApi, /production_metallurgy_automatic_v1'[\s\S]*eq\('organization_id',\s*context\.organizationId\)/);
+  assert.match(historyApi, /order\('operation_date', \{ ascending: false \}\)/);
+  assert.match(historyApi, /chronology: 'newest_first'/);
   assert.match(historyApi, /production_monthly_plans/);
   assert.match(historyApi, /production_monthly_plan_lines/);
   assert.match(historyApi, /validation_status/);
   assert.match(historyApi, /=== 'valid'/);
   assert.match(historyApi, /provenance: 'La Patagua'/);
-  assert.match(history, /Ley cabeza mina · historia operacional/);
-  assert.match(history, /Plan minero/);
-  assert.match(history, /Los registros en revisión se excluyen del promedio/);
+  assert.match(history, /Ahora · 2026/);
+  assert.match(history, /Plan minero vigente/);
+  assert.match(history, /Ley cabeza · más reciente primero/);
+  assert.match(history, /Ensayes · más reciente primero/);
+  assert.match(history, /La lectura siempre prioriza el dato más reciente/);
   assert.doesNotMatch(history, /SERNAGEOMIN/i);
 });
 
