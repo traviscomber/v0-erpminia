@@ -1,5 +1,5 @@
-import { GeologiaDashboard } from '@/components/production/geologia-dashboard';
+import { GeologiaWorkspaceShell } from '@/components/production/geologia-workspace-shell';
 
 export default function GeologiaPage() {
-  return <GeologiaDashboard />;
+  return <GeologiaWorkspaceShell />;
 }
