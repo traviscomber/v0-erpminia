@@ -12,8 +12,9 @@ export async function buildCanonicalGeologyContext(args: {
   organizationId: string;
 }) {
   const { supabase, organizationId } = args;
+  const currentYear = new Date().getFullYear();
 
-  const [mines, sectors, drilling, holes, samples, results, plans, planLines, metallurgy] = await Promise.all([
+  const [mines, sectors, drilling, holes, samples, results, plans, planLines, metallurgy, locationReview] = await Promise.all([
     supabase.from('production_mine_sources').select('id,code,name,status').eq('organization_id', organizationId).order('name'),
     supabase.from('production_mine_sectors').select('id,mine_source_id,name,status').eq('organization_id', organizationId).order('name'),
     supabase.from('production_drilling_source_reports')
@@ -52,9 +53,13 @@ export async function buildCanonicalGeologyContext(args: {
       .eq('organization_id', organizationId)
       .order('operation_date', { ascending: false })
       .limit(6000),
+    supabase.from('production_drill_hole_location_review_queue_v5')
+      .select('drill_hole_id,hole_code,resolution_state,review_priority,operational_priority,recommended_action,proposed_mine_name,proposed_sector_name,last_report_date,report_count')
+      .eq('organization_id', organizationId)
+      .order('operational_priority', { ascending: true }),
   ]);
 
-  const firstError = [mines, sectors, drilling, holes, samples, results, plans, planLines, metallurgy].find((item) => item.error)?.error;
+  const firstError = [mines, sectors, drilling, holes, samples, results, plans, planLines, metallurgy, locationReview].find((item) => item.error)?.error;
   if (firstError) throw new Error(firstError.message || 'No fue posible construir contexto canónico');
 
   const mineRows = mines.data || [];
@@ -66,6 +71,7 @@ export async function buildCanonicalGeologyContext(args: {
   const planRows = plans.data || [];
   const planLineRows = planLines.data || [];
   const metallurgyRows = metallurgy.data || [];
+  const locationReviewRows = locationReview.data || [];
 
   const mineById = new Map(mineRows.map((row: any) => [row.id, row.name]));
   const sectorById = new Map(sectorRows.map((row: any) => [row.id, row.name]));
@@ -135,6 +141,33 @@ export async function buildCanonicalGeologyContext(args: {
   const geologicalPurposeHoles = holeRows.filter((row: any) => String(row.geological_purpose || '').trim()).length;
   const mineEvidenceReadiness = buildMineEvidenceReadiness(mineRows, holeRows, sampleRows);
 
+  const currentYearHoles = holeRows.filter((row: any) => {
+    if (!row.start_at) return false;
+    const date = new Date(row.start_at);
+    return Number.isFinite(date.getTime()) && date.getFullYear() === currentYear;
+  });
+  const currentYearSnapshot = {
+    year: currentYear,
+    holes: currentYearHoles.length,
+    with_mine: currentYearHoles.filter((row: any) => Boolean(row.mine_source_id)).length,
+    with_sector: currentYearHoles.filter((row: any) => Boolean(row.mine_sector_id)).length,
+    with_depth: currentYearHoles.filter((row: any) => n(row.drilled_depth_m) != null).length,
+    latest_start: currentYearHoles.map((row: any) => row.start_at).filter(Boolean).sort().reverse()[0] || null,
+  };
+
+  const unresolvedReview = locationReviewRows.filter((row: any) => !['resolved', 'verified', 'matched'].includes(String(row.resolution_state || '').toLowerCase()));
+  const pendingReconciliation = unresolvedReview.slice(0, 120).map((row: any) => ({
+    hole_code: row.hole_code,
+    resolution_state: row.resolution_state,
+    review_priority: row.review_priority,
+    operational_priority: row.operational_priority,
+    recommended_action: row.recommended_action,
+    proposed_mine: row.proposed_mine_name,
+    proposed_sector: row.proposed_sector_name,
+    last_report_date: row.last_report_date,
+    report_count: row.report_count,
+  }));
+
   return {
     provenance: 'La Patagua canonical only',
     chronology: 'newest_first',
@@ -143,6 +176,7 @@ export async function buildCanonicalGeologyContext(args: {
       'production_mine_sectors',
       'production_drilling_source_reports',
       'production_drill_holes',
+      'production_drill_hole_location_review_queue_v5',
       'production_chemistry_samples',
       'production_chemistry_results',
       'production_monthly_plans',
@@ -150,10 +184,13 @@ export async function buildCanonicalGeologyContext(args: {
       'production_metallurgy_automatic_v1',
     ],
     current: {
+      year_snapshot: currentYearSnapshot,
       latest_plan: latestPlan ? { ...latestPlan, lines: latestPlanLines } : null,
       latest_head_grade: headGradeHistory[0] || null,
       latest_drilling: recentDrilling[0] || null,
       mine_needing_evidence_attention: mineEvidenceReadiness[0] || null,
+      pending_reconciliation_count: unresolvedReview.length,
+      top_pending_reconciliation: pendingReconciliation.slice(0, 10),
     },
     coverage: {
       mines: mineRows.map((row: any) => ({ id: row.id, code: row.code, name: row.name, status: row.status })),
@@ -164,7 +201,8 @@ export async function buildCanonicalGeologyContext(args: {
       geological_purpose_holes: geologicalPurposeHoles,
       samples: sampleRows.length,
       assay_results: resultRows.length,
-      note: 'Los conteos están limitados por las ventanas consultadas cuando corresponda; no inferir cobertura total fuera de los resúmenes explícitos.',
+      unresolved_reconciliation: unresolvedReview.length,
+      note: 'Los conteos están limitados por las ventanas consultadas cuando corresponda; la cola de reconciliación se consulta completa para no convertir un límite técnico en KPI.',
     },
     mine_evidence_readiness: mineEvidenceReadiness.map((row) => ({
       mine_id: row.id,
@@ -182,6 +220,7 @@ export async function buildCanonicalGeologyContext(args: {
       primary_gap: row.primaryGap,
       interpretation: 'Deterministic evidence coverage only; not a resource classification, grade estimate, or geological model.',
     })),
+    pending_reconciliation: pendingReconciliation,
     head_grade_history_recent: headGradeHistory.slice(0, 36),
     recent_drilling: recentDrilling,
     recent_assays: recentAssays,
@@ -205,6 +244,7 @@ export async function buildCanonicalGeologyContext(args: {
       detailed_geological_intervals: 'production_drill_intervals no se incorpora como evidencia positiva salvo que existan filas; no inventar logging.',
       semantics: 'Ley cabeza, ley plan/ingeniería, ley geológica y ensayes son conceptos separados.',
       mine_readiness: 'La preparación por mina usa exactamente collar + orientación + propósito; las muestras vinculadas se reportan aparte y no alteran el score.',
+      source_inclination: 'inclination_raw puede existir en reportes fuente, pero no se convierte automáticamente a dip_deg sin regla validada de La Patagua.',
     },
   };
 }
