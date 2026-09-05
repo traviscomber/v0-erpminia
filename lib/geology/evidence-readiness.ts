@@ -38,6 +38,8 @@ export type MineEvidenceReadinessRow = {
   primaryGap:'collar'|'orientation'|'purpose'|'none';
 };
 
+type EvidenceGap = Exclude<MineEvidenceReadinessRow['primaryGap'],'none'>;
+
 function pct(done:number,total:number){
   return total>0?Math.round((done/total)*100):0;
 }
@@ -58,11 +60,12 @@ export function buildMineEvidenceReadiness(
     const orientedPct=pct(oriented,mineHoles.length);
     const purposePct=pct(purpose,mineHoles.length);
     const readiness=mineHoles.length?Math.round((locatedPct+orientedPct+purposePct)/3):0;
-    const gaps:Array<{key:MineEvidenceReadinessRow['primaryGap'];value:number}>=[
+    const gaps:{key:EvidenceGap;value:number}[]=[
       {key:'collar',value:locatedPct},
       {key:'orientation',value:orientedPct},
       {key:'purpose',value:purposePct},
-    ].sort((a,b)=>a.value-b.value);
+    ];
+    gaps.sort((a,b)=>a.value-b.value);
     const primaryGap:MineEvidenceReadinessRow['primaryGap']=mineHoles.length&&gaps[0].value<100?gaps[0].key:'none';
     const attentionRank=(100-readiness)*1000+mineHoles.length*10+Math.min(linkedSamples,9);
     return {
