@@ -1,5 +1,6 @@
 'use client';
 
+import useSWR from 'swr';
 import { AlertTriangle, ArrowRight, Beaker, CheckCircle2, Compass, Drill, FileSearch, MapPinned, ShieldCheck } from 'lucide-react';
 
 type Summary = {
@@ -23,6 +24,16 @@ type PendingRow = {
   proposed_sector_name:string|null;
 };
 
+type CurrentHole = {
+  id:string;
+  start_at:string|null;
+  mine_source_id:string|null;
+  mine_sector_id:string|null;
+  drilled_depth_m:number|null;
+};
+
+type SupplementalData = { holes:CurrentHole[] };
+
 type Props = {
   summary:Summary;
   pending:PendingRow[];
@@ -31,8 +42,21 @@ type Props = {
   onOpenPending:()=>void;
 };
 
+const supplementalFetcher=async(url:string):Promise<SupplementalData>=>{
+  const response=await fetch(url,{credentials:'include'});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||'No fue posible cargar evidencia vigente');
+  return data;
+};
+
 function pct(done:number,total:number){
   return total>0?Math.round((done/total)*100):0;
+}
+
+function formatDate(value:string|null){
+  if(!value)return '—';
+  const date=new Date(value);
+  return Number.isNaN(date.getTime())?value:new Intl.DateTimeFormat('es-CL',{year:'numeric',month:'short',day:'2-digit'}).format(date);
 }
 
 function Signal({label,value,detail,tone='neutral'}:{label:string;value:string;detail:string;tone?:'neutral'|'warn'|'ok'}){
@@ -41,6 +65,14 @@ function Signal({label,value,detail,tone='neutral'}:{label:string;value:string;d
 }
 
 export function GeologiaTodayDecisionBoard({summary:s,pending,onOpenHoles,onOpenResults,onOpenPending}:Props){
+  const {data:supplemental}=useSWR('/api/produccion/geologia',supplementalFetcher);
+  const currentYear=new Date().getFullYear();
+  const currentHoles=(supplemental?.holes||[]).filter((hole)=>hole.start_at&&new Date(hole.start_at).getFullYear()===currentYear);
+  const currentWithMine=currentHoles.filter((hole)=>Boolean(hole.mine_source_id)).length;
+  const currentWithSector=currentHoles.filter((hole)=>Boolean(hole.mine_sector_id)).length;
+  const currentWithDepth=currentHoles.filter((hole)=>hole.drilled_depth_m!=null).length;
+  const latestCurrentStart=[...currentHoles].sort((a,b)=>String(b.start_at||'').localeCompare(String(a.start_at||'')))[0]?.start_at||null;
+
   const locatedPct=pct(s.locatedHoles,s.holes);
   const orientedPct=pct(s.orientedHoles,s.holes);
   const purposePct=pct(s.purposeHoles,s.holes);
@@ -78,12 +110,26 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,onOpenHoles,onOpen
   ].sort((a,b)=>Number(b.active)-Number(a.active));
 
   return <div className="space-y-5">
+    <section className="overflow-hidden rounded-lg border bg-card">
+      <div className="border-b px-5 py-4">
+        <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Ahora · {currentYear}</p>
+        <h2 className="mt-2 text-lg font-semibold tracking-tight">Evidencia vigente primero</h2>
+        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">La lectura operacional prioriza el año en curso antes del histórico. Estos indicadores usan únicamente sondajes canónicos con fecha de inicio {currentYear}.</p>
+      </div>
+      <div className="grid gap-px bg-border sm:grid-cols-2 xl:grid-cols-4">
+        <div className="bg-background p-4"><p className="text-xs text-muted-foreground">Sondajes iniciados</p><p className="mt-1 text-2xl font-semibold">{supplemental?currentHoles.length:'—'}</p><p className="mt-1 text-xs text-muted-foreground">Año {currentYear}</p></div>
+        <div className="bg-background p-4"><p className="text-xs text-muted-foreground">Ligados a mina</p><p className="mt-1 text-2xl font-semibold">{supplemental?`${currentWithMine}/${currentHoles.length}`:'—'}</p><p className="mt-1 text-xs text-muted-foreground">{supplemental?`${pct(currentWithMine,currentHoles.length)}% de cobertura canónica`:'Cargando'}</p></div>
+        <div className="bg-background p-4"><p className="text-xs text-muted-foreground">Ligados a sector</p><p className="mt-1 text-2xl font-semibold">{supplemental?`${currentWithSector}/${currentHoles.length}`:'—'}</p><p className="mt-1 text-xs text-muted-foreground">{supplemental?`${pct(currentWithSector,currentHoles.length)}% de cobertura canónica`:'Cargando'}</p></div>
+        <div className="bg-background p-4"><p className="text-xs text-muted-foreground">Profundidad disponible</p><p className="mt-1 text-2xl font-semibold">{supplemental?`${currentWithDepth}/${currentHoles.length}`:'—'}</p><p className="mt-1 text-xs text-muted-foreground">Último inicio {supplemental?formatDate(latestCurrentStart):'—'}</p></div>
+      </div>
+    </section>
+
     <section className="rounded-lg border bg-card p-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Mesa de decisiones · Hoy</p>
           <h2 className="mt-2 text-xl font-semibold tracking-tight">Qué necesita atención geológica ahora</h2>
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Prioridades derivadas sólo de la evidencia canónica disponible en La Patagua. No se infiere geología inexistente ni se mezclan fuentes externas.</p>
+          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Primero se muestra la evidencia vigente; las prioridades siguientes consideran el universo canónico disponible de La Patagua. No se infiere geología inexistente ni se mezclan fuentes externas.</p>
         </div>
         <ShieldCheck className="h-5 w-5 text-muted-foreground"/>
       </div>
