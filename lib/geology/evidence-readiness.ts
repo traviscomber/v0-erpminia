@@ -47,7 +47,7 @@ export function buildMineEvidenceReadiness(
   holes:MineEvidenceHole[],
   samples:MineEvidenceSample[],
 ):MineEvidenceReadinessRow[]{
-  return mines.map((mine)=>{
+  return mines.map((mine):MineEvidenceReadinessRow=>{
     const mineHoles=holes.filter((hole)=>hole.mine_source_id===mine.id);
     const holeIds=new Set(mineHoles.map((hole)=>hole.id));
     const located=mineHoles.filter((hole)=>hole.collar_easting!=null&&hole.collar_northing!=null).length;
@@ -58,12 +58,12 @@ export function buildMineEvidenceReadiness(
     const orientedPct=pct(oriented,mineHoles.length);
     const purposePct=pct(purpose,mineHoles.length);
     const readiness=mineHoles.length?Math.round((locatedPct+orientedPct+purposePct)/3):0;
-    const gaps=[
-      {key:'collar' as const,value:locatedPct},
-      {key:'orientation' as const,value:orientedPct},
-      {key:'purpose' as const,value:purposePct},
+    const gaps:Array<{key:MineEvidenceReadinessRow['primaryGap'];value:number}>=[
+      {key:'collar',value:locatedPct},
+      {key:'orientation',value:orientedPct},
+      {key:'purpose',value:purposePct},
     ].sort((a,b)=>a.value-b.value);
-    const primaryGap=mineHoles.length&&gaps[0].value<100?gaps[0].key:'none';
+    const primaryGap:MineEvidenceReadinessRow['primaryGap']=mineHoles.length&&gaps[0].value<100?gaps[0].key:'none';
     const attentionRank=(100-readiness)*1000+mineHoles.length*10+Math.min(linkedSamples,9);
     return {
       id:mine.id,
