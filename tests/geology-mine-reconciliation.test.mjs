@@ -8,6 +8,10 @@ const dashboardUrl = new URL('../components/production/geologia-dashboard.tsx', 
 const todayUrl = new URL('../components/production/geologia-today-decision-board.tsx', import.meta.url);
 const resultsUrl = new URL('../components/production/geologia-results-decision-board.tsx', import.meta.url);
 const pendingUrl = new URL('../components/production/geologia-pending-decision-queue.tsx', import.meta.url);
+const mineOverviewUrl = new URL('../components/production/geologia-mine-evidence-overview.tsx', import.meta.url);
+const readinessUrl = new URL('../lib/geology/evidence-readiness.ts', import.meta.url);
+const canonicalContextUrl = new URL('../lib/geology-ai/canonical-context.ts', import.meta.url);
+const promptUrl = new URL('../lib/geology-ai/prompt.ts', import.meta.url);
 const historyUrl = new URL('../components/production/geologia-historical-canonical.tsx', import.meta.url);
 const shellUrl = new URL('../components/production/geologia-workspace-shell.tsx', import.meta.url);
 const pageUrl = new URL('../app/dashboard/produccion/geologia/page.tsx', import.meta.url);
@@ -47,6 +51,24 @@ test('geology dashboard follows the La Patagua operating workflow', async () => 
   assert.match(shell, /sticky top-0/);
   assert.match(shell, /Vistas principales de Geología/);
   assert.match(page, /GeologiaWorkspaceShell/);
+});
+
+test('dashboard and assistant share the same mine evidence readiness rule', async () => {
+  const [overview, readiness, canonical, prompt] = await Promise.all([
+    readFile(mineOverviewUrl, 'utf8'),
+    readFile(readinessUrl, 'utf8'),
+    readFile(canonicalContextUrl, 'utf8'),
+    readFile(promptUrl, 'utf8'),
+  ]);
+  assert.match(overview, /buildMineEvidenceReadiness/);
+  assert.match(overview, /Propósito/);
+  assert.match(readiness, /locatedPct\+orientedPct\+purposePct/);
+  assert.match(readiness, /primaryGap/);
+  assert.match(canonical, /mine_evidence_readiness/);
+  assert.match(canonical, /mine_needing_evidence_attention/);
+  assert.match(canonical, /buildMineEvidenceReadiness/);
+  assert.match(prompt, /preparación estructural = promedio simple de cobertura de collar \+ orientación \+ propósito geológico/i);
+  assert.match(prompt, /muestras vinculadas se reportan aparte/i);
 });
 
 test('geology exposes canonical historical assays without inventing drill-hole links', async () => {
