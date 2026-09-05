@@ -1,3 +1,5 @@
+import { buildMineEvidenceReadiness } from '@/lib/geology/evidence-readiness';
+
 type SupabaseClientLike = any;
 
 const n = (value: unknown) => {
@@ -131,6 +133,7 @@ export async function buildCanonicalGeologyContext(args: {
   const locatedHoles = holeRows.filter((row: any) => row.collar_easting != null && row.collar_northing != null).length;
   const orientedHoles = holeRows.filter((row: any) => row.azimuth_deg != null && row.dip_deg != null).length;
   const geologicalPurposeHoles = holeRows.filter((row: any) => String(row.geological_purpose || '').trim()).length;
+  const mineEvidenceReadiness = buildMineEvidenceReadiness(mineRows, holeRows, sampleRows);
 
   return {
     provenance: 'La Patagua canonical only',
@@ -150,6 +153,7 @@ export async function buildCanonicalGeologyContext(args: {
       latest_plan: latestPlan ? { ...latestPlan, lines: latestPlanLines } : null,
       latest_head_grade: headGradeHistory[0] || null,
       latest_drilling: recentDrilling[0] || null,
+      mine_needing_evidence_attention: mineEvidenceReadiness[0] || null,
     },
     coverage: {
       mines: mineRows.map((row: any) => ({ id: row.id, code: row.code, name: row.name, status: row.status })),
@@ -162,6 +166,22 @@ export async function buildCanonicalGeologyContext(args: {
       assay_results: resultRows.length,
       note: 'Los conteos están limitados por las ventanas consultadas cuando corresponda; no inferir cobertura total fuera de los resúmenes explícitos.',
     },
+    mine_evidence_readiness: mineEvidenceReadiness.map((row) => ({
+      mine_id: row.id,
+      mine: row.name,
+      code: row.code,
+      holes: row.holes,
+      located_holes: row.located,
+      oriented_holes: row.oriented,
+      purpose_holes: row.purpose,
+      linked_samples: row.linkedSamples,
+      located_pct: row.locatedPct,
+      oriented_pct: row.orientedPct,
+      purpose_pct: row.purposePct,
+      structural_readiness_pct: row.readiness,
+      primary_gap: row.primaryGap,
+      interpretation: 'Deterministic evidence coverage only; not a resource classification, grade estimate, or geological model.',
+    })),
     head_grade_history_recent: headGradeHistory.slice(0, 36),
     recent_drilling: recentDrilling,
     recent_assays: recentAssays,
@@ -184,6 +204,7 @@ export async function buildCanonicalGeologyContext(args: {
     evidence_gaps: {
       detailed_geological_intervals: 'production_drill_intervals no se incorpora como evidencia positiva salvo que existan filas; no inventar logging.',
       semantics: 'Ley cabeza, ley plan/ingeniería, ley geológica y ensayes son conceptos separados.',
+      mine_readiness: 'La preparación por mina usa exactamente collar + orientación + propósito; las muestras vinculadas se reportan aparte y no alteran el score.',
     },
   };
 }
