@@ -12,6 +12,7 @@ import { GeologiaTodayDecisionBoard } from '@/components/production/geologia-tod
 import { GeologiaResultsDecisionBoard } from '@/components/production/geologia-results-decision-board';
 import { GeologiaPendingDecisionQueue } from '@/components/production/geologia-pending-decision-queue';
 import { GeologiaHoleEvidenceReadiness } from '@/components/production/geologia-hole-evidence-readiness';
+import { GeologiaMineEvidenceOverview } from '@/components/production/geologia-mine-evidence-overview';
 
 type Hole = {
   id:string; hole_code:string; drilling_domain:string|null; mine_source_id:string|null; mine_sector_id:string|null;
@@ -135,7 +136,7 @@ export function GeologiaDashboard(){
 
     <nav className="flex flex-wrap gap-2 border-b pb-3" aria-label="Vistas de Geología">{tabs.map(([key,label])=><Button key={key} size="sm" variant={tab===key?'default':'ghost'} onClick={()=>setTab(key)}>{label}</Button>)}</nav>
 
-    {data&&tab==='today'?<GeologiaTodayDecisionBoard summary={data.summary} pending={topPending} onOpenHoles={()=>setTab('holes')} onOpenResults={()=>setTab('results')} onOpenPending={()=>setTab('pending')}/>:null}
+    {data&&tab==='today'?<div className="space-y-5"><GeologiaTodayDecisionBoard summary={data.summary} pending={topPending} onOpenHoles={()=>setTab('holes')} onOpenResults={()=>setTab('results')} onOpenPending={()=>setTab('pending')}/><GeologiaMineEvidenceOverview mines={data.mines} holes={data.holes} samples={data.samples}/></div>:null}
 
     {data&&tab==='holes'?<div className="grid gap-5 xl:grid-cols-[minmax(0,1.15fr)_minmax(360px,.85fr)]">
       <div className="space-y-5">
