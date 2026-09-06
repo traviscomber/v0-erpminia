@@ -3,8 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
-import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
-import { resolveTechnicalSheetReference } from '@/lib/maintenance/technical-sheet-library';
+import { resolveExplicitTechnicalReference } from '@/lib/maintenance/technical-reference-matcher';
 
 const present = (value: unknown) => value !== null && value !== undefined && String(value).trim() !== '';
 
@@ -41,8 +40,7 @@ export async function GET(request: NextRequest) {
       const essentialMissing = ESSENTIAL_FIELDS.filter((field) => !present(asset[field])).map((field) => LABELS[field]);
       const readiness = essentialMissing.length > 0 ? 'needs_validation' : missing.length > 0 ? 'usable' : 'complete';
       const recoveryText = `${asset.asset_code || ''} ${asset.name || ''} ${asset.asset_type || ''} ${asset.manufacturer || ''} ${asset.model || ''}`.trim();
-      const inferredFamily = inferMachineFamilyFromText(recoveryText);
-      const technicalReference = resolveTechnicalSheetReference(recoveryText, inferredFamily);
+      const technicalReference = resolveExplicitTechnicalReference(recoveryText);
       const needsIdentityRecovery = !present(asset.manufacturer) || !present(asset.model) || !present(asset.asset_type);
       const recoveryCandidate = technicalReference && needsIdentityRecovery
         ? {
@@ -84,9 +82,9 @@ export async function GET(request: NextRequest) {
       rows: rows.filter((row) => row.readiness !== 'complete'),
       semantics: 'Completitud canónica describe campos materializados. Un campo vacío no autoriza a MOTIL a inferirlo automáticamente.',
       policy: 'Tipo, criticidad y estado operacional requieren evidencia o validación humana antes de usarse para priorización avanzada.',
-      recovery_policy: 'Una referencia técnica por similitud de texto o familia es sólo una pista de recuperación. No materializa fabricante, modelo, tipo, criticidad, estado, ubicación ni especificaciones hasta validación responsable.',
+      recovery_policy: 'Una referencia técnica candidata requiere una señal explícita de modelo o alias y compatibilidad de marca cuando la marca está presente. Sigue siendo sólo una pista de recuperación: no materializa fabricante, modelo, tipo, criticidad, estado, ubicación ni especificaciones hasta validación responsable.',
       source: 'canonical_assets_current',
-      recovery_source: 'technical-sheet-library',
+      recovery_source: 'technical-sheet-library-explicit-identity-match',
       canEdit: access.canWrite,
     });
   } catch (error) {
