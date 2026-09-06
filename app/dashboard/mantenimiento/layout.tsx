@@ -27,6 +27,7 @@ const assetViewPrefixes = [
   '/dashboard/mantenimiento/centro-costo',
   '/dashboard/mantenimiento/vehiculos',
   '/dashboard/mantenimiento/ciclo-vida',
+  '/dashboard/mantenimiento/data-readiness',
 ];
 
 const planningPrefixes = [
