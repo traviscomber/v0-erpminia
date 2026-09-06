@@ -78,7 +78,7 @@ export function GeologiaEvidenceRecoveryCampaign() {
     <div className="overflow-hidden rounded-lg border bg-card">
       <div className="border-b px-5 py-4">
         <p className="font-medium">Orden de recuperación documental</p>
-        <p className="mt-1 text-sm text-muted-foreground">Primero se muestran sondajes con ambas pistas, luego collar y survey por separado. Dentro de cada grupo se prioriza evidencia operacional afectada y profundidad documentada.</p>
+        <p className="mt-1 text-sm text-muted-foreground">Primero se muestran sondajes con ambas pistas, luego collar y survey por separado. Dentro de cada grupo se prioriza la pista más reciente, luego evidencia operacional afectada y profundidad documentada.</p>
       </div>
       <div className="divide-y">
         {data.rows.map((row) => <article key={row.drill_hole_id} className="p-5">
