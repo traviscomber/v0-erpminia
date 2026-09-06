@@ -12,6 +12,7 @@ test('recovery locator reads existing canonical and historical evidence sources 
   assert.match(builder, /production_geology_topography_recovery_v1/);
   assert.match(builder, /production_geology_survey_recovery_v1/);
   assert.match(builder, /production_geology_hole_context_v2/);
+  assert.match(builder, /production_drill_intervals/);
   assert.match(builder, /production_chemistry_lineage_v1/);
   assert.doesNotMatch(builder, /\.insert\(|\.update\(|\.upsert\(|\.delete\(/);
 });
@@ -20,10 +21,21 @@ test('recovery locator preserves geology trust boundaries and chemistry lineage 
   const builder = await readFile(builderUrl, 'utf8');
   assert.match(builder, /No convertir texto narrativo en coordenadas/);
   assert.match(builder, /no reemplaza estaciones numéricas depth\/azimuth\/dip/);
-  assert.match(builder, /Sirven para localizar filas fuente, no para inventar logging/);
+  assert.match(builder, /No hay intervalos cuya procedencia esté explícitamente identificada como logging geológico formal/);
+  assert.match(builder, /no equivalen a logging geológico formal, RQD, recuperación, alteración validada, muestreo ni contacto geológico cerrado/);
+  assert.match(builder, /No promover estos tramos a logging formal/);
   assert.match(builder, /no equivalen a orientación estructural medida/);
   assert.match(builder, /No puede presentarse como ensaye de un sondaje específico/);
   assert.match(builder, /No inferirla sólo por sector, fecha o similitud de código/);
+});
+
+test('formal logging and operational interval evidence use one canonical classifier', async () => {
+  const builder = await readFile(builderUrl, 'utf8');
+  assert.match(builder, /classifyIntervalEvidence/);
+  assert.match(builder, /explicit_formal_logging/);
+  assert.match(builder, /operational_source_interval/);
+  assert.match(builder, /formal_logging_holes/);
+  assert.match(builder, /operational_interval_holes/);
 });
 
 test('recovery locator API stays tenant and geology-module scoped', async () => {
@@ -38,6 +50,8 @@ test('priorities workspace distinguishes located sources, historical clues and l
   assert.match(component, /Fuente localizada/);
   assert.match(component, /Pista histórica/);
   assert.match(component, /Brecha de linaje/);
+  assert.match(component, /Brecha documental · logging geológico formal no localizado/);
+  assert.match(component, /mantener nulo cualquier campo ausente/);
   assert.match(component, /química sin vínculo explícito muestra → sondaje → intervalo/i);
   assert.match(shell, /GeologiaEvidenceRecoverySources/);
 });
