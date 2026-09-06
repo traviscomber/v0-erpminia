@@ -1,6 +1,6 @@
 'use client';
 
-import { AlertTriangle, Beaker, CheckCircle2, Compass, Layers3, MapPinned, Target } from 'lucide-react';
+import { Beaker, Compass, Layers3, MapPinned, Target } from 'lucide-react';
 
 type Hole = {
   hole_code:string;
@@ -17,76 +17,60 @@ type Props = {
   sampleCount:number;
 };
 
-type Check = {
+type EvidenceItem = {
   label:string;
-  ready:boolean;
   detail:string;
-  action:string;
   icon:typeof MapPinned;
 };
 
 export function GeologiaHoleEvidenceReadiness({hole,intervalCount,sampleCount}:Props){
-  const checks:Check[]=[
-    {
-      label:'Collar',
-      ready:hole.collar_easting!=null&&hole.collar_northing!=null,
-      detail:hole.collar_easting!=null&&hole.collar_northing!=null?'Coordenadas disponibles':'Coordenadas incompletas',
-      action:'Reconciliar coordenadas del collar antes de análisis espacial.',
-      icon:MapPinned,
-    },
-    {
-      label:'Orientación',
-      ready:hole.azimuth_deg!=null&&hole.dip_deg!=null,
-      detail:hole.azimuth_deg!=null&&hole.dip_deg!=null?'Azimut + inclinación disponibles':'Azimut o inclinación faltante',
-      action:'Completar orientación antes de interpretar trayectoria.',
-      icon:Compass,
-    },
-    {
-      label:'Propósito',
-      ready:Boolean(hole.geological_purpose?.trim()),
-      detail:hole.geological_purpose?.trim()?'Objetivo documentado':'Objetivo no documentado',
-      action:'Documentar el objetivo geológico del sondaje.',
-      icon:Target,
-    },
-    {
-      label:'Intervalos fuente',
-      ready:intervalCount>0,
-      detail:intervalCount>0?`${intervalCount} intervalos operacionales estructurados`:'Sin intervalos operacionales estructurados',
-      action:'Revisar reportes fuente y recuperar logging geológico formal si la decisión requiere litología, alteración, RQD, recuperación o contactos validados.',
-      icon:Layers3,
-    },
-    {
-      label:'Química vinculada',
-      ready:sampleCount>0,
-      detail:sampleCount>0?`${sampleCount} registros químicos ligados al pozo`:'Sin química ligada explícitamente al pozo',
-      action:'Revisar trazabilidad muestra → sondaje → intervalo antes de usar química en interpretación local.',
-      icon:Beaker,
-    },
-  ];
+  const available:EvidenceItem[]=[];
+  const sourceLimits:string[]=[];
 
-  const readyCount=checks.filter((item)=>item.ready).length;
-  const readiness=Math.round((readyCount/checks.length)*100);
-  const next=checks.find((item)=>!item.ready);
-  const tone=readiness===100?'text-emerald-700 dark:text-emerald-400':readiness>=60?'text-foreground':'text-amber-700 dark:text-amber-400';
+  if(hole.collar_easting!=null&&hole.collar_northing!=null){
+    available.push({label:'Collar',detail:'Coordenadas canónicas disponibles',icon:MapPinned});
+  }else{
+    sourceLimits.push('collar georreferenciado');
+  }
 
-  return <section className="rounded-lg border bg-card p-5" aria-label={`Preparación de evidencia ${hole.hole_code}`}>
-    <div className="flex items-start justify-between gap-4">
-      <div>
-        <p className="text-xs text-muted-foreground">Preparación de evidencia</p>
-        <p className={`mt-1 text-2xl font-semibold tracking-tight ${tone}`}>{readiness}%</p>
-        <p className="mt-1 text-xs text-muted-foreground">{readyCount}/{checks.length} capas mínimas disponibles</p>
-      </div>
-      {readiness===100?<CheckCircle2 className="h-5 w-5 text-emerald-700 dark:text-emerald-400"/>:<AlertTriangle className="h-5 w-5 text-muted-foreground"/>}
+  if(hole.azimuth_deg!=null&&hole.dip_deg!=null){
+    available.push({label:'Orientación',detail:`Azimut ${hole.azimuth_deg}° · inclinación ${hole.dip_deg}°`,icon:Compass});
+  }else{
+    sourceLimits.push('orientación completa');
+  }
+
+  if(hole.geological_purpose?.trim()){
+    available.push({label:'Propósito geológico',detail:hole.geological_purpose.trim(),icon:Target});
+  }else{
+    sourceLimits.push('propósito geológico documentado');
+  }
+
+  if(intervalCount>0){
+    available.push({label:'Intervalos operacionales',detail:`${intervalCount} tramo(s) estructurado(s) desde reportes fuente`,icon:Layers3});
+  }else{
+    sourceLimits.push('intervalos operacionales estructurados');
+  }
+
+  if(sampleCount>0){
+    available.push({label:'Química vinculada',detail:`${sampleCount} registro(s) ligados explícitamente al sondaje`,icon:Beaker});
+  }else{
+    sourceLimits.push('química con linaje muestra → sondaje → intervalo');
+  }
+
+  return <section className="rounded-lg border bg-card p-5" aria-label={`Evidencia disponible ${hole.hole_code}`}>
+    <div>
+      <p className="text-xs text-muted-foreground">Evidencia disponible</p>
+      <p className="mt-1 text-sm font-medium">Sólo se muestran capas realmente acreditadas para este sondaje.</p>
     </div>
 
-    <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-      {checks.map((item)=>{const Icon=item.icon;return <div key={item.label} className="flex items-start gap-3 rounded-md border px-3 py-3"><Icon className={`mt-0.5 h-4 w-4 shrink-0 ${item.ready?'text-emerald-700 dark:text-emerald-400':'text-muted-foreground'}`}/><div><div className="flex items-center gap-2"><p className="text-sm font-medium">{item.label}</p><span className="text-[11px] text-muted-foreground">{item.ready?'Disponible':'Pendiente'}</span></div><p className="mt-0.5 text-xs text-muted-foreground">{item.detail}</p></div></div>})}
-    </div>
+    {available.length?<div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
+      {available.map((item)=>{const Icon=item.icon;return <div key={item.label} className="flex items-start gap-3 rounded-md border px-3 py-3"><Icon className="mt-0.5 h-4 w-4 shrink-0 text-foreground"/><div><p className="text-sm font-medium">{item.label}</p><p className="mt-0.5 text-xs text-muted-foreground">{item.detail}</p></div></div>})}
+    </div>:<div className="mt-4 rounded-md border border-dashed px-3 py-4 text-sm text-muted-foreground">La fuente actual no aporta capas técnicas adicionales para este sondaje. Esto no se convierte en una tarea automática ni en un score de calidad.</div>}
 
-    <div className="mt-4 border-t pt-4">
-      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Siguiente acción de datos</p>
-      <p className="mt-1 text-sm">{next?next.action:'Las cinco capas mínimas están disponibles. La interpretación sigue limitada por la calidad y contenido real de cada registro.'}</p>
-      <p className="mt-2 text-xs text-muted-foreground">“Intervalos fuente disponibles” no significa logging geológico formal. Este porcentaje mide completitud operacional mínima, no certeza geológica, ley ni calidad de mineralización.</p>
-    </div>
+    {sourceLimits.length?<div className="mt-4 border-t pt-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Límites de la fuente actual</p>
+      <p className="mt-1 text-xs leading-5 text-muted-foreground">No están incorporados: {sourceLimits.join(', ')}. La ausencia se mantiene como límite documental; no se interpreta como defecto del sondaje ni como trabajo pendiente.</p>
+      <p className="mt-2 text-xs text-muted-foreground">Los intervalos operacionales no equivalen a logging geológico formal. No se infieren RQD, recuperación, alteración, contactos, continuidad, ley ni control estructural.</p>
+    </div>:null}
   </section>;
 }
