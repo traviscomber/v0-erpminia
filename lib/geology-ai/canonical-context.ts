@@ -175,11 +175,11 @@ export async function buildCanonicalGeologyContext(args: {
     report_count: row.report_count,
   }));
 
-  const immediateTaskSummary = immediateTaskRows.reduce<Record<string, number>>((acc: Record<string, number>, row: any) => {
+  const immediateTaskSummary = immediateTaskRows.reduce((acc: Record<string, number>, row: any) => {
     const key = String(row.task_category || 'other');
     acc[key] = (acc[key] || 0) + 1;
     return acc;
-  }, {});
+  }, {} as Record<string, number>);
 
   const immediateGeologyTasks = immediateTaskRows.map((row: any) => ({
     hole_code: row.hole_code,
