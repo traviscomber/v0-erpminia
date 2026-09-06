@@ -44,14 +44,11 @@ test('recovery locator API stays tenant and geology-module scoped', async () => 
   assert.match(route, /organizationId: context\.organizationId/);
 });
 
-test('priorities workspace distinguishes located sources, historical clues and lineage gaps', async () => {
+test('recovery locator remains available as a read-only utility but is not part of primary priorities', async () => {
   const component = await readFile(componentUrl, 'utf8');
   const shell = await readFile(shellUrl, 'utf8');
   assert.match(component, /Fuente localizada/);
   assert.match(component, /Pista histórica/);
   assert.match(component, /Brecha de linaje/);
-  assert.match(component, /Brecha documental · logging geológico formal no localizado/);
-  assert.match(component, /mantener nulo cualquier campo ausente/);
-  assert.match(component, /química sin vínculo explícito muestra → sondaje → intervalo/i);
-  assert.match(shell, /GeologiaEvidenceRecoverySources/);
+  assert.doesNotMatch(shell, /GeologiaEvidenceRecoverySources/);
 });
