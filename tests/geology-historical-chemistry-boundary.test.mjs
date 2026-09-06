@@ -27,11 +27,13 @@ test('results view preserves punteo and process chemistry lineage without drill 
   assert.match(results, /Sin vínculo/);
 });
 
-test('mine readiness keeps chemistry outside structural readiness', async () => {
+test('mine coverage keeps chemistry outside structural coverage', async () => {
   const mineOverview = await readFile(mineOverviewUrl, 'utf8');
   assert.match(mineOverview, /Química histórica/);
-  assert.match(mineOverview, /se muestra aparte por mina/);
+  assert.match(mineOverview, /La química histórica se muestra aparte/);
   assert.match(mineOverview, /no se interpreta como ensayo de sondaje/i);
+  assert.match(mineOverview, /Cobertura estructural/);
+  assert.match(mineOverview, /no ranking de minas ni lista de datos por pedir/i);
 });
 
 test('geology API preserves explicit drill_hole_id instead of inferring chemistry linkage', async () => {
