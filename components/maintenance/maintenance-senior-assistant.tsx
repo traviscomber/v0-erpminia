@@ -10,7 +10,7 @@ function MaintenanceAiMark() {
     <svg
       viewBox="0 0 96 96"
       aria-hidden="true"
-      className="h-[76px] w-[76px] overflow-visible"
+      className="h-[76px] w-[76px] overflow-visible text-primary"
     >
       <g fill="none" strokeLinecap="round" strokeLinejoin="round">
         <path
