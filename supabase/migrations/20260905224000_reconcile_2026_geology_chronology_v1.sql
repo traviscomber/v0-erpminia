@@ -1,5 +1,7 @@
--- Reconcile 2026 chronology only in the derived geology layer.
+-- Reconcile chronology only in the derived geology layer.
 -- RAW production_drilling_source_reports rows remain unchanged.
+-- Every source-specific exception is scoped to the immutable workbook hash,
+-- sheet and source_record_id so no other tenant/file can inherit it.
 
 create or replace view public.production_geology_reconciliation_cases_v1
 with (security_invoker = true)
@@ -15,31 +17,31 @@ with normalized as (
     r.hole_code_raw,
     r.shift_code_raw,
     case
-      when r.source_row = 3301 then 73.5::numeric
-      when r.source_row = 1513 then 206.85::numeric
-      when r.source_row = 2618 then 282::numeric
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='0fecf55e' then 73.5::numeric
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='b1cdf5ae' then 206.85::numeric
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='da345115' then 282::numeric
       when r.meter_initial is not null and r.meter_final is not null and r.drilled_meters is not null
        and abs(abs(r.meter_final-r.meter_initial)-abs(r.drilled_meters)*100) <= 0.01 then r.meter_initial/100.0
       else r.meter_initial
     end as meter_initial,
     case
-      when r.source_row = 1513 then 218.5::numeric
-      when r.source_row = 2618 then 285::numeric
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='b1cdf5ae' then 218.5::numeric
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='da345115' then 285::numeric
       when r.meter_initial is not null and r.meter_final is not null and r.drilled_meters is not null
        and abs(abs(r.meter_final-r.meter_initial)-abs(r.drilled_meters)*100) <= 0.01 then r.meter_final/100.0
       else r.meter_final
     end as meter_final,
     case
-      when r.source_row in (3793,3868,3975) then 0::numeric
-      when r.source_row = 3301 then 7::numeric
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id in ('11ec76ee','9b14fefe','78a92157') then 0::numeric
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='0fecf55e' then 7::numeric
       else r.drilled_meters
     end as drilled_meters,
     case
-      when r.source_row = 3793 then 'non_drilling_capture_conflict_excluded'
-      when r.source_row = 3868 then 'duplicate_report_excluded'
-      when r.source_row = 3975 then 'superseded_duplicate_report_excluded'
-      when r.source_row in (1513,2618,3301) then 'sequence_reconciled_typo'
-      when r.source_row in (3993,4347) then 'sequence_reordered_source_date'
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='11ec76ee' then 'non_drilling_capture_conflict_excluded'
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='9b14fefe' then 'duplicate_report_excluded'
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='78a92157' then 'superseded_duplicate_report_excluded'
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id in ('b1cdf5ae','da345115','0fecf55e') then 'sequence_reconciled_typo'
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id in ('2c33954c','bdbf595b') then 'sequence_reordered_source_date'
       when r.meter_initial is not null and r.meter_final is not null and r.drilled_meters is not null
        and abs(abs(r.meter_final-r.meter_initial)-abs(r.drilled_meters)*100) <= 0.01 then 'scaled_x100_normalized'
       when r.drilled_meters < 0 then 'negative_source_meters'
@@ -48,9 +50,9 @@ with normalized as (
     r.drilling_observations,
     r.machine_observations,
     case
-      when r.source_row = 88 then r.operation_date + interval '3 days'
-      when r.source_row = 3993 then timestamp '2026-04-06 00:00:00'
-      when r.source_row = 4347 then timestamp '2026-06-08 00:00:00'
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='0f7a78ff' then r.operation_date + interval '3 days'
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='2c33954c' then timestamp '2026-04-06 00:00:00'
+      when r.source_file_sha256='890a02364b1b41c9724458c40e46964190255d34c9f7ca8b9e9985d53bb1ad50' and r.source_sheet='BaseDatos' and r.source_record_id='bdbf595b' then timestamp '2026-06-08 00:00:00'
       else r.operation_date::timestamp
     end as chronology_order_at
   from public.production_drilling_source_reports r
