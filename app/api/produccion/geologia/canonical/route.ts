@@ -4,6 +4,57 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 
+type CanonicalHoleRow = {
+  drill_hole_id: string;
+  hole_code: string;
+  mine_name: string | null;
+  sector_name: string | null;
+  status: string | null;
+  drilled_depth_m: number | null;
+  orientation_confidence: string | null;
+  interval_count: number | null;
+  mineralization_interval_count: number | null;
+  structural_interval_count: number | null;
+  point_observation_count: number | null;
+  mineral_point_count: number | null;
+  structure_point_count: number | null;
+  transition_count: number | null;
+  daily_span_count: number | null;
+  positive_visual_span_count: number | null;
+  negative_visual_span_count: number | null;
+  structure_span_count: number | null;
+  lithology_span_count: number | null;
+  rock_condition_span_count: number | null;
+  topography_evidence_count: number | null;
+  survey_evidence_count: number | null;
+  severe_chronology_count: number | null;
+  material_chronology_count: number | null;
+  mineralization_conflict_count: number | null;
+  effective_priority_rank: number | null;
+  effective_attention_reason: string | null;
+  ai_grounding_state: string | null;
+  source_reference: string | null;
+};
+
+type QueueRow = {
+  drill_hole_id: string;
+  hole_code: string;
+  mine_name: string | null;
+  sector_name: string | null;
+  drilled_depth_m: number | null;
+  effective_priority_rank: number | null;
+  effective_attention_reason: string | null;
+  mineralization_conflict_count: number | null;
+  severe_chronology_count: number | null;
+  material_chronology_count: number | null;
+  topography_evidence_count: number | null;
+  survey_evidence_count: number | null;
+  visual_mineral_evidence_count: number | null;
+  structural_evidence_count: number | null;
+  lithology_evidence_count: number | null;
+  interval_count: number | null;
+};
+
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_GEOLOGIA);
   if (!access.authorized) return access.response;
@@ -59,8 +110,10 @@ export async function GET(request: NextRequest) {
   const error = holes.error || queue.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  const holeRows = holes.data || [];
-  const queueRows = queue.data || [];
+  // These views are newer than the generated Supabase Database type snapshot used by this app.
+  // Keep runtime access fully tenant-scoped and make the expected read contract explicit here.
+  const holeRows = (holes.data || []) as unknown as CanonicalHoleRow[];
+  const queueRows = (queue.data || []) as unknown as QueueRow[];
   const stateCounts = holeRows.reduce<Record<string, number>>((acc, row) => {
     const key = String(row.ai_grounding_state || 'unknown');
     acc[key] = (acc[key] || 0) + 1;
