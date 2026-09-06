@@ -32,5 +32,6 @@ test('candidate matching rejects explicit brand conflicts and preserves human va
   assert.match(matcher, /explicit\.some\(\(group\) => group === referenceGroup\)/);
   assert.match(readiness, /requiere una señal explícita de modelo o alias/i);
   assert.match(readiness, /no materializa fabricante, modelo, tipo, criticidad, estado, ubicación ni especificaciones/i);
-  assert.match(technicalSheet, /Family similarity may suggest component templates, but it cannot propose an OEM\/model reference/);
+  assert.match(technicalSheet, /Only an explicit model or alias signal can propose an OEM\/model reference/);
+  assert.match(technicalSheet, /cannot materialize specifications, preventive alerts, operational status, or canonical identity/);
 });
