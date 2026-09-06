@@ -53,7 +53,7 @@ export function GeologiaMineEvidenceOverview({mines,holes,samples}:Props){
             <th className="px-4 py-3 text-right">Collar</th>
             <th className="px-4 py-3 text-right">Orientación</th>
             <th className="px-4 py-3 text-right">Propósito</th>
-            <th className="px-4 py-3 text-right">Muestras</th>
+            <th className="px-4 py-3 text-right">Química histórica</th>
             <th className="px-4 py-3 text-right">Preparación</th>
           </tr>
         </thead>
@@ -70,6 +70,6 @@ export function GeologiaMineEvidenceOverview({mines,holes,samples}:Props){
         </tbody>
       </table>
     </div>
-    <div className="border-t px-5 py-3 text-xs text-muted-foreground">Preparación = promedio simple de cobertura de collar, orientación y propósito geológico. Las muestras se muestran aparte para no mezclar dimensiones distintas de evidencia.</div>
+    <div className="border-t px-5 py-3 text-xs text-muted-foreground">Preparación = promedio simple de cobertura de collar, orientación y propósito geológico. La química histórica se muestra aparte por mina y no se interpreta como ensayo de sondaje sin vínculo explícito a pozo e intervalo.</div>
   </section>;
 }
