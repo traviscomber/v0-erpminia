@@ -43,10 +43,10 @@ test('geology dashboard follows the La Patagua operating workflow', async () => 
   assert.match(today, /currentWithMine/);
   assert.match(today, /currentWithSector/);
   assert.match(results, /no estimar ni inferir Cu/i);
-  assert.match(results, /Ensayes canónicos históricos/);
+  assert.match(results, /Resultados químicos canónicos históricos/);
   assert.match(results, /result_value/);
   assert.match(results, /result_unit/);
-  assert.match(results, /Son evidencia histórica y no representan por sí solos la condición geológica vigente de 2026/);
+  assert.match(results, /evidencia histórica de muestra\/mina y no representan por sí solos la condición geológica vigente de 2026/i);
   assert.match(results, /Sin vínculo/);
   assert.match(results, /más recientes primero/);
   assert.match(pending, /Seleccionar mina/);
@@ -80,7 +80,7 @@ test('dashboard and assistant share the same mine evidence readiness rule', asyn
   assert.match(prompt, /muestras vinculadas se reportan aparte/i);
 });
 
-test('geology exposes canonical historical assays without inventing drill-hole links', async () => {
+test('geology exposes canonical historical chemistry without inventing drill-hole links', async () => {
   const [api, history, results] = await Promise.all([readFile(apiUrl, 'utf8'), readFile(historyUrl, 'utf8'), readFile(resultsUrl, 'utf8')]);
   assert.match(api, /production_chemistry_results/);
   assert.match(api, /production_chemistry_results'[\s\S]*eq\('organization_id',\s*context\.organizationId\)/);
@@ -90,7 +90,8 @@ test('geology exposes canonical historical assays without inventing drill-hole l
   assert.match(api, /drill_hole_id:\s*sample\?\.drill_hole_id\s*\|\|\s*null/);
   assert.match(api, /no se asignan a sondajes sin evidencia/);
   assert.match(results, /chemistryResults/);
-  assert.match(results, /Ensayes canónicos históricos/);
+  assert.match(results, /Resultados químicos canónicos históricos/);
+  assert.match(results, /no los convierte en muestras de sondaje/i);
   assert.match(history, /Histórico canónico de La Patagua/);
   assert.match(history, /vínculo canónico explícito/);
   assert.match(history, /Ensayes históricos/);
