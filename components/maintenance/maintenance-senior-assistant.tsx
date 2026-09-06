@@ -1,9 +1,29 @@
 'use client';
 
-import { FormEvent, KeyboardEvent, useState } from 'react';
-import { Database, Send, X } from 'lucide-react';
+import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
+import { Database, RotateCcw, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+
+type ChatMessage = {
+  id?: string;
+  role: 'user' | 'assistant';
+  content: string;
+  source_refs?: Array<{ source?: string }>;
+  model?: string | null;
+  created_at?: string;
+};
+
+type ChatState = {
+  conversation?: { id: string; title?: string | null } | null;
+  messages?: ChatMessage[];
+  hasMore?: boolean;
+  oldestMessageAt?: string | null;
+  sessionIdleHours?: number;
+  memoryCount?: number;
+  cargo?: string | null;
+  agent?: string;
+};
 
 function MaintenanceAiMark() {
   return (
@@ -62,31 +82,124 @@ const starters = [
 
 export function MaintenanceSeniorAssistant() {
   const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [oldestMessageAt, setOldestMessageAt] = useState<string | null>(null);
+  const [loadingOlder, setLoadingOlder] = useState(false);
+  const [memoryCount, setMemoryCount] = useState(0);
+  const [cargo, setCargo] = useState<string | null>(null);
+  const [sessionIdleHours, setSessionIdleHours] = useState(8);
   const [message, setMessage] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const suppressAutoScrollRef = useRef(false);
+
+  useEffect(() => {
+    if (!open || loaded) return;
+    let active = true;
+    fetch('/api/maintenance/senior-assistant', { credentials: 'include', cache: 'no-store' })
+      .then(async (response) => {
+        const data = (await response.json().catch(() => null)) as ChatState & { error?: string };
+        if (!response.ok) throw new Error(data?.error || 'No fue posible abrir el asistente.');
+        if (!active) return;
+        setConversationId(data.conversation?.id || null);
+        setMessages(data.messages || []);
+        setHasMore(Boolean(data.hasMore));
+        setOldestMessageAt(data.oldestMessageAt || null);
+        setMemoryCount(data.memoryCount || 0);
+        setCargo(data.cargo || null);
+        setSessionIdleHours(data.sessionIdleHours || 8);
+        setLoaded(true);
+      })
+      .catch((cause) => {
+        if (!active) return;
+        setError(cause instanceof Error ? cause.message : 'No fue posible abrir el asistente.');
+        setLoaded(true);
+      });
+    return () => { active = false; };
+  }, [open, loaded]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (suppressAutoScrollRef.current) {
+      suppressAutoScrollRef.current = false;
+      return;
+    }
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }, [open, messages, sending]);
+
+  const loadOlder = async () => {
+    if (!conversationId || !hasMore || !oldestMessageAt || loadingOlder) return;
+    setLoadingOlder(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({ conversationId, before: oldestMessageAt });
+      const response = await fetch(`/api/maintenance/senior-assistant?${params.toString()}`, {
+        credentials: 'include',
+        cache: 'no-store',
+      });
+      const data = (await response.json().catch(() => null)) as ChatState & { error?: string };
+      if (!response.ok) throw new Error(data?.error || 'No fue posible cargar mensajes anteriores.');
+      const older = data.messages || [];
+      suppressAutoScrollRef.current = true;
+      setMessages((current) => {
+        const existing = new Set(current.map((item) => item.id).filter(Boolean));
+        return [...older.filter((item) => !item.id || !existing.has(item.id)), ...current];
+      });
+      setHasMore(Boolean(data.hasMore));
+      setOldestMessageAt(data.oldestMessageAt || oldestMessageAt);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No fue posible cargar mensajes anteriores.');
+    } finally {
+      setLoadingOlder(false);
+    }
+  };
 
   async function submit(event?: FormEvent) {
     event?.preventDefault();
     const question = message.trim();
-    if (!question || loading) return;
-    setLoading(true);
-    setError('');
+    if (!question || sending) return;
+
+    const optimistic: ChatMessage = {
+      role: 'user',
+      content: question,
+      created_at: new Date().toISOString(),
+    };
+    setMessages((current) => [...current, optimistic]);
+    setMessage('');
+    setSending(true);
+    setError(null);
+
     try {
       const response = await fetch('/api/maintenance/senior-assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ message: question }),
+        body: JSON.stringify({ message: question, conversationId }),
       });
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error || 'No fue posible consultar al asistente.');
-      setAnswer(payload?.answer || 'Sin respuesta utilizable.');
+      setConversationId(payload?.conversationId || conversationId);
+      if (payload?.message) {
+        setMessages((current) => [...current, payload.message]);
+      } else if (payload?.answer) {
+        setMessages((current) => [...current, {
+          role: 'assistant',
+          content: payload.answer,
+          source_refs: Array.isArray(payload?.sources) ? payload.sources.map((source: string) => ({ source })) : [],
+          model: payload?.model || null,
+        }]);
+      }
+      if (Number(payload?.learned || 0) > 0) {
+        setMemoryCount((current) => current + Number(payload.learned));
+      }
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No fue posible consultar al asistente.');
     } finally {
-      setLoading(false);
+      setSending(false);
     }
   }
 
@@ -94,6 +207,30 @@ export function MaintenanceSeniorAssistant() {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       void submit();
+    }
+  };
+
+  const startNewConversation = async () => {
+    if (sending) return;
+    setError(null);
+    try {
+      if (conversationId) {
+        const response = await fetch('/api/maintenance/senior-assistant', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'archive', conversationId }),
+        });
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) throw new Error(payload?.error || 'No fue posible cerrar la conversación.');
+      }
+      setConversationId(null);
+      setMessages([]);
+      setHasMore(false);
+      setOldestMessageAt(null);
+      setMessage('');
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : 'No fue posible cerrar la conversación.');
     }
   };
 
@@ -115,34 +252,67 @@ export function MaintenanceSeniorAssistant() {
       <MaintenanceAiMark />
     </button>
 
-    {open ? <section className="fixed bottom-4 right-4 z-50 flex h-[min(640px,calc(100vh-2rem))] w-[min(430px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-none" aria-label="Asistente Senior de Mantenimiento">
+    {open ? <section className="fixed bottom-4 right-4 z-50 flex h-[min(700px,calc(100vh-2rem))] w-[min(460px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-none" aria-label="Asistente Senior de Mantenimiento">
       <header className="border-b bg-card px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <p className="text-sm font-semibold">Asistente Senior de Mantenimiento</p>
             <p className="mt-1 text-xs text-muted-foreground">Evidencia canónica MOTIL · decisión humana</p>
-            <span className="mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] text-muted-foreground"><Database className="h-3 w-3"/>Canónico</span>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
+              <span className="inline-flex items-center gap-1 rounded-full border px-2 py-1"><Database className="h-3 w-3"/>Canónico</span>
+              {cargo ? <span className="max-w-[210px] truncate rounded-full border px-2 py-1" title={cargo}>{cargo}</span> : null}
+              <span className="rounded-full border px-2 py-1">Memoria {memoryCount}</span>
+            </div>
           </div>
-          <Button size="icon-sm" variant="ghost" onClick={() => setOpen(false)} aria-label="Cerrar asistente"><X className="h-4 w-4"/></Button>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button type="button" size="icon-sm" variant="ghost" onClick={() => void startNewConversation()} disabled={sending} aria-label="Nueva conversación" title="Archivar conversación y comenzar una nueva"><RotateCcw className="h-4 w-4"/></Button>
+            <Button type="button" size="icon-sm" variant="ghost" onClick={() => setOpen(false)} aria-label="Cerrar asistente"><X className="h-4 w-4"/></Button>
+          </div>
         </div>
       </header>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
-        <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-muted/10 p-4 text-sm leading-relaxed whitespace-pre-wrap">
-          {answer || 'Pregunta qué requiere atención, qué evidencia lo respalda, qué contradice la señal y cuál es la próxima acción de mayor valor.'}
-          {error ? <p className="mt-3 text-destructive">{error}</p> : null}
-        </div>
+      <div className="min-h-0 flex-1 overflow-y-auto bg-muted/10 px-4 py-4" aria-live="polite">
+        {!loaded ? <p className="text-sm text-muted-foreground">Cargando contexto de mantenimiento…</p> : null}
 
-        {!answer ? <div className="grid gap-2">
-          {starters.map((starter) => <button key={starter} type="button" className="min-h-10 rounded-md border px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setMessage(starter)}>{starter}</button>)}
+        {loaded && hasMore ? <div className="mb-4 flex justify-center"><Button type="button" variant="ghost" size="sm" onClick={() => void loadOlder()} disabled={loadingOlder}>{loadingOlder ? 'Cargando…' : 'Ver mensajes anteriores'}</Button></div> : null}
+
+        {loaded && messages.length === 0 ? <div className="space-y-4">
+          <p className="text-sm leading-relaxed text-muted-foreground">Pregunta qué requiere atención, qué evidencia lo respalda, qué contradice la señal y cuál es la próxima acción de mayor valor.</p>
+          <div className="grid gap-2">
+            {starters.map((starter) => <button key={starter} type="button" className="min-h-10 rounded-md border px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setMessage(starter)}>{starter}</button>)}
+          </div>
         </div> : null}
 
+        <div className="space-y-5">
+          {messages.map((item, index) => {
+            const sources = (item.source_refs || []).map((ref) => ref?.source).filter(Boolean) as string[];
+            const key = item.id || `${item.role}-${item.created_at || index}-${index}`;
+            return <article key={key} className={cn('text-sm leading-relaxed', item.role === 'user' ? 'ml-8 border-l-2 border-primary/30 pl-3' : 'mr-2')}>
+              <p className="mb-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{item.role === 'user' ? 'Tú' : 'Asistente Senior'}</p>
+              <div className="whitespace-pre-wrap">{item.content}</div>
+              {item.role === 'assistant' && sources.length ? <details className="mt-3 text-[11px] text-muted-foreground">
+                <summary className="cursor-pointer select-none">{sources.length} fuentes canónicas</summary>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {sources.map((source) => <span key={source} className="rounded-full border px-2 py-1 font-mono text-[9px]">{source}</span>)}
+                </div>
+              </details> : null}
+              {item.role === 'assistant' && item.model ? <p className="mt-2 text-[10px] text-muted-foreground">Modelo: {item.model}</p> : null}
+            </article>;
+          })}
+          {sending ? <p className="text-sm text-muted-foreground">Analizando evidencia canónica…</p> : null}
+          {error ? <p className="text-sm text-destructive">{error}</p> : null}
+          <div ref={bottomRef} />
+        </div>
+      </div>
+
+      <footer className="border-t bg-card p-3">
         <form onSubmit={submit} className="flex items-end gap-2">
           <label className="sr-only" htmlFor="maintenance-assistant-question">Consulta de mantenimiento</label>
-          <textarea id="maintenance-assistant-question" value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={onKeyDown} rows={3} maxLength={12000} placeholder="Consulta de mantenimiento..." className="min-h-[76px] flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"/>
-          <Button type="submit" size="icon" disabled={loading || !message.trim()} aria-label="Enviar consulta"><Send className="h-4 w-4"/></Button>
+          <textarea id="maintenance-assistant-question" name="maintenance-assistant-question" value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={onKeyDown} rows={3} maxLength={12000} placeholder="Consulta de mantenimiento..." className="min-h-[72px] flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"/>
+          <Button type="submit" size="icon" disabled={sending || !message.trim()} aria-label="Enviar consulta"><Send className="h-4 w-4"/></Button>
         </form>
-      </div>
+        <p className="mt-2 text-[10px] text-muted-foreground">Continuidad de sesión: {sessionIdleHours} h · memoria laboral separada de la evidencia operacional.</p>
+      </footer>
     </section> : null}
   </>;
 }
