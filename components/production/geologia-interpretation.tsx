@@ -4,6 +4,7 @@ import useSWR from 'swr';
 import { AlertTriangle, ChevronRight, CircleDot, Layers3, Search, ShieldCheck } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { StatePanel } from '@/components/ui/state-panel';
+import { GeologiaInterpretationColumn } from '@/components/production/geologia-interpretation-column';
 
 const fetcher = async (url:string) => { const r=await fetch(url,{credentials:'include',cache:'no-store'}); const d=await r.json(); if(!r.ok) throw new Error(d.error||'No fue posible cargar interpretación'); return d; };
 
@@ -87,6 +88,8 @@ function InterpretationDetail({data}:{data:DetailResponse}){
     <section className="rounded-lg border bg-card p-5"><div className="flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.14em] text-muted-foreground">{stateLabel[r.interpretation_state]||r.interpretation_state}</p><h3 className="mt-1 text-2xl font-semibold">{r.hole_code}</h3><p className="mt-1 text-sm text-muted-foreground">{[r.mine_name,r.sector_name].filter(Boolean).join(' · ')||'Ubicación incompleta'} · profundidad {r.drilled_depth_m==null?'—':`${n(r.drilled_depth_m)} m`}</p></div>{r.interpretation_state==='blocked'?<AlertTriangle className="h-5 w-5"/>:<ShieldCheck className="h-5 w-5"/>}</div><p className="mt-4 text-sm">{r.interpretation_guardrail}</p></section>
 
     <section className="rounded-lg border bg-card p-5"><p className="font-medium">Señales principales</p><div className="mt-3"><SignalLine label="Mineralización visual" value={`${n(r.visual_mineral_m)} m`} detail={`${r.structured_mineral_intervals} intervalos estructurados · ${r.mineral_points} puntos`}/><SignalLine label="Ausencia explícita" value={`${n(r.explicit_no_mineral_m)} m`} detail="Observación operacional negativa; no prueba esterilidad fuera del tramo observado."/><SignalLine label="Estructuras" value={`${n(r.structure_m)} m`} detail={`${r.structured_structure_intervals} intervalos · ${r.structure_points} puntos estructurales`}/><SignalLine label="Litología" value={`${n(r.lithology_m)} m`} detail={`${r.structured_lithology_intervals} intervalos · ${r.transition_points} transiciones`}/><SignalLine label="Condición de roca" value={`${n(r.rock_condition_m)} m`} detail="Evidencia operacional de dureza, fracturamiento u otras condiciones descritas por perforación."/></div></section>
+
+    <GeologiaInterpretationColumn depth={r.drilled_depth_m} intervals={e.intervals} units={e.contiguousUnits} points={e.points} transitions={e.transitions}/>
 
     <section className="grid gap-4 lg:grid-cols-2"><div className="rounded-lg border bg-card p-5"><div className="flex items-center gap-2"><Layers3 className="h-4 w-4"/><p className="font-medium">Lectura permitida</p></div><div className="mt-3 space-y-2 text-sm">{strengths.length?strengths.map(x=><p key={x}>• {x}</p>):<p className="text-muted-foreground">No hay evidencia suficiente para una lectura técnica responsable.</p>}</div></div><div className="rounded-lg border bg-card p-5"><div className="flex items-center gap-2"><AlertTriangle className="h-4 w-4"/><p className="font-medium">Limitaciones</p></div><div className="mt-3 space-y-2 text-sm text-muted-foreground">{limitations.length?limitations.map(x=><p key={x}>• {x}</p>):<p>Sin limitaciones adicionales detectadas en esta capa.</p>}</div></div></section>
 
