@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
+import { resolveTechnicalSheetReference } from '@/lib/maintenance/technical-sheet-library';
 
 const present = (value: unknown) => value !== null && value !== undefined && String(value).trim() !== '';
 
@@ -38,6 +40,21 @@ export async function GET(request: NextRequest) {
       const missing = fieldEntries.filter(([field]) => !present(asset[field])).map(([, label]) => label);
       const essentialMissing = ESSENTIAL_FIELDS.filter((field) => !present(asset[field])).map((field) => LABELS[field]);
       const readiness = essentialMissing.length > 0 ? 'needs_validation' : missing.length > 0 ? 'usable' : 'complete';
+      const recoveryText = `${asset.asset_code || ''} ${asset.name || ''} ${asset.asset_type || ''} ${asset.manufacturer || ''} ${asset.model || ''}`.trim();
+      const inferredFamily = inferMachineFamilyFromText(recoveryText);
+      const technicalReference = resolveTechnicalSheetReference(recoveryText, inferredFamily);
+      const needsIdentityRecovery = !present(asset.manufacturer) || !present(asset.model) || !present(asset.asset_type);
+      const recoveryCandidate = technicalReference && needsIdentityRecovery
+        ? {
+            authority: 'reference_candidate_pending_validation' as const,
+            brand: technicalReference.brand,
+            model: technicalReference.model,
+            family: technicalReference.family,
+            source_url: technicalReference.sourceUrl,
+            source_label: technicalReference.sourceLabel,
+          }
+        : null;
+
       return {
         id: asset.id,
         asset_code: asset.asset_code,
@@ -47,6 +64,7 @@ export async function GET(request: NextRequest) {
         essential_missing: essentialMissing,
         validation_status: asset.validation_status || null,
         source_ref: [asset.source_file, asset.source_sheet, asset.source_row].filter((value) => present(value)).join(' · ') || null,
+        recovery_candidate: recoveryCandidate,
       };
     });
 
@@ -61,11 +79,14 @@ export async function GET(request: NextRequest) {
         missing_criticality: countMissing(LABELS.criticality),
         missing_operational_status: countMissing(LABELS.operational_status),
         missing_location: countMissing(LABELS.location),
+        recovery_candidates: rows.filter((row) => row.recovery_candidate).length,
       },
       rows: rows.filter((row) => row.readiness !== 'complete'),
       semantics: 'Completitud canónica describe campos materializados. Un campo vacío no autoriza a MOTIL a inferirlo automáticamente.',
       policy: 'Tipo, criticidad y estado operacional requieren evidencia o validación humana antes de usarse para priorización avanzada.',
+      recovery_policy: 'Una referencia técnica por similitud de texto o familia es sólo una pista de recuperación. No materializa fabricante, modelo, tipo, criticidad, estado, ubicación ni especificaciones hasta validación responsable.',
       source: 'canonical_assets_current',
+      recovery_source: 'technical-sheet-library',
       canEdit: access.canWrite,
     });
   } catch (error) {
