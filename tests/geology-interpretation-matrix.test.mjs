@@ -3,14 +3,16 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 const builderUrl = new URL('../lib/geology-ai/interpretation-matrix.ts', import.meta.url);
+const externalContextUrl = new URL('../lib/geology-ai/external-context.ts', import.meta.url);
 const routeUrl = new URL('../app/api/produccion/geologia/interpretation-matrix/route.ts', import.meta.url);
 const workspaceUrl = new URL('../components/production/geologia-interpretation-matrix.tsx', import.meta.url);
 const shellUrl = new URL('../components/production/geologia-workspace-shell.tsx', import.meta.url);
 
 test('interpretation matrix keeps local evidence and regional context as separate authority layers', async () => {
-  const builder = await readFile(builderUrl, 'utf8');
+  const [builder, externalContext] = await Promise.all([readFile(builderUrl, 'utf8'), readFile(externalContextUrl, 'utf8')]);
   assert.match(builder, /production_geology_observed_patterns_v1/);
-  assert.match(builder, /production_geology_external_context/);
+  assert.match(builder, /buildExternalGeologyContext/);
+  assert.match(externalContext, /production_geology_external_context/);
   assert.match(builder, /regional_context_only: true/);
   assert.match(builder, /no_probability_uplift: true/);
   assert.match(builder, /compatible, no como confirmación/);
