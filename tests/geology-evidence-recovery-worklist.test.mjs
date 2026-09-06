@@ -12,6 +12,7 @@ test('recovery worklist is read-only and uses explicit canonical/history sources
   assert.match(builder, /production_geology_topography_recovery_v1/);
   assert.match(builder, /production_geology_survey_recovery_v1/);
   assert.match(builder, /production_geology_hole_context_v2/);
+  assert.match(builder, /production_drill_intervals/);
   assert.match(builder, /production_chemistry_lineage_v1/);
   assert.doesNotMatch(builder, /\.insert\(|\.update\(|\.upsert\(|\.delete\(/);
 });
@@ -20,9 +21,19 @@ test('recovery worklist never promotes narrative evidence to canonical geology',
   const builder = await readFile(builderUrl, 'utf8');
   assert.match(builder, /no autoriza a derivar XY\/CRS desde narrativa/i);
   assert.match(builder, /estaciones numéricas depth\/azimuth\/dip/i);
-  assert.match(builder, /no son logging materializado/i);
+  assert.match(builder, /No son logging geológico formal/i);
+  assert.match(builder, /No crear logging formal desde observaciones operacionales/i);
+  assert.match(builder, /mantener la brecha explícita/i);
   assert.match(builder, /no equivale a una medición orientada/i);
   assert.match(builder, /no existe todavía evidencia suficiente para atribuir la muestra/i);
+});
+
+test('logging recovery excludes holes already backed by explicit formal logging', async () => {
+  const builder = await readFile(builderUrl, 'utf8');
+  assert.match(builder, /classifyIntervalEvidence/);
+  assert.match(builder, /explicit_formal_logging/);
+  assert.match(builder, /formalLoggingHoleIds/);
+  assert.match(builder, /!formalLoggingHoleIds\.has/);
 });
 
 test('recovery worklist API is tenant scoped and category allowlisted', async () => {
@@ -42,5 +53,6 @@ test('geology priorities support reproducible deep-linked reviews', async () => 
   assert.match(component, /params\.get\('recovery'\)/);
   assert.match(component, /params\.get\('hole'\)/);
   assert.match(component, /tab=priorities&recovery=/);
+  assert.match(component, /Logging fuente/);
   assert.match(component, /Abrir revisión enlazada/);
 });
