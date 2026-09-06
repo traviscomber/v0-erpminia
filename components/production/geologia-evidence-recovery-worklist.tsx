@@ -34,7 +34,7 @@ const fetcher = async (url: string): Promise<Response> => {
 const categories: Array<[Category, string]> = [
   ['collar_geometry', 'Collar / CRS'],
   ['drill_orientation', 'Survey'],
-  ['geological_logging', 'Logging'],
+  ['geological_logging', 'Logging fuente'],
   ['structural_orientation', 'Estructuras'],
   ['assays', 'Ensayes'],
 ];
@@ -83,7 +83,7 @@ export function GeologiaEvidenceRecoveryWorklist() {
     <div>
       <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Bandeja de recuperación</p>
       <h2 className="mt-2 text-2xl font-semibold tracking-tight">Sondajes y fuentes a revisar</h2>
-      <p className="mt-2 max-w-4xl text-sm text-muted-foreground">Abre la pista exacta que debe revisar el equipo. Esta bandeja nunca materializa coordenadas, survey, logging, estructuras o ensayes por inferencia.</p>
+      <p className="mt-2 max-w-4xl text-sm text-muted-foreground">Abre la pista exacta que debe revisar el equipo. Esta bandeja nunca materializa coordenadas, survey, logging, estructuras o ensayes por inferencia; en Logging fuente las observaciones operacionales sólo indican dónde buscar el registro geológico original.</p>
     </div>
 
     <div className="flex flex-wrap gap-2">
