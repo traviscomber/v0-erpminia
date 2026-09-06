@@ -31,9 +31,15 @@ const items: ProductionItem[] = [
 ];
 
 const groupMeta: Array<{ key: ProductionGroup; label: string; description: string }> = [
-  { key: 'workflow', label: 'Flujo operacional', description: 'Qué se ejecuta y mueve en la operación.' },
-  { key: 'technical', label: 'Control técnico', description: 'Qué disciplinas interpretan, validan y soportan la operación.' },
+  { key: 'workflow', label: 'Flujo operacional', description: 'Ejecución de mina: planificación, perforación, transporte y planta.' },
+  { key: 'technical', label: 'Control técnico', description: 'Disciplinas que interpretan, validan y soportan la operación.' },
 ];
+
+function isItemActive(pathname: string, item: ProductionItem) {
+  return item.href === '/dashboard/produccion'
+    ? pathname === item.href
+    : pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
 
 export default function ProduccionLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
@@ -48,50 +54,75 @@ export default function ProduccionLayout({ children }: { children: ReactNode }) 
     });
   }, [enforced, canView]);
 
+  const availableGroups = useMemo(
+    () => groupMeta.filter((group) => visibleItems.some((item) => item.group === group.key)),
+    [visibleItems],
+  );
+
+  const activeGroupKey: ProductionGroup =
+    visibleItems.find((item) => isItemActive(pathname, item))?.group ||
+    availableGroups[0]?.key ||
+    'workflow';
+
+  const activeGroup = groupMeta.find((group) => group.key === activeGroupKey) || groupMeta[0];
+  const activeItems = visibleItems.filter((item) => item.group === activeGroupKey);
+
   return (
     <div className="space-y-5">
       <section className="border-b border-border pb-4">
         <div className="mb-3">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Operaciones mineras</p>
-          <p className="mt-1 text-sm text-muted-foreground">La navegación separa el flujo operacional de las disciplinas técnicas. Sólo se muestran áreas habilitadas para tu cargo.</p>
+          <p className="mt-1 text-sm text-muted-foreground">Primero elige el tipo de trabajo; después sólo aparecen las áreas relevantes para ese contexto.</p>
         </div>
-        <div className="space-y-3">
-          {groupMeta.map((group) => {
-            const groupItems = visibleItems.filter((item) => item.group === group.key);
-            if (!groupItems.length) return null;
+
+        <nav className="flex gap-1 overflow-x-auto" aria-label="Grupos de Producción">
+          {availableGroups.map((group) => {
+            const firstItem = visibleItems.find((item) => item.group === group.key);
+            if (!firstItem) return null;
+            const active = group.key === activeGroupKey;
             return (
-              <div key={group.key} className="grid gap-2 md:grid-cols-[132px_minmax(0,1fr)] md:items-start">
-                <div className="pt-1">
-                  <p className="text-xs font-medium text-foreground">{group.label}</p>
-                  <p className="mt-0.5 hidden text-[11px] leading-4 text-muted-foreground xl:block">{group.description}</p>
-                </div>
-                <nav className="flex gap-2 overflow-x-auto pb-1" aria-label={`Navegación de Producción · ${group.label}`}>
-                  {groupItems.map((item) => {
-                    const Icon = item.icon;
-                    const active = item.href === '/dashboard/produccion'
-                      ? pathname === item.href
-                      : pathname === item.href || pathname.startsWith(`${item.href}/`);
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        aria-current={active ? 'page' : undefined}
-                        className={cn(
-                          'inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                          active
-                            ? 'border-primary bg-primary text-primary-foreground'
-                            : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
-                        )}
-                      >
-                        <Icon className="h-4 w-4" />
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
+              <Link
+                key={group.key}
+                href={firstItem.href}
+                aria-current={active ? 'page' : undefined}
+                className={cn(
+                  'inline-flex min-h-9 shrink-0 items-center rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  active ? 'bg-foreground text-background' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                )}
+              >
+                {group.label}
+              </Link>
             );
           })}
+        </nav>
+
+        <div className="mt-3 rounded-lg border bg-muted/10 p-3">
+          <div className="mb-2">
+            <p className="text-xs font-medium text-foreground">{activeGroup.label}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">{activeGroup.description}</p>
+          </div>
+          <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Navegación de Producción">
+            {activeItems.map((item) => {
+              const Icon = item.icon;
+              const active = isItemActive(pathname, item);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    active
+                      ? 'border-primary bg-primary text-primary-foreground'
+                      : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
         </div>
       </section>
       {children}
