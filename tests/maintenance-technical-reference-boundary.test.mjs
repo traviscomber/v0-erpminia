@@ -6,6 +6,12 @@ const api = fs.readFileSync('app/api/maintenance/assets/[id]/technical-sheet/rou
 const candidate = fs.readFileSync('components/maintenance/asset-technical-reference-candidate.tsx', 'utf8');
 const page = fs.readFileSync('app/dashboard/mantenimiento/equipos/[id]/ficha-tecnica/page.tsx', 'utf8');
 
+test('technical sheet route requires maintenance module access and tenant context', () => {
+  assert.match(api, /requireModuleAccess\(request, MODULE_KEYS\.MANT_OPERACIONES\)/);
+  assert.match(api, /getOrganizationContext\(request\)/);
+  assert.match(api, /eq\('organization_id', context\.organizationId\)/);
+});
+
 test('technical references stay candidates until canonical manufacturer and model agree', () => {
   assert.match(api, /hasVerifiedReferenceIdentity/);
   assert.match(api, /assetOrigin === 'maintenance_master'/);
@@ -16,6 +22,7 @@ test('technical references stay candidates until canonical manufacturer and mode
 });
 
 test('unvalidated text or family similarity cannot create operational maintenance signals', () => {
+  assert.match(api, /family: trustedReference\?\.family \|\| null/);
   assert.match(api, /preventiveAlerts: trustedReference \? buildReferencePreventiveAlerts\(trustedReference\) : \[\]/);
   assert.match(api, /referenceSheet: trustedReference/);
   assert.match(api, /componentProfileAuthority: 'suggested_from_inferred_family_non_canonical'/);
