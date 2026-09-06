@@ -91,15 +91,28 @@ export async function POST(request: NextRequest) {
         .select('work_order_id,canonical_asset_id,asset_code,asset_name,root_cause,root_cause_key,work_type,actual_duration_hours,down_time_hours,total_cost,closed_at')
         .eq('organization_id', context.organizationId).limit(100),
       context.supabase.from('work_order_close_readiness_v2')
-        .select('work_order_id,work_order_number,canonical_asset_id,asset_code,asset_name,title,ready_to_close,next_action,open_procurement_orders,pending_parts,unmet_material_requirements,pending_external_services,open_labor_entries,external_cost_conflict,standard_plan_steps_pending')
+        .select('work_order_id,work_order_number,canonical_asset_id,title,ready_to_close,next_action,open_procurement_orders,pending_parts,unmet_material_requirements,pending_external_services,open_labor_entries,external_cost_conflict,standard_plan_steps_pending')
         .eq('organization_id', context.organizationId).limit(100),
       context.supabase.from('maintenance_canonical_assets_v1')
         .select('id,asset_code,name,asset_type,category,manufacturer,model,cost_center_code,is_active,validation_status')
         .eq('organization_id', context.organizationId).limit(200),
     ]);
 
-    const error = reviews.error || operationalEvidence.error || preventive.error || workOrders.error || reliability.error || closeReadiness.error || assets.error;
-    if (error) throw error;
+    const queryErrors = [
+      ['drilling_maintenance_review_queue_v1', reviews.error],
+      ['drill_asset_operational_evidence_90d_v1', operationalEvidence.error],
+      ['preventive_maintenance_hour_status_v1', preventive.error],
+      ['maintenance_work_orders', workOrders.error],
+      ['maintenance_reliability_base_v1', reliability.error],
+      ['work_order_close_readiness_v2', closeReadiness.error],
+      ['maintenance_canonical_assets_v1', assets.error],
+    ] as const;
+    const failedQuery = queryErrors.find(([, error]) => Boolean(error));
+    if (failedQuery) {
+      const [source, error] = failedQuery;
+      const detail = (error as any)?.message || JSON.stringify(error);
+      throw new Error(`${source}: ${detail}`);
+    }
 
     const workOrderMap = new Map((workOrders.data || []).map((row: any) => [String(row.id), row]));
     const reliableClosures = (reliability.data || []).filter((row: any) => {
