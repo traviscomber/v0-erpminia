@@ -5,6 +5,7 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { buildCanonicalGeologyContext } from '@/lib/geology-ai/canonical-context';
 import { buildCoreVisionAssistantContext } from '@/lib/geology-ai/corevision-context';
+import { buildIntervalEvidenceBoundary } from '@/lib/geology-ai/interval-evidence-boundary';
 import { buildGeologyAgentInstructions, LA_PATAGUA_PROCESS_CONTEXT } from '@/lib/geology-ai/prompt';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
@@ -270,7 +271,7 @@ export async function POST(request: NextRequest) {
     .single();
   if (userMessageError) return NextResponse.json({ error: userMessageError.message }, { status: 500 });
 
-  const [historyResult, memoryResult, cargo, canonical, coreVision] = await Promise.all([
+  const [historyResult, memoryResult, cargo, canonical, coreVision, intervalBoundary] = await Promise.all([
     context.supabase
       .from('geology_ai_messages')
       .select('role,content,created_at')
@@ -291,6 +292,7 @@ export async function POST(request: NextRequest) {
     resolveCargo(context),
     buildCanonicalGeologyContext({ supabase: context.supabase, organizationId: context.organizationId }),
     buildCoreVisionAssistantContext({ supabase: context.supabase, organizationId: context.organizationId }),
+    buildIntervalEvidenceBoundary({ supabase: context.supabase, organizationId: context.organizationId }),
   ]);
 
   const history = [...(historyResult.data || [])].reverse();
@@ -302,13 +304,13 @@ export async function POST(request: NextRequest) {
     cargo,
     accessLevel: access.canWrite ? 'ED' : 'LEC',
     memory,
-  })}\n${LA_PATAGUA_PROCESS_CONTEXT}\n\nREGLAS COREVision PARA EL ASISTENTE SENIOR:\n1. La evidencia visual validada o editada por geólogo puede usarse como evidencia profesional trazable, pero no sustituye logging, ensayes, survey, modelamiento ni otros datos canónicos.\n2. Los discovery_candidates son exploratorios y pendientes de revisión: si los mencionas, debes identificarlos explícitamente como hallazgos de IA no validados.\n3. Nunca presentes classification_confidence o visual_similarity_score como probabilidad geológica.\n4. La decisión/corrección del geólogo prevalece sobre la sugerencia visual de IA.\n5. Usa learning_corrections para reconocer dónde el motor visual fue corregido y evitar repetir esa interpretación como si estuviera validada.\n6. Ningún resultado CoreVision permite por sí solo concluir ley, continuidad, contacto, control estructural, dominio, recurso o reserva.`;
+  })}\n${LA_PATAGUA_PROCESS_CONTEXT}\n\nREGLA DE PROCEDENCIA DE INTERVALOS:\nLos intervalos clasificados como operational_source_interval provienen de reportes operacionales de perforación y nunca deben presentarse como logging geológico formal. Si explicit_formal_logging_intervals es 0, debes decir que no existe logging formal explícitamente validado en el contexto disponible. No infieras RQD, recuperación, alteración, muestreo, contactos ni continuidad desde intervalos operacionales.\n\nREGLAS COREVision PARA EL ASISTENTE SENIOR:\n1. La evidencia visual validada o editada por geólogo puede usarse como evidencia profesional trazable, pero no sustituye logging, ensayes, survey, modelamiento ni otros datos canónicos.\n2. Los discovery_candidates son exploratorios y pendientes de revisión: si los mencionas, debes identificarlos explícitamente como hallazgos de IA no validados.\n3. Nunca presentes classification_confidence o visual_similarity_score como probabilidad geológica.\n4. La decisión/corrección del geólogo prevalece sobre la sugerencia visual de IA.\n5. Usa learning_corrections para reconocer dónde el motor visual fue corregido y evitar repetir esa interpretación como si estuviera validada.\n6. Ningún resultado CoreVision permite por sí solo concluir ley, continuidad, contacto, control estructural, dominio, recurso o reserva.`;
 
-  const modelInput = `CONVERSACIÓN RECIENTE\n${conversationTranscript(history)}\n\nCONTEXTO CANÓNICO VIVO DE LA PATAGUA\n${JSON.stringify(canonical)}\n\nCOREVISION — EVIDENCIA VISUAL VALIDADA + DESCUBRIMIENTO EXPLORATORIO\n${JSON.stringify(coreVision)}\n\nPREGUNTA ACTUAL\n${message}`;
+  const modelInput = `CONVERSACIÓN RECIENTE\n${conversationTranscript(history)}\n\nCONTEXTO CANÓNICO VIVO DE LA PATAGUA\n${JSON.stringify(canonical)}\n\nFRONTERA DE PROCEDENCIA DE INTERVALOS\n${JSON.stringify(intervalBoundary)}\n\nCOREVISION — EVIDENCIA VISUAL VALIDADA + DESCUBRIMIENTO EXPLORATORIO\n${JSON.stringify(coreVision)}\n\nPREGUNTA ACTUAL\n${message}`;
 
   try {
     const answer = await callOpenAI({ instructions, input: modelInput });
-    const sourceNames = Array.from(new Set([...(canonical.sources || []), ...(coreVision.sources || [])]));
+    const sourceNames = Array.from(new Set([...(canonical.sources || []), ...(coreVision.sources || []), intervalBoundary.source]));
     const sourceRefs = sourceNames.map((source: string) => ({ source }));
 
     const { data: assistantMessage, error: assistantMessageError } = await context.supabase
