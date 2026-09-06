@@ -7,12 +7,14 @@ import { GeologiaHistoricalCanonical } from '@/components/production/geologia-hi
 import { GeologiaCanonicalStatus } from '@/components/production/geologia-canonical-status';
 import { GeologiaDataCompleteness } from '@/components/production/geologia-data-completeness';
 import { GeologiaInterpretation } from '@/components/production/geologia-interpretation';
+import { GeologiaInterpretationMatrix } from '@/components/production/geologia-interpretation-matrix';
 import { GeologiaCoreVision } from '@/components/production/geologia-corevision';
 import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floating-chat';
 
 const tabs = [
   ['today', 'Hoy'],
   ['interpretation', 'Interpretación'],
+  ['matrix', 'Matriz'],
   ['corevision', 'CoreVision'],
   ['holes', 'Sondajes'],
   ['results', 'Resultados'],
@@ -24,7 +26,7 @@ const tabs = [
 
 type TabKey = (typeof tabs)[number][0];
 
-const dashboardLabels: Record<Exclude<TabKey, 'history' | 'canonical' | 'completeness' | 'interpretation' | 'corevision'>, string> = {
+const dashboardLabels: Record<Exclude<TabKey, 'history' | 'canonical' | 'completeness' | 'interpretation' | 'matrix' | 'corevision'>, string> = {
   today: 'Hoy',
   holes: 'Mapa y sondajes',
   results: 'Resultados',
@@ -36,7 +38,7 @@ export function GeologiaWorkspaceShell() {
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (tab === 'history' || tab === 'canonical' || tab === 'completeness' || tab === 'interpretation' || tab === 'corevision') return;
+    if (tab === 'history' || tab === 'canonical' || tab === 'completeness' || tab === 'interpretation' || tab === 'matrix' || tab === 'corevision') return;
     const root = dashboardRef.current;
     if (!root) return;
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('nav[aria-label="Vistas de Geología"] button'));
@@ -44,7 +46,7 @@ export function GeologiaWorkspaceShell() {
     target?.click();
   }, [tab]);
 
-  const showDashboard = !['history','canonical','completeness','interpretation','corevision'].includes(tab);
+  const showDashboard = !['history','canonical','completeness','interpretation','matrix','corevision'].includes(tab);
 
   return (
     <div className="space-y-5">
@@ -65,6 +67,7 @@ export function GeologiaWorkspaceShell() {
       </div>
 
       {tab === 'interpretation' ? <GeologiaInterpretation /> : null}
+      {tab === 'matrix' ? <GeologiaInterpretationMatrix /> : null}
       {tab === 'corevision' ? <GeologiaCoreVision /> : null}
       {tab === 'completeness' ? <GeologiaDataCompleteness /> : null}
       {tab === 'canonical' ? <GeologiaCanonicalStatus /> : null}
