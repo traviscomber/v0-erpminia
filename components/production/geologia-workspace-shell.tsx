@@ -134,6 +134,7 @@ export function GeologiaWorkspaceShell() {
   };
 
   const showDashboard = !['history', 'canonical', 'completeness', 'interpretation', 'matrix', 'priorities', 'corevision'].includes(tab);
+  const dashboardClassName = `${showDashboard ? 'block' : 'hidden'} ${tab === 'holes' ? 'geologia-holes-focus' : ''}`;
 
   return (
     <div className="space-y-5">
@@ -174,8 +175,13 @@ export function GeologiaWorkspaceShell() {
         ) : null}
       </div>
 
-      <div ref={dashboardRef} className={showDashboard ? 'block' : 'hidden'}>
-        <style>{`nav[aria-label="Vistas de Geología"] { display: none !important; }`}</style>
+      <div ref={dashboardRef} className={dashboardClassName}>
+        <style>{`
+          nav[aria-label="Vistas de Geología"] { display: none !important; }
+          .geologia-holes-focus section[aria-label="Resumen geológico"] { display: none !important; }
+          .geologia-holes-focus table th:nth-child(4),
+          .geologia-holes-focus table td:nth-child(4) { display: none !important; }
+        `}</style>
         <GeologiaDashboard />
       </div>
 
