@@ -36,6 +36,82 @@ type CanonicalHoleRow = {
   source_reference: string | null;
 };
 
+type ReconciliationCase = {
+  drill_hole_id: string;
+  hole_code: string;
+  source_report_id: string;
+  operation_date: string | null;
+  source_row: number | null;
+  hole_code_raw: string | null;
+  shift_code_raw: string | null;
+  meter_initial: number | null;
+  meter_final: number | null;
+  drilled_meters: number | null;
+  prev_drilling_meter_final: number | null;
+  continuity_delta_m: number | null;
+  chronology_state: string;
+  meter_quality_status: string | null;
+  drilling_observations: string | null;
+  machine_observations: string | null;
+  reconciliation_state: string;
+  required_action: string;
+  source_reference: string;
+};
+
+function recalculateHoleStates(holes: CanonicalHoleRow[], cases: ReconciliationCase[]) {
+  const chronology = new Map<string, { severe: number; material: number }>();
+  for (const item of cases) {
+    const current = chronology.get(item.drill_hole_id) || { severe: 0, material: 0 };
+    if (item.reconciliation_state === 'blocked') current.severe += 1;
+    if (item.reconciliation_state === 'review_required') current.material += 1;
+    chronology.set(item.drill_hole_id, current);
+  }
+
+  return holes.map((row) => {
+    const counts = chronology.get(row.drill_hole_id) || { severe: 0, material: 0 };
+    const mineralConflict = Number(row.mineralization_conflict_count || 0) > 0;
+    const hasGeometryGap = Number(row.topography_evidence_count || 0) > 0 || Number(row.survey_evidence_count || 0) > 0;
+    const hasOperationalEvidence = Number(row.interval_count || 0) > 0 || Number(row.point_observation_count || 0) > 0 || Number(row.daily_span_count || 0) > 0;
+
+    let aiGroundingState = 'insufficient_geology_evidence';
+    let priority = 5;
+    let reason = 'Revisar brechas deterministicas y completar contexto canonico.';
+
+    if (mineralConflict) {
+      aiGroundingState = 'blocked_reconciliation';
+      priority = 0;
+      reason = 'Reconciliar conflicto de mineralizacion y cronologia de metraje antes de interpretar.';
+    } else if (counts.severe > 0) {
+      aiGroundingState = 'blocked_reconciliation';
+      priority = 0;
+      reason = 'Reconciliar retroceso severo de metraje/codigo fuente antes de interpretar continuidad geologica.';
+    } else if (counts.material > 0) {
+      aiGroundingState = 'review_required';
+      priority = 1;
+      reason = 'Revisar continuidad de metraje fuente antes de consolidar interpretacion.';
+    } else if (hasGeometryGap) {
+      aiGroundingState = 'usable_with_geometry_gaps';
+      priority = Number(row.topography_evidence_count || 0) > 0 ? 1 : 2;
+      reason = Number(row.topography_evidence_count || 0) > 0
+        ? 'Existe evidencia topografica pero falta collar canonico.'
+        : 'Existe evidencia de survey/desviacion; falta estructurar estaciones numericas si aparecen en la fuente.';
+    } else if (hasOperationalEvidence) {
+      aiGroundingState = 'operational_geology_available';
+      priority = 5;
+      reason = 'Geologia operacional disponible; revisar solo excepciones y nueva evidencia.';
+    }
+
+    return {
+      ...row,
+      severe_chronology_count: counts.severe,
+      material_chronology_count: counts.material,
+      effective_priority_rank: priority,
+      effective_attention_reason: reason,
+      ai_grounding_state: aiGroundingState,
+    };
+  }).sort((a, b) => Number(a.effective_priority_rank || 5) - Number(b.effective_priority_rank || 5) || a.hole_code.localeCompare(b.hole_code));
+}
+
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_GEOLOGIA);
   if (!access.authorized) return access.response;
@@ -43,48 +119,32 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const holes = await context.supabase
-    .from('production_geology_hole_context_v1')
-    .select([
-      'drill_hole_id',
-      'hole_code',
-      'mine_name',
-      'sector_name',
-      'status',
-      'drilled_depth_m',
-      'orientation_confidence',
-      'interval_count',
-      'mineralization_interval_count',
-      'structural_interval_count',
-      'point_observation_count',
-      'mineral_point_count',
-      'structure_point_count',
-      'transition_count',
-      'daily_span_count',
-      'positive_visual_span_count',
-      'negative_visual_span_count',
-      'structure_span_count',
-      'lithology_span_count',
-      'rock_condition_span_count',
-      'topography_evidence_count',
-      'survey_evidence_count',
-      'severe_chronology_count',
-      'material_chronology_count',
-      'mineralization_conflict_count',
-      'effective_priority_rank',
-      'effective_attention_reason',
-      'ai_grounding_state',
-      'source_reference',
-    ].join(','))
-    .eq('organization_id', context.organizationId)
-    .order('effective_priority_rank', { ascending: true })
-    .order('hole_code', { ascending: true });
+  const [holes, reconciliation] = await Promise.all([
+    context.supabase
+      .from('production_geology_hole_context_v1')
+      .select([
+        'drill_hole_id','hole_code','mine_name','sector_name','status','drilled_depth_m','orientation_confidence',
+        'interval_count','mineralization_interval_count','structural_interval_count','point_observation_count','mineral_point_count',
+        'structure_point_count','transition_count','daily_span_count','positive_visual_span_count','negative_visual_span_count',
+        'structure_span_count','lithology_span_count','rock_condition_span_count','topography_evidence_count','survey_evidence_count',
+        'severe_chronology_count','material_chronology_count','mineralization_conflict_count','effective_priority_rank',
+        'effective_attention_reason','ai_grounding_state','source_reference',
+      ].join(','))
+      .eq('organization_id', context.organizationId),
+    context.supabase
+      .from('production_geology_reconciliation_cases_v1')
+      .select('drill_hole_id,hole_code,source_report_id,operation_date,source_row,hole_code_raw,shift_code_raw,meter_initial,meter_final,drilled_meters,prev_drilling_meter_final,continuity_delta_m,chronology_state,meter_quality_status,drilling_observations,machine_observations,reconciliation_state,required_action,source_reference')
+      .eq('organization_id', context.organizationId)
+      .order('reconciliation_state', { ascending: true })
+      .order('operation_date', { ascending: false })
+      .order('source_row', { ascending: false }),
+  ]);
 
-  if (holes.error) return NextResponse.json({ error: holes.error.message }, { status: 500 });
+  const error = holes.error || reconciliation.error;
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
-  // The canonical context view is newer than the generated Supabase Database
-  // type snapshot used by this app. Runtime access remains tenant-scoped above.
-  const holeRows = (holes.data || []) as unknown as CanonicalHoleRow[];
+  const reconciliationRows = (reconciliation.data || []) as unknown as ReconciliationCase[];
+  const holeRows = recalculateHoleStates((holes.data || []) as unknown as CanonicalHoleRow[], reconciliationRows);
   const stateCounts = holeRows.reduce<Record<string, number>>((acc, row) => {
     const key = String(row.ai_grounding_state || 'unknown');
     acc[key] = (acc[key] || 0) + 1;
@@ -106,12 +166,10 @@ export async function GET(request: NextRequest) {
     surveyPending: holeRows.filter((row) => Number(row.survey_evidence_count || 0) > 0).length,
     severeChronology: holeRows.filter((row) => Number(row.severe_chronology_count || 0) > 0).length,
     mineralizationConflicts: holeRows.filter((row) => Number(row.mineralization_conflict_count || 0) > 0).length,
+    reconciliationCases: reconciliationRows.length,
+    blockedCases: reconciliationRows.filter((row) => row.reconciliation_state === 'blocked').length,
+    reviewCases: reconciliationRows.filter((row) => row.reconciliation_state === 'review_required').length,
   };
 
-  return NextResponse.json({
-    canWrite: access.canWrite,
-    summary,
-    holes: holeRows,
-    queue: holeRows,
-  });
+  return NextResponse.json({ canWrite: access.canWrite, summary, holes: holeRows, queue: holeRows, reconciliation: reconciliationRows });
 }

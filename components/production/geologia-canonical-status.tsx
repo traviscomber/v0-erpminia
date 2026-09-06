@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { AlertTriangle, CheckCircle2, Compass, Layers3, MapPinned, Search, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Compass, FileSearch, Layers3, MapPinned, Search, ShieldAlert } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { StatePanel } from '@/components/ui/state-panel';
 
@@ -12,9 +12,17 @@ type HoleContext = {
   mineralization_conflict_count:number; effective_priority_rank:number; effective_attention_reason:string|null; ai_grounding_state:string;
 };
 
+type ReconciliationCase = {
+  drill_hole_id:string; hole_code:string; source_report_id:string; operation_date:string|null; source_row:number|null; hole_code_raw:string|null;
+  meter_initial:number|null; meter_final:number|null; drilled_meters:number|null; prev_drilling_meter_final:number|null; continuity_delta_m:number|null;
+  chronology_state:string; meter_quality_status:string|null; drilling_observations:string|null; machine_observations:string|null;
+  reconciliation_state:string; required_action:string; source_reference:string;
+};
+
 type CanonicalData = {
-  summary:{ holes:number; structuredIntervals:number; pointObservations:number; transitions:number; dailySpans:number; blocked:number; reviewRequired:number; geometryGaps:number; operationalReady:number; insufficientEvidence:number; topographyPending:number; surveyPending:number; severeChronology:number; mineralizationConflicts:number };
+  summary:{ holes:number; structuredIntervals:number; pointObservations:number; transitions:number; dailySpans:number; blocked:number; reviewRequired:number; geometryGaps:number; operationalReady:number; insufficientEvidence:number; topographyPending:number; surveyPending:number; severeChronology:number; mineralizationConflicts:number; reconciliationCases:number; blockedCases:number; reviewCases:number };
   holes:HoleContext[];
+  reconciliation:ReconciliationCase[];
 };
 
 const fetcher=async(url:string):Promise<CanonicalData>=>{
@@ -34,6 +42,10 @@ const stateLabel:Record<string,string>={
 
 function Metric({label,value,detail}:{label:string;value:number|string;detail:string}){
   return <div className="bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums">{value}</p><p className="mt-1 text-xs text-muted-foreground">{detail}</p></div>;
+}
+
+function formatMeters(value:number|null){
+  return value==null?'—':`${Number(value).toLocaleString('es-CL',{maximumFractionDigits:2})} m`;
 }
 
 export function GeologiaCanonicalStatus(){
@@ -75,6 +87,12 @@ export function GeologiaCanonicalStatus(){
       <div className="rounded-lg border bg-card p-4"><Compass className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.pointObservations+s.transitions}</p><p className="text-sm text-muted-foreground">puntos + transiciones</p></div>
       <div className="rounded-lg border bg-card p-4"><MapPinned className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.topographyPending}</p><p className="text-sm text-muted-foreground">con evidencia topográfica</p></div>
       <div className="rounded-lg border bg-card p-4"><AlertTriangle className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.mineralizationConflicts}</p><p className="text-sm text-muted-foreground">conflictos mineralógicos</p></div>
+    </section>
+
+    <section className="overflow-hidden rounded-lg border bg-card">
+      <div className="flex items-start justify-between gap-4 border-b px-4 py-3"><div><p className="font-medium">Reconciliación de metrajes</p><p className="mt-1 text-sm text-muted-foreground">Casos con retroceso material o severo. La fuente RAW se conserva; estos casos requieren confirmación antes de interpretar continuidad.</p></div><FileSearch className="mt-1 h-4 w-4 text-muted-foreground"/></div>
+      <div className="grid gap-px border-b bg-border sm:grid-cols-3"><Metric label="Casos" value={s.reconciliationCases} detail="Total detectado"/><Metric label="Bloqueados" value={s.blockedCases} detail="Retroceso severo"/><Metric label="Revisión" value={s.reviewCases} detail="Retroceso material"/></div>
+      <div className="max-h-[430px] overflow-auto"><table className="w-full text-sm"><thead className="sticky top-0 bg-muted/70 text-left text-xs text-muted-foreground backdrop-blur"><tr><th className="px-4 py-3">Sondaje / fuente</th><th className="px-4 py-3">Metraje</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Acción requerida</th></tr></thead><tbody className="divide-y">{data.reconciliation.map((item)=><tr key={item.source_report_id}><td className="px-4 py-3 align-top"><p className="font-medium">{item.hole_code}</p><p className="mt-1 text-xs text-muted-foreground">RAW {item.hole_code_raw||'—'} · fila {item.source_row??'—'}</p><p className="mt-1 text-xs text-muted-foreground">{item.operation_date||'Fecha pendiente'}</p></td><td className="px-4 py-3 align-top text-xs"><p>Previo: {formatMeters(item.prev_drilling_meter_final)}</p><p className="mt-1">Actual: {formatMeters(item.meter_initial)} → {formatMeters(item.meter_final)}</p><p className="mt-1 font-medium">Δ {formatMeters(item.continuity_delta_m)}</p></td><td className="px-4 py-3 align-top"><span className="font-medium">{item.reconciliation_state==='blocked'?'Bloqueado':'Revisión'}</span><p className="mt-1 text-xs text-muted-foreground">{item.meter_quality_status||'calidad no clasificada'}</p></td><td className="max-w-xl px-4 py-3 align-top"><p>{item.required_action}</p>{item.drilling_observations?<p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.drilling_observations}</p>:null}<p className="mt-1 text-xs text-muted-foreground">{item.source_reference}</p></td></tr>)}</tbody></table></div>
     </section>
 
     <section className="overflow-hidden rounded-lg border bg-card">
