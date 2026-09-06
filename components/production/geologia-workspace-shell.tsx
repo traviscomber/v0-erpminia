@@ -9,9 +9,6 @@ import { GeologiaDataCompleteness } from '@/components/production/geologia-data-
 import { GeologiaInterpretation } from '@/components/production/geologia-interpretation';
 import { GeologiaInterpretationMatrix } from '@/components/production/geologia-interpretation-matrix';
 import { GeologiaNextBestEvidence } from '@/components/production/geologia-next-best-evidence';
-import { GeologiaEvidenceRecoveryCampaign } from '@/components/production/geologia-evidence-recovery-campaign';
-import { GeologiaEvidenceRecoverySources } from '@/components/production/geologia-evidence-recovery-sources';
-import { GeologiaEvidenceRecoveryWorklist } from '@/components/production/geologia-evidence-recovery-worklist';
 import { GeologiaCoreVision } from '@/components/production/geologia-corevision';
 import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floating-chat';
 
@@ -63,10 +60,8 @@ export function GeologiaWorkspaceShell() {
     const url = new URL(window.location.href);
     if (key === 'today') url.searchParams.delete('tab');
     else url.searchParams.set('tab', key);
-    if (key !== 'priorities') {
-      url.searchParams.delete('recovery');
-      url.searchParams.delete('hole');
-    }
+    url.searchParams.delete('recovery');
+    url.searchParams.delete('hole');
     window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
   };
 
@@ -92,7 +87,7 @@ export function GeologiaWorkspaceShell() {
 
       {tab === 'interpretation' ? <GeologiaInterpretation /> : null}
       {tab === 'matrix' ? <GeologiaInterpretationMatrix /> : null}
-      {tab === 'priorities' ? <div className="space-y-8"><GeologiaNextBestEvidence /><GeologiaEvidenceRecoveryCampaign /><GeologiaEvidenceRecoverySources /><GeologiaEvidenceRecoveryWorklist /></div> : null}
+      {tab === 'priorities' ? <GeologiaNextBestEvidence /> : null}
       {tab === 'corevision' ? <GeologiaCoreVision /> : null}
       {tab === 'completeness' ? <GeologiaDataCompleteness /> : null}
       {tab === 'canonical' ? <GeologiaCanonicalStatus /> : null}
