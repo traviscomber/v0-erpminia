@@ -74,6 +74,7 @@ export default function MantenimientoPage(){
     </Card>
 
     <div className="flex flex-wrap gap-x-5 gap-y-2 border-t pt-4 text-sm text-muted-foreground" aria-label="Vistas relacionadas">
+      <Link className="hover:text-foreground" href="/dashboard/mantenimiento/data-readiness">Calidad de datos</Link>
       <Link className="hover:text-foreground" href="/dashboard/mantenimiento/decision-intelligence">Decision Intelligence</Link>
       <Link className="hover:text-foreground" href="/dashboard/mantenimiento/preventivo-horas">Preventivo por horas</Link>
       <Link className="hover:text-foreground" href="/dashboard/mantenimiento/confiabilidad">Confiabilidad</Link>
