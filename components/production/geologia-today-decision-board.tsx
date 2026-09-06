@@ -9,6 +9,9 @@ type Summary = {
   orientedHoles:number;
   purposeHoles:number;
   intervals:number;
+  operationalIntervals:number;
+  formalLoggingIntervals:number;
+  unclassifiedIntervals:number;
   samples:number;
   samplesValidated:number;
   samplesReview:number;
@@ -157,7 +160,7 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,chemistryLinkedToH
         <div className="flex items-center gap-2"><FileSearch className="h-4 w-4 text-muted-foreground"/><p className="font-medium">Lectura senior de la evidencia</p></div>
         <div className="mt-4 space-y-3 text-sm">
           <div className="flex gap-3"><Compass className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">Interpretación espacial</p><p className="mt-1 text-muted-foreground">{s.locatedHoles===s.holes?'Los collares disponibles permiten una lectura espacial completa del universo canónico de sondajes.':`La lectura espacial es parcial: faltan ${s.holes-s.locatedHoles} collares. Hasta resolverlos, cualquier análisis por posición debe tratarse como incompleto.`}</p></div></div>
-          <div className="flex gap-3"><Drill className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">Capacidad de interpretación geológica</p><p className="mt-1 text-muted-foreground">{s.intervals>0?`Hay ${s.intervals} intervalos de logging disponibles para interpretación litológica, de alteración o mineralización.`:'Aún no existen intervalos canónicos de logging. El sistema puede analizar sondajes y evidencia química histórica, pero no debe afirmar litología, alteración, mineralización, RQD ni estructuras por profundidad.'}</p></div></div>
+          <div className="flex gap-3"><Drill className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">Capacidad de interpretación geológica</p><p className="mt-1 text-muted-foreground">{s.operationalIntervals>0?`Hay ${s.operationalIntervals} intervalos operacionales estructurados desde reportes de perforación. Sirven para leer señales fuente por profundidad, pero no equivalen a logging geológico formal. Logging formal explícitamente validado: ${s.formalLoggingIntervals}.`:'No hay evidencia intervalar operacional estructurada disponible. La interpretación debe permanecer limitada a las otras fuentes canónicas existentes.'}</p></div></div>
           <div className="flex gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">Calidad de evidencia</p><p className="mt-1 text-muted-foreground">{s.samplesReview>0?`${s.samplesReview} registros químicos históricos siguen abiertos a revisión. Conviene resolverlos antes de usarlos como evidencia cerrada de muestra/mina.`:`No hay registros químicos históricos marcados para revisión. Esto valida su registro, no los convierte en ensayes de sondaje: ${chemistryLinkedToHole}/${s.samples} tienen vínculo explícito a pozo.`}</p></div></div>
         </div>
       </section>
