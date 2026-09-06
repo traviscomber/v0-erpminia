@@ -9,10 +9,13 @@ type MatrixInputs = {
   externalRecords?: any[];
 };
 
+const isTransitionPattern = (patternType: string) => ['transition_near_visual_mineralization', 'transition_near_mineralization'].includes(patternType);
+const isContrastPattern = (patternType: string) => ['visual_mineralization_contrast', 'mineral_presence_absence'].includes(patternType);
+
 const externalTypesForPattern = (patternType: string) => {
   if (patternType === 'mineral_structure_overlap') return new Set(['district_structure', 'district_deposit_style']);
-  if (patternType === 'transition_near_mineralization') return new Set(['district_lithology', 'district_alteration', 'district_deposit_style']);
-  if (patternType === 'mineral_presence_absence') return new Set(['district_deposit_style', 'district_lithology']);
+  if (isTransitionPattern(patternType)) return new Set(['district_lithology', 'district_alteration', 'district_deposit_style']);
+  if (isContrastPattern(patternType)) return new Set(['district_deposit_style', 'district_lithology', 'district_alteration']);
   return new Set(['district_structure', 'district_lithology', 'district_alteration', 'district_deposit_style']);
 };
 
@@ -25,7 +28,8 @@ const localMissingEvidence = (ready: any, pattern: any) => {
   if (Number(ready.canonical_interval_count || 0) === 0) missing.push('Logging/intervalos geológicos estructurados');
   if (Number(ready.downhole_survey_rows || 0) === 0) missing.push('Survey downhole numérico');
   if (pattern.pattern_type === 'mineral_structure_overlap') missing.push('Orientación local de la estructura', 'Ensayes vinculados al tramo');
-  if (pattern.pattern_type === 'transition_near_mineralization') missing.push('Validación del contacto/transición', 'Ensayes a ambos lados de la transición');
+  if (isTransitionPattern(String(pattern.pattern_type || ''))) missing.push('Validación del contacto/transición', 'Ensayes a ambos lados de la transición');
+  if (isContrastPattern(String(pattern.pattern_type || ''))) missing.push('Ensayes vinculados a los tramos contrastados', 'Logging validado para explicar la variabilidad visual');
   return [...new Set(missing)];
 };
 
@@ -33,8 +37,11 @@ const nextAction = (pattern: any, missing: string[]) => {
   if (pattern.pattern_type === 'mineral_structure_overlap') {
     return 'Revisar testigo/logging del tramo, recuperar orientación estructural + survey y contrastar con ensayes antes de evaluar control estructural.';
   }
-  if (pattern.pattern_type === 'transition_near_mineralization') {
+  if (isTransitionPattern(String(pattern.pattern_type || ''))) {
     return 'Validar la transición en testigo/logging y contrastar con ensayes antes y después del contacto observado.';
+  }
+  if (isContrastPattern(String(pattern.pattern_type || ''))) {
+    return 'Comparar los tramos visualmente contrastantes con logging validado y ensayes; documentar también evidencia que contradiga una relación litológica o de alteración.';
   }
   return missing.length
     ? `Cerrar primero: ${missing.slice(0, 3).join(', ')}.`
