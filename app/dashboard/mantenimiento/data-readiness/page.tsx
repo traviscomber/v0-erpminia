@@ -2,12 +2,21 @@
 
 import Link from 'next/link';
 import useSWR from 'swr';
-import { ArrowRight, CheckCircle2, Database, ShieldCheck, TriangleAlert } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Database, ExternalLink, ShieldCheck, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
+
+type RecoveryCandidate = {
+  authority: 'reference_candidate_pending_validation';
+  brand: string | null;
+  model: string | null;
+  family: string | null;
+  source_url: string | null;
+  source_label: string | null;
+};
 
 type Row = {
   id: string;
@@ -18,6 +27,7 @@ type Row = {
   essential_missing: string[];
   source_ref: string | null;
   validation_status: string | null;
+  recovery_candidate: RecoveryCandidate | null;
 };
 
 type Payload = {
@@ -30,11 +40,14 @@ type Payload = {
     missing_criticality: number;
     missing_operational_status: number;
     missing_location: number;
+    recovery_candidates: number;
   };
   rows: Row[];
   semantics: string;
   policy: string;
+  recovery_policy: string;
   source: string;
+  recovery_source: string;
 };
 
 const fetcher = async (url: string): Promise<Payload> => {
@@ -86,9 +99,13 @@ export default function MaintenanceDataReadinessPage() {
     <StatePanel tone="neutral" title="Frontera de confianza" description={`${data.semantics} ${data.policy}`} className="min-h-0 py-5" />
 
     <Card className="shadow-none">
-      <CardHeader className="flex flex-row items-start justify-between gap-4"><div><CardTitle className="text-lg">Cola de enriquecimiento</CardTitle><CardDescription>Primero aparecen activos con campos esenciales faltantes. La ficha del activo sigue siendo la única entidad maestra.</CardDescription></div><Badge variant="outline">{data.rows.length}</Badge></CardHeader>
+      <CardHeader className="gap-2"><CardTitle className="text-lg">Recuperación asistida</CardTitle><CardDescription>{s.recovery_candidates} activo(s) tienen una referencia técnica candidata desde la biblioteca actual. {data.recovery_policy}</CardDescription></CardHeader>
+    </Card>
+
+    <Card className="shadow-none">
+      <CardHeader className="flex flex-row items-start justify-between gap-4"><div><CardTitle className="text-lg">Cola de enriquecimiento</CardTitle><CardDescription>Primero aparecen activos con campos esenciales faltantes. Las referencias sugeridas son sólo pistas de recuperación y nunca reemplazan la validación responsable.</CardDescription></div><Badge variant="outline">{data.rows.length}</Badge></CardHeader>
       <CardContent>
-        {data.rows.length === 0 ? <StatePanel tone="neutral" title="No hay brechas pendientes" description="Los activos actuales tienen los atributos esenciales materializados." className="min-h-48 border-0 bg-transparent" /> : <div className="divide-y rounded-lg border">{data.rows.slice(0, 100).map((row) => <div key={row.id} className="grid gap-3 p-4 md:grid-cols-[1fr_1.4fr_auto] md:items-center"><div><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{row.asset_code || row.name || 'Activo sin código'}</p><Badge variant={row.readiness === 'needs_validation' ? 'secondary' : 'outline'}>{row.readiness === 'needs_validation' ? 'Validación requerida' : 'Utilizable parcial'}</Badge></div><p className="mt-1 text-xs text-muted-foreground">{row.source_ref || 'Sin referencia fuente visible'}</p></div><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Falta materializar</p><p className="mt-1 text-sm">{row.missing.join(' · ')}</p></div><Button asChild variant="outline" size="sm"><Link href={`/dashboard/mantenimiento/equipos/${row.id}/ficha`}>Abrir ficha<ArrowRight className="h-4 w-4" /></Link></Button></div>)}</div>}
+        {data.rows.length === 0 ? <StatePanel tone="neutral" title="No hay brechas pendientes" description="Los activos actuales tienen los atributos esenciales materializados." className="min-h-48 border-0 bg-transparent" /> : <div className="divide-y rounded-lg border">{data.rows.slice(0, 100).map((row) => <div key={row.id} className="grid gap-3 p-4 lg:grid-cols-[1fr_1.2fr_1fr_auto] lg:items-center"><div><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{row.asset_code || row.name || 'Activo sin código'}</p><Badge variant={row.readiness === 'needs_validation' ? 'secondary' : 'outline'}>{row.readiness === 'needs_validation' ? 'Validación requerida' : 'Utilizable parcial'}</Badge></div><p className="mt-1 text-xs text-muted-foreground">{row.source_ref || 'Sin referencia fuente visible'}</p></div><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Falta materializar</p><p className="mt-1 text-sm">{row.missing.join(' · ')}</p></div><div>{row.recovery_candidate ? <><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Referencia candidata</p><p className="mt-1 text-sm">{[row.recovery_candidate.brand,row.recovery_candidate.model,row.recovery_candidate.family].filter(Boolean).join(' · ')}</p><p className="mt-1 text-xs text-muted-foreground">Pendiente de validación · no canónica</p></> : <p className="text-xs text-muted-foreground">Sin referencia técnica candidata en la biblioteca actual.</p>}</div><div className="flex flex-wrap gap-2">{row.recovery_candidate?.source_url ? <Button asChild variant="outline" size="sm"><a href={row.recovery_candidate.source_url} target="_blank" rel="noreferrer">Revisar fuente<ExternalLink className="h-4 w-4" /></a></Button> : null}<Button asChild variant="outline" size="sm"><Link href={`/dashboard/mantenimiento/equipos/${row.id}/ficha`}>Abrir ficha<ArrowRight className="h-4 w-4" /></Link></Button></div></div>)}</div>}
       </CardContent>
     </Card>
   </div>;
