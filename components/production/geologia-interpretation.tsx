@@ -7,6 +7,7 @@ import { StatePanel } from '@/components/ui/state-panel';
 import { GeologiaInterpretationColumn } from '@/components/production/geologia-interpretation-column';
 import { GeologiaInterpretationComparator } from '@/components/production/geologia-interpretation-comparator';
 import { GeologiaObservedPatterns } from '@/components/production/geologia-observed-patterns';
+import { GeologiaHypotheses } from '@/components/production/geologia-hypotheses';
 
 const fetcher = async (url:string) => { const r=await fetch(url,{credentials:'include',cache:'no-store'}); const d=await r.json(); if(!r.ok) throw new Error(d.error||'No fue posible cargar interpretación'); return d; };
 
@@ -19,8 +20,8 @@ type Signal = {
   first_observed_at:string|null; last_observed_at:string|null;
 };
 
-type ListResponse = { rows:Signal[]; summary:Record<string,number>; patternSummary?:Record<string,number>; patternCount?:number };
-type DetailResponse = { signal:Signal; patterns?:any[]; evidence:{ contiguousUnits:any[]; points:any[]; transitions:any[]; intervals:any[] } };
+type ListResponse = { rows:Signal[]; summary:Record<string,number>; patternSummary?:Record<string,number>; patternCount?:number; hypothesisSummary?:Record<string,number>; hypothesisCount?:number };
+type DetailResponse = { signal:Signal; patterns?:any[]; hypotheses?:any[]; evidence:{ contiguousUnits:any[]; points:any[]; transitions:any[]; intervals:any[] } };
 
 const stateLabel:Record<string,string> = {
   structured_evidence:'Evidencia estructurada', operational_evidence:'Evidencia operacional', partial_evidence:'Evidencia parcial',
@@ -48,12 +49,13 @@ export function GeologiaInterpretation(){
   if(isLoading||!data) return <StatePanel title="Cargando interpretación" description="Consolidando intervalos, puntos, transiciones y evidencia operacional." className="min-h-0 py-5"/>;
 
   const s=data.summary;
+  const hs=data.hypothesisSummary||{};
   return <div className="space-y-5">
     <section className="border-b pb-5">
       <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Interpretación geológica</p>
       <h2 className="mt-2 text-2xl font-semibold tracking-tight">De evidencia a decisión</h2>
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Lectura técnica sobre evidencia canónica. Separa observación operacional de interpretación y no reemplaza logging, survey, ensayes ni validación del geólogo.</p>
-      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm"><span><strong>{s.structured_evidence||0}</strong> estructurados</span><span><strong>{s.operational_evidence||0}</strong> operacionales</span><span><strong>{s.partial_evidence||0}</strong> parciales</span><span><strong>{s.blocked||0}</strong> bloqueados</span><span><strong>{s.insufficient_evidence||0}</strong> insuficientes</span>{data.patternCount?<span><strong>{data.patternCount}</strong> patrones observados</span>:null}</div>
+      <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm"><span><strong>{s.structured_evidence||0}</strong> estructurados</span><span><strong>{s.operational_evidence||0}</strong> operacionales</span><span><strong>{s.partial_evidence||0}</strong> parciales</span><span><strong>{s.blocked||0}</strong> bloqueados</span><span><strong>{s.insufficient_evidence||0}</strong> insuficientes</span>{data.patternCount?<span><strong>{data.patternCount}</strong> patrones observados</span>:null}{data.hypothesisCount?<span><strong>{data.hypothesisCount}</strong> hipótesis · {hs.in_review||0} en revisión</span>:null}</div>
     </section>
 
     <GeologiaInterpretationComparator rows={data.rows}/>
@@ -100,6 +102,7 @@ function InterpretationDetail({data}:{data:DetailResponse}){
 
     <GeologiaInterpretationColumn depth={r.drilled_depth_m} intervals={e.intervals} units={e.contiguousUnits} points={e.points} transitions={e.transitions}/>
     <GeologiaObservedPatterns patterns={data.patterns||[]}/>
+    <GeologiaHypotheses drillHoleId={r.drill_hole_id} patterns={data.patterns||[]} initialHypotheses={data.hypotheses||[]}/>
 
     <section className="grid gap-4 lg:grid-cols-2"><div className="rounded-lg border bg-card p-5"><div className="flex items-center gap-2"><Layers3 className="h-4 w-4"/><p className="font-medium">Lectura permitida</p></div><div className="mt-3 space-y-2 text-sm">{strengths.length?strengths.map(x=><p key={x}>• {x}</p>):<p className="text-muted-foreground">No hay evidencia suficiente para una lectura técnica responsable.</p>}</div></div><div className="rounded-lg border bg-card p-5"><div className="flex items-center gap-2"><AlertTriangle className="h-4 w-4"/><p className="font-medium">Limitaciones</p></div><div className="mt-3 space-y-2 text-sm text-muted-foreground">{limitations.length?limitations.map(x=><p key={x}>• {x}</p>):<p>Sin limitaciones adicionales detectadas en esta capa.</p>}</div></div></section>
 
