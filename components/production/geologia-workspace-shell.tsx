@@ -9,6 +9,7 @@ import { GeologiaDataCompleteness } from '@/components/production/geologia-data-
 import { GeologiaInterpretation } from '@/components/production/geologia-interpretation';
 import { GeologiaInterpretationMatrix } from '@/components/production/geologia-interpretation-matrix';
 import { GeologiaNextBestEvidence } from '@/components/production/geologia-next-best-evidence';
+import { GeologiaEvidenceRecoveryCampaign } from '@/components/production/geologia-evidence-recovery-campaign';
 import { GeologiaEvidenceRecoverySources } from '@/components/production/geologia-evidence-recovery-sources';
 import { GeologiaEvidenceRecoveryWorklist } from '@/components/production/geologia-evidence-recovery-worklist';
 import { GeologiaCoreVision } from '@/components/production/geologia-corevision';
@@ -91,7 +92,7 @@ export function GeologiaWorkspaceShell() {
 
       {tab === 'interpretation' ? <GeologiaInterpretation /> : null}
       {tab === 'matrix' ? <GeologiaInterpretationMatrix /> : null}
-      {tab === 'priorities' ? <div className="space-y-8"><GeologiaNextBestEvidence /><GeologiaEvidenceRecoverySources /><GeologiaEvidenceRecoveryWorklist /></div> : null}
+      {tab === 'priorities' ? <div className="space-y-8"><GeologiaNextBestEvidence /><GeologiaEvidenceRecoveryCampaign /><GeologiaEvidenceRecoverySources /><GeologiaEvidenceRecoveryWorklist /></div> : null}
       {tab === 'corevision' ? <GeologiaCoreVision /> : null}
       {tab === 'completeness' ? <GeologiaDataCompleteness /> : null}
       {tab === 'canonical' ? <GeologiaCanonicalStatus /> : null}
