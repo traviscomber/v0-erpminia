@@ -1,11 +1,6 @@
-type SupabaseClientLike = any;
+import { classifyIntervalEvidence } from '@/lib/geology-ai/interval-evidence-classifier';
 
-function classify(notesValue: unknown) {
-  const notes = String(notesValue || '').toLowerCase();
-  if (/formal logging|geologist logging|logging geológico formal|validated geological logging/.test(notes)) return 'explicit_formal_logging' as const;
-  if (/operational observation|operator observation|production_drilling_source_reports|derived only between two consecutive explicit depth transitions|canonical geology pass|exelito interval pass|geology evidence extraction/.test(notes)) return 'operational_source_interval' as const;
-  return 'unclassified_interval' as const;
-}
+type SupabaseClientLike = any;
 
 export async function buildIntervalEvidenceBoundary(args: { supabase: SupabaseClientLike; organizationId: string }) {
   const { data, error } = await args.supabase
@@ -15,9 +10,9 @@ export async function buildIntervalEvidenceBoundary(args: { supabase: SupabaseCl
   if (error) throw new Error(error.message || 'No fue posible clasificar la procedencia de intervalos');
 
   const rows = data || [];
-  const operational = rows.filter((row: any) => classify(row.notes) === 'operational_source_interval').length;
-  const formal = rows.filter((row: any) => classify(row.notes) === 'explicit_formal_logging').length;
-  const unclassified = rows.filter((row: any) => classify(row.notes) === 'unclassified_interval').length;
+  const operational = rows.filter((row: any) => classifyIntervalEvidence(row.notes) === 'operational_source_interval').length;
+  const formal = rows.filter((row: any) => classifyIntervalEvidence(row.notes) === 'explicit_formal_logging').length;
+  const unclassified = rows.filter((row: any) => classifyIntervalEvidence(row.notes) === 'unclassified_interval').length;
   const loggingAttributes = rows.filter((row: any) =>
     row.recovery_pct != null || row.rqd_pct != null || row.alteration != null || row.sample_code != null || row.assay_reference != null,
   ).length;
