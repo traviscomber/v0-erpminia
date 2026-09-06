@@ -7,7 +7,7 @@ import { StatePanel } from '@/components/ui/state-panel';
 type CompletenessData = {
   summary: {
     totalCanonicalRows: number;
-    estimatedDistinctHoleCodes: number;
+    normalizedIdentityLowerBound: number;
     duplicateGroups: number;
     duplicateExcessRows: number;
     withMine: number;
@@ -15,8 +15,11 @@ type CompletenessData = {
     withCollarXY: number;
     withCrs: number;
     withDip: number;
+    dipRecoverable: number;
     withAzimuth: number;
+    azimuthRecoverable: number;
     completeOrientation: number;
+    orientationRecoverable: number;
     withDrilledDepth: number;
     withPlannedDepth: number;
     withGeologicalPurpose: number;
@@ -25,7 +28,6 @@ type CompletenessData = {
     withTopographyEvidence: number;
     topographyRecoverable: number;
     withSurveyEvidence: number;
-    surveyRecoverable: number;
     textEvidenceOnly: number;
     noGeologyEvidence: number;
     negativeMeterRows: number;
@@ -44,17 +46,18 @@ const fetcher = async (url:string):Promise<CompletenessData> => {
 function pct(value:number,total:number){return total > 0 ? Math.round((value / total) * 100) : 0;}
 
 function CoverageRow({label,validated,total,recoverable,detail}:{label:string;validated:number;total:number;recoverable?:number;detail:string}){
-  const missing = Math.max(0, total - validated - Number(recoverable || 0));
+  const recoverableCount = Number(recoverable || 0);
+  const missing = Math.max(0, total - validated - recoverableCount);
   return <div className="grid gap-3 border-b px-4 py-4 last:border-b-0 md:grid-cols-[210px_1fr_120px] md:items-center">
     <div><p className="font-medium">{label}</p><p className="mt-1 text-xs text-muted-foreground">{detail}</p></div>
     <div>
       <div className="flex h-2 overflow-hidden rounded-full bg-muted">
         <div className="bg-foreground" style={{width:`${pct(validated,total)}%`}} />
-        {recoverable ? <div className="bg-muted-foreground/45" style={{width:`${pct(recoverable,total)}%`}} /> : null}
+        {recoverableCount > 0 ? <div className="bg-muted-foreground/45" style={{width:`${pct(recoverableCount,total)}%`}} /> : null}
       </div>
       <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span><span className="font-medium text-foreground">{validated}</span> validados</span>
-        {recoverable ? <span><span className="font-medium text-foreground">{recoverable}</span> recuperables</span> : null}
+        {recoverableCount > 0 ? <span><span className="font-medium text-foreground">{recoverableCount}</span> recuperables</span> : null}
         <span><span className="font-medium text-foreground">{missing}</span> sin evidencia suficiente</span>
       </div>
     </div>
@@ -84,7 +87,7 @@ export function GeologiaDataCompleteness(){
 
     <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-4">
       <div className="bg-card p-4"><p className="text-xs text-muted-foreground">Filas canónicas</p><p className="mt-2 text-2xl font-semibold tabular-nums">{total}</p><p className="mt-1 text-xs text-muted-foreground">universo actual, aún sujeto a reconciliación</p></div>
-      <div className="bg-card p-4"><p className="text-xs text-muted-foreground">Códigos físicos estimados</p><p className="mt-2 text-2xl font-semibold tabular-nums">{s.estimatedDistinctHoleCodes}</p><p className="mt-1 text-xs text-muted-foreground">descontando duplicados tipográficos evidentes</p></div>
+      <div className="bg-card p-4"><p className="text-xs text-muted-foreground">Cota tras normalización</p><p className="mt-2 text-2xl font-semibold tabular-nums">{s.normalizedIdentityLowerBound}</p><p className="mt-1 text-xs text-muted-foreground">no equivale a sondajes físicos hasta revisar reutilización de códigos</p></div>
       <div className="bg-card p-4"><p className="text-xs text-muted-foreground">Con evidencia geológica</p><p className="mt-2 text-2xl font-semibold tabular-nums">{s.withGeologyEvidence}</p><p className="mt-1 text-xs text-muted-foreground">aunque aún no esté estructurada en intervalos</p></div>
       <div className="bg-card p-4"><p className="text-xs text-muted-foreground">Intervalos estructurados</p><p className="mt-2 text-2xl font-semibold tabular-nums">{s.withStructuredIntervals}</p><p className="mt-1 text-xs text-muted-foreground">sondajes con logging canónico estructurado</p></div>
     </section>
@@ -95,9 +98,9 @@ export function GeologiaDataCompleteness(){
       <CoverageRow label="Sector" validated={s.withSector} total={total} detail="Asignación canónica de sector" />
       <CoverageRow label="Collar XY" validated={s.withCollarXY} recoverable={s.topographyRecoverable} total={total} detail="Coordenadas materializadas + evidencia topográfica por recuperar" />
       <CoverageRow label="Sistema de coordenadas" validated={s.withCrs} total={total} detail="CRS explícito del collar" />
-      <CoverageRow label="Dip / inclinación" validated={s.withDip} total={total} detail="Ángulo vertical materializado" />
-      <CoverageRow label="Azimut" validated={s.withAzimuth} recoverable={s.surveyRecoverable} total={total} detail="Azimut canónico + evidencia survey pendiente de estructurar" />
-      <CoverageRow label="Orientación completa" validated={s.completeOrientation} recoverable={s.surveyRecoverable} total={total} detail="Sólo cuenta cuando existen azimut y dip" />
+      <CoverageRow label="Dip / inclinación" validated={s.withDip} recoverable={s.dipRecoverable} total={total} detail="Dip canónico + evidencia survey pendiente cuando falta el valor" />
+      <CoverageRow label="Azimut" validated={s.withAzimuth} recoverable={s.azimuthRecoverable} total={total} detail="Azimut canónico + evidencia survey pendiente cuando falta el valor" />
+      <CoverageRow label="Orientación completa" validated={s.completeOrientation} recoverable={s.orientationRecoverable} total={total} detail="Sólo cuenta como completa cuando existen azimut y dip" />
       <CoverageRow label="Profundidad ejecutada" validated={s.withDrilledDepth} total={total} detail="Metraje final disponible" />
       <CoverageRow label="Profundidad planificada" validated={s.withPlannedDepth} total={total} detail="Dato de planificación fuente" />
       <CoverageRow label="Propósito geológico formal" validated={s.withGeologicalPurpose} total={total} detail="No se infiere desde observaciones operacionales" />
@@ -105,7 +108,7 @@ export function GeologiaDataCompleteness(){
 
     <section className="grid gap-4 lg:grid-cols-3">
       <div className="rounded-lg border bg-card p-4"><MapPinned className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.withTopographyEvidence}</p><p className="text-sm text-muted-foreground">sondajes con evidencia topográfica</p><p className="mt-2 text-xs text-muted-foreground">{s.topographyRecoverable} todavía no tienen collar XY materializado.</p></div>
-      <div className="rounded-lg border bg-card p-4"><FileSearch className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.withSurveyEvidence}</p><p className="text-sm text-muted-foreground">sondajes con evidencia de survey</p><p className="mt-2 text-xs text-muted-foreground">{s.surveyRecoverable} siguen sin orientación completa canónica.</p></div>
+      <div className="rounded-lg border bg-card p-4"><FileSearch className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.withSurveyEvidence}</p><p className="text-sm text-muted-foreground">sondajes con evidencia de survey</p><p className="mt-2 text-xs text-muted-foreground">{s.orientationRecoverable} siguen sin orientación completa canónica.</p></div>
       <div className="rounded-lg border bg-card p-4"><CheckCircle2 className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.textEvidenceOnly}</p><p className="text-sm text-muted-foreground">con geología textual aún no estructurada</p><p className="mt-2 text-xs text-muted-foreground">{s.noGeologyEvidence} no tienen evidencia geológica operacional localizada.</p></div>
     </section>
 
