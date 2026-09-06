@@ -43,10 +43,11 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
-function intervalTitle(row: IntervalRow | UnitRow) {
-  if ('lithology' in row) {
-    return [row.lithology, row.mineralization, row.operational_result].filter(Boolean).join(' · ') || 'Intervalo estructurado';
-  }
+function intervalTitle(row: IntervalRow) {
+  return [row.lithology, row.mineralization, row.operational_result].filter(Boolean).join(' · ') || 'Intervalo estructurado';
+}
+
+function unitTitle(row: UnitRow) {
   return [row.lithology_observed, row.mineralization_state, ...(row.structural_features || []), ...(row.rock_conditions || [])].filter(Boolean).join(' · ') || row.evidence_class || 'Unidad operacional';
 }
 
@@ -105,7 +106,7 @@ export function GeologiaInterpretationColumn({
               })}
               {units.filter((row) => row.lithology_observed).map((row, index) => {
                 const from = num(row.from_m); const to = num(row.to_m); if (from == null || to == null || to <= from) return null;
-                return <div key={`lith-unit-${index}`} className="absolute left-3 right-3 border-l-2 px-1 text-[10px] text-muted-foreground" style={{ top: top(from), height: height(from, to) }} title={`${from}–${to} m · ${intervalTitle(row)}`}>{row.lithology_observed}</div>;
+                return <div key={`lith-unit-${index}`} className="absolute left-3 right-3 border-l-2 px-1 text-[10px] text-muted-foreground" style={{ top: top(from), height: height(from, to) }} title={`${from}–${to} m · ${unitTitle(row)}`}>{row.lithology_observed}</div>;
               })}
             </div>
 
