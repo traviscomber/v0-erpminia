@@ -67,8 +67,7 @@ export async function buildCanonicalGeologyContext(args: {
       .select('drill_hole_id,hole_code,mine_name,sector_name,drilled_depth_m,interpretation_state,interpretation_guardrail,effective_priority_rank,effective_attention_reason,structured_intervals,structured_mineral_intervals,structured_structure_intervals,structured_lithology_intervals,point_observations,mineral_points,structure_points,transition_points,visual_mineral_m,explicit_no_mineral_m,structure_m,lithology_m,rock_condition_m,first_observed_at,last_observed_at')
       .eq('organization_id', organizationId)
       .order('effective_priority_rank', { ascending: true })
-      .order('last_observed_at', { ascending: false, nullsFirst: false })
-      .limit(500),
+      .order('last_observed_at', { ascending: false, nullsFirst: false }),
   ]);
 
   const firstError = [mines, sectors, drilling, holes, samples, results, plans, planLines, metallurgy, locationReview, immediateTasks, interpretationSignals].find((item) => item.error)?.error;
