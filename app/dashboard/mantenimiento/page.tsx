@@ -12,7 +12,7 @@ import { MaintenanceSeniorAssistant } from '@/components/maintenance/maintenance
 
 type ActionItem = { id:string; kind:string; priority:number; title:string; description:string; evidence:string; href:string; assetHref?:string|null };
 type Response = {
-  summary?: { openWorkOrders:number; overdueHourSchedules:number; unplannedOverdueHourSchedules:number; plannedOverdueHourSchedules:number; pendingOperationalReviews:number; outOfServiceOperationalReviews:number; operationallyBlocked:number; pendingPlanSteps:number; readyToClose:number; recurringReliabilityAssets:number; totalActions:number };
+  summary?: { openWorkOrders:number; overdueHourSchedules:number; unplannedOverdueHourSchedules:number; unplannedOverdueInterventionGroups:number; plannedOverdueHourSchedules:number; pendingOperationalReviews:number; outOfServiceOperationalReviews:number; operationallyBlocked:number; pendingPlanSteps:number; readyToClose:number; recurringReliabilityAssets:number; totalActions:number };
   actions?: ActionItem[];
 };
 
@@ -38,9 +38,12 @@ export default function MantenimientoPage(){
   const {data,error,isLoading,mutate}=useSWR<Response>('/api/maintenance/control-center',fetcher,{revalidateOnFocus:false});
   const summary=data?.summary;
   const actions=data?.actions || [];
+  const preventiveGroupDetail = summary?.unplannedOverdueInterventionGroups != null
+    ? `${summary.unplannedOverdueInterventionGroups} intervención(es)`
+    : 'Por planificar';
   const metrics=[
     ['Fuera de servicio',summary?.outOfServiceOperationalReviews ?? '—','Revisión humana pendiente','/dashboard/mantenimiento/ordenes-trabajo/create'],
-    ['Preventivos pendientes',summary?.unplannedOverdueHourSchedules ?? '—','Por planificar','/dashboard/mantenimiento/preventivo-horas'],
+    ['Preventivos pendientes',summary?.unplannedOverdueHourSchedules ?? '—',preventiveGroupDetail,'/dashboard/mantenimiento/preventivo-horas'],
     ['OT abiertas',summary?.openWorkOrders ?? '—','Trabajo en curso','/dashboard/mantenimiento/ordenes-trabajo'],
     ['Listas para cerrar',summary?.readyToClose ?? '—','Evidencia completa','/dashboard/mantenimiento/ordenes-trabajo/cierre'],
   ] as const;
