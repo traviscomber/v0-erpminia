@@ -31,6 +31,17 @@ test('formal logging boundary uses the canonical interval classifier', async () 
   assert.match(builder, /production_drill_intervals/);
 });
 
+test('priorities require canonical readiness but degrade optional derived evidence instead of returning 500', async () => {
+  const builder = await readFile(builderUrl, 'utf8');
+  assert.match(builder, /matrixPromise = buildInterpretationMatrix\(args\)/);
+  assert.match(builder, /\.catch\(\(error\) => \(\{ value: null, error:/);
+  assert.match(builder, /if \(readiness\.error\) throw new Error/);
+  assert.match(builder, /intervals\.error \? \[\] :/);
+  assert.match(builder, /chemistry\.error \? \[\] :/);
+  assert.match(builder, /optional_source_warnings/);
+  assert.match(builder, /optional source unavailable/);
+});
+
 test('next best evidence API remains tenant and geology access scoped', async () => {
   const route = await readFile(routeUrl, 'utf8');
   assert.match(route, /requireModuleAccess\(request, MODULE_KEYS\.PROD_GEOLOGIA\)/);
