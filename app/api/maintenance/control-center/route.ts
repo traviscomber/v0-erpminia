@@ -23,6 +23,12 @@ const isOutOfServiceReview = (row: any) => {
   return reason === 'out_of_service' || status.includes('fuera de servicio');
 };
 
+const preventiveGroupKey = (row: any) => [
+  row.canonical_asset_id || row.asset_code || row.asset_name || 'unknown-asset',
+  row.due_meter ?? 'unknown-due',
+  row.frequency_hours ?? 'unknown-frequency',
+].map(String).join('|');
+
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES);
   if (!access.authorized) return access.response;
@@ -66,19 +72,13 @@ export async function GET(request: NextRequest) {
       });
     }
 
+    const overduePreventiveGroups = new Map<string, any[]>();
     for (const row of preventiveRows) {
       if (row.hour_status === 'overdue' && !row.generated_work_order_id) {
-        const overdueHours = Math.abs(Number(row.remaining_hours || 0));
-        actions.push({
-          id: `preventive:${row.schedule_id}`,
-          kind: 'preventive_overdue',
-          priority: 10,
-          title: `Planificar preventivo vencido · ${row.task_name || 'Pauta'}`,
-          description: `${row.asset_code || 'Equipo'} · ${row.asset_name || 'Sin nombre'}`,
-          evidence: `${overdueHours.toLocaleString('es-CL')} h vencidas · frecuencia ${Number(row.frequency_hours || 0).toLocaleString('es-CL')} h`,
-          href: '/dashboard/mantenimiento/preventivo-horas',
-          assetHref: assetHref(row.canonical_asset_id),
-        });
+        const key = preventiveGroupKey(row);
+        const existing = overduePreventiveGroups.get(key) || [];
+        existing.push(row);
+        overduePreventiveGroups.set(key, existing);
       } else if (row.hour_status === 'needs_review') {
         actions.push({
           id: `meter-review:${row.schedule_id}`,
@@ -91,6 +91,28 @@ export async function GET(request: NextRequest) {
           assetHref: assetHref(row.canonical_asset_id),
         });
       }
+    }
+
+    for (const [key, rows] of overduePreventiveGroups) {
+      const row = rows[0];
+      const grouped = rows.length > 1;
+      const equipment = row.asset_code || row.asset_name || 'Equipo';
+      const taskNames = rows.map((item:any) => String(item.task_name || 'Pauta'));
+      const overdueHours = Math.max(...rows.map((item:any) => Math.abs(Number(item.remaining_hours || 0))));
+      const params = new URLSearchParams();
+      if (row.canonical_asset_id) params.set('assetId', String(row.canonical_asset_id));
+      if (row.due_meter != null) params.set('dueMeter', String(row.due_meter));
+      const query = params.toString();
+      actions.push({
+        id: `preventive-group:${key}`,
+        kind: 'preventive_overdue',
+        priority: 10,
+        title: grouped ? `Coordinar ${rows.length} preventivos vencidos · ${equipment}` : `Planificar preventivo vencido · ${taskNames[0]}`,
+        description: grouped ? `${row.asset_name || equipment} · ${taskNames.join(' · ')}` : `${equipment} · ${row.asset_name || 'Sin nombre'}`,
+        evidence: `${overdueHours.toLocaleString('es-CL')} h vencidas · frecuencia ${Number(row.frequency_hours || 0).toLocaleString('es-CL')} h${grouped ? ' · agrupación operativa, pautas independientes' : ''}`,
+        href: `/dashboard/mantenimiento/preventivo-horas${query ? `?${query}` : ''}`,
+        assetHref: assetHref(row.canonical_asset_id),
+      });
     }
 
     for (const row of closeRows) {
@@ -129,6 +151,7 @@ export async function GET(request: NextRequest) {
         historicalOpenWorkOrders: Math.max(0, allCloseRows.length - closeRows.length),
         overdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue').length,
         unplannedOverdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue' && !row.generated_work_order_id).length,
+        unplannedOverdueInterventionGroups: overduePreventiveGroups.size,
         plannedOverdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue' && Boolean(row.generated_work_order_id)).length,
         pendingOperationalReviews: drillingReviewRows.length,
         outOfServiceOperationalReviews: drillingReviewRows.filter((row:any) => isOutOfServiceReview(row)).length,
@@ -140,6 +163,9 @@ export async function GET(request: NextRequest) {
       },
       actions: actions.slice(0, 100),
       canEdit: access.canWrite,
+      semantics: {
+        preventiveGrouping: 'Las pautas vencidas del mismo activo, vencimiento y frecuencia se agrupan sólo para coordinar la intervención. Cada pauta conserva su identidad y su OT independiente.',
+      },
       sources: ['work_order_close_readiness_v2','preventive_maintenance_hour_status_v1','maintenance_reliability_by_asset_v1','maintenance_work_orders','drilling_maintenance_review_queue_v1'],
     });
   } catch (error) {
