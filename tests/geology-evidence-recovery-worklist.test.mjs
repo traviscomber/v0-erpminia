@@ -45,6 +45,15 @@ test('recovery worklist API is tenant scoped and category allowlisted', async ()
   assert.match(builder, /ALLOWED_CATEGORIES/);
 });
 
+test('recovery worklist renders internal states as human operational labels', async () => {
+  const component = await readFile(componentUrl, 'utf8');
+  assert.match(component, /Pista operacional · falta logging original/);
+  assert.match(component, /Estructura observada · falta medición orientada/);
+  assert.match(component, /Falta vínculo muestra → sondaje → intervalo/);
+  assert.match(component, /humanState\(row\.state\)/);
+  assert.doesNotMatch(component, /\|\| row\.state/);
+});
+
 test('geology priorities support reproducible deep-linked reviews', async () => {
   const component = await readFile(componentUrl, 'utf8');
   const shell = await readFile(shellUrl, 'utf8');
