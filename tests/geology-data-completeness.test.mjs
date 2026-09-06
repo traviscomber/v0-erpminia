@@ -8,7 +8,6 @@ const shellUrl = new URL('../components/production/geologia-workspace-shell.tsx'
 
 test('geology completeness API stays geology-authorized and tenant scoped', async () => {
   const api = await readFile(apiUrl, 'utf8');
-
   assert.match(api, /requireModuleAccess\(request, MODULE_KEYS\.PROD_GEOLOGIA\)/);
   assert.match(api, /getOrganizationContext\(request\)/);
   assert.match(api, /production_geology_drill_hole_readiness_v1/);
@@ -17,9 +16,8 @@ test('geology completeness API stays geology-authorized and tenant scoped', asyn
   assert.match(api, /\.eq\('organization_id', context\.organizationId\)/);
 });
 
-test('geology completeness separates canonical values from dimension-specific recovery evidence', async () => {
+test('geology completeness separates canonical values from dimension-specific source clues', async () => {
   const api = await readFile(apiUrl, 'utf8');
-
   assert.match(api, /const dipRecoverable = rows\.filter\([\s\S]*downhole_survey_rows[\s\S]*dip_deg == null/);
   assert.match(api, /const azimuthRecoverable = rows\.filter\([\s\S]*downhole_survey_rows[\s\S]*azimuth_deg == null/);
   assert.match(api, /const orientationRecoverable = rows\.filter\([\s\S]*downhole_survey_rows[\s\S]*azimuth_deg != null && row\.dip_deg != null/);
@@ -31,7 +29,6 @@ test('geology completeness separates canonical values from dimension-specific re
 test('normalized hole identities are review candidates rather than automatic physical-hole merges', async () => {
   const api = await readFile(apiUrl, 'utf8');
   const panel = await readFile(panelUrl, 'utf8');
-
   assert.match(api, /normalizedHoleCode/);
   assert.match(api, /duplicate: 'Candidato de identidad duplicada[\s\S]*reconciliación humana/);
   assert.match(api, /normalizedIdentityLowerBound: 'Cota tipográfica: no equivale a cantidad de sondajes físicos/);
@@ -40,16 +37,18 @@ test('normalized hole identities are review candidates rather than automatic phy
   assert.match(panel, /Revisión humana antes de merge/);
 });
 
-test('geology workspace exposes coverage without hiding evidence gaps', async () => {
+test('geology workspace exposes canonical coverage without converting sparse dimensions into tasks', async () => {
   const panel = await readFile(panelUrl, 'utf8');
   const shell = await readFile(shellUrl, 'utf8');
-
   assert.match(shell, /\['completeness', 'Cobertura'\]/);
   assert.match(shell, /<GeologiaDataCompleteness \/>/);
-  assert.match(panel, /Qué falta realmente en Geología/);
-  assert.match(panel, /Negro = validado\. Gris = evidencia fuente recuperable/);
+  assert.match(panel, /Qué evidencia tenemos en Geología/);
+  assert.match(panel, /Negro = dato canónico disponible\. Gris = referencia histórica o pista de fuente/);
+  assert.match(panel, /fuera de la cobertura actual; no se interpreta automáticamente como trabajo pendiente/i);
   assert.match(panel, /Propósito geológico formal/);
   assert.match(panel, /No se infiere desde observaciones operacionales/);
+  assert.match(panel, /no equivalen a logging geológico formal/i);
   assert.match(panel, /filas con metraje negativo/);
   assert.match(panel, /intervalos fuera de profundidad final/);
+  assert.doesNotMatch(panel, /Qué falta realmente en Geología/);
 });
