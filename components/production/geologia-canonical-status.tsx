@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { AlertTriangle, CheckCircle2, Compass, FileSearch, Layers3, MapPinned, Search, ShieldAlert } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, Compass, FileSearch, Layers3, MapPinned, Search, ShieldAlert, Split } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { StatePanel } from '@/components/ui/state-panel';
 
@@ -19,85 +19,42 @@ type ReconciliationCase = {
   reconciliation_state:string; required_action:string; source_reference:string;
 };
 
+type CampaignCandidate = {
+  drill_hole_id:string; hole_code:string; source_report_id:string; operation_date:string|null; source_row:number|null; hole_code_raw:string|null;
+  meter_initial:number|null; meter_final:number|null; prior_max_m:number|null; prior_last_date:string|null; gap_days:number|null;
+  setup_source_row:number|null; setup_evidence_text:string|null; evidence_text:string|null; split_evidence_class:string; required_action:string;
+};
+
 type CanonicalData = {
-  summary:{ holes:number; structuredIntervals:number; pointObservations:number; transitions:number; dailySpans:number; blocked:number; reviewRequired:number; geometryGaps:number; operationalReady:number; insufficientEvidence:number; topographyPending:number; surveyPending:number; severeChronology:number; mineralizationConflicts:number; reconciliationCases:number; blockedCases:number; reviewCases:number };
+  summary:{ holes:number; structuredIntervals:number; pointObservations:number; transitions:number; dailySpans:number; blocked:number; reviewRequired:number; geometryGaps:number; operationalReady:number; insufficientEvidence:number; topographyPending:number; surveyPending:number; severeChronology:number; mineralizationConflicts:number; reconciliationCases:number; blockedCases:number; reviewCases:number; campaignSplitCandidates:number };
   holes:HoleContext[];
   reconciliation:ReconciliationCase[];
+  campaigns:CampaignCandidate[];
 };
 
-const fetcher=async(url:string):Promise<CanonicalData>=>{
-  const response=await fetch(url,{credentials:'include'});
-  const data=await response.json();
-  if(!response.ok)throw new Error(data.error||'No fue posible cargar el estado canónico');
-  return data;
-};
-
-const stateLabel:Record<string,string>={
-  operational_geology_available:'Operacional',
-  usable_with_geometry_gaps:'Brecha geométrica',
-  review_required:'Revisión',
-  blocked_reconciliation:'Bloqueado',
-  insufficient_geology_evidence:'Sin evidencia suficiente',
-};
-
-function Metric({label,value,detail}:{label:string;value:number|string;detail:string}){
-  return <div className="bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums">{value}</p><p className="mt-1 text-xs text-muted-foreground">{detail}</p></div>;
-}
-
-function formatMeters(value:number|null){
-  return value==null?'—':`${Number(value).toLocaleString('es-CL',{maximumFractionDigits:2})} m`;
-}
+const fetcher=async(url:string):Promise<CanonicalData>=>{const response=await fetch(url,{credentials:'include'});const data=await response.json();if(!response.ok)throw new Error(data.error||'No fue posible cargar el estado canónico');return data;};
+const stateLabel:Record<string,string>={operational_geology_available:'Operacional',usable_with_geometry_gaps:'Brecha geométrica',review_required:'Revisión',blocked_reconciliation:'Bloqueado',insufficient_geology_evidence:'Sin evidencia suficiente'};
+function Metric({label,value,detail}:{label:string;value:number|string;detail:string}){return <div className="bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums">{value}</p><p className="mt-1 text-xs text-muted-foreground">{detail}</p></div>;}
+function formatMeters(value:number|null){return value==null?'—':`${Number(value).toLocaleString('es-CL',{maximumFractionDigits:2})} m`;}
 
 export function GeologiaCanonicalStatus(){
   const {data,error,isLoading}=useSWR('/api/produccion/geologia/canonical',fetcher);
-  const [query,setQuery]=useState('');
-  const [filter,setFilter]=useState('attention');
-
-  const rows=useMemo(()=>{
-    const q=query.trim().toLowerCase();
-    return (data?.holes||[]).filter((row)=>{
-      if(q && ![row.hole_code,row.mine_name,row.sector_name,row.effective_attention_reason].some((value)=>String(value||'').toLowerCase().includes(q)))return false;
-      if(filter==='attention')return row.effective_priority_rank<=2;
-      if(filter==='blocked')return row.ai_grounding_state==='blocked_reconciliation';
-      if(filter==='geometry')return row.ai_grounding_state==='usable_with_geometry_gaps';
-      if(filter==='ready')return row.ai_grounding_state==='operational_geology_available';
-      return true;
-    });
-  },[data?.holes,query,filter]);
-
+  const [query,setQuery]=useState(''); const [filter,setFilter]=useState('attention');
+  const rows=useMemo(()=>{const q=query.trim().toLowerCase();return (data?.holes||[]).filter((row)=>{if(q&&![row.hole_code,row.mine_name,row.sector_name,row.effective_attention_reason].some((value)=>String(value||'').toLowerCase().includes(q)))return false;if(filter==='attention')return row.effective_priority_rank<=2;if(filter==='blocked')return row.ai_grounding_state==='blocked_reconciliation';if(filter==='geometry')return row.ai_grounding_state==='usable_with_geometry_gaps';if(filter==='ready')return row.ai_grounding_state==='operational_geology_available';return true;});},[data?.holes,query,filter]);
   if(error)return <StatePanel tone="error" title="No fue posible cargar el estado canónico" description="La vista de Geología permanece disponible, pero no se pudo consultar la capa de calidad." className="min-h-0 py-5"/>;
   if(isLoading||!data)return <StatePanel title="Cargando estado canónico" description="Revisando evidencia, reconciliación y brechas por sondaje." className="min-h-0 py-5"/>;
-
   const s=data.summary;
   return <div className="space-y-5">
-    <section className="rounded-lg border bg-card p-5">
-      <div className="flex items-start justify-between gap-4"><div><p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Control geológico</p><h2 className="mt-1 text-xl font-semibold tracking-tight">Estado canónico de La Patagua</h2><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Separa evidencia utilizable, brechas y casos que deben reconciliarse antes de interpretar continuidad geológica.</p></div><ShieldAlert className="h-5 w-5 text-muted-foreground"/></div>
-    </section>
+    <section className="rounded-lg border bg-card p-5"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Control geológico</p><h2 className="mt-1 text-xl font-semibold tracking-tight">Estado canónico de La Patagua</h2><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Separa evidencia utilizable, brechas, reconciliación y posibles reutilizaciones de código antes de interpretar continuidad geológica.</p></div><ShieldAlert className="h-5 w-5 text-muted-foreground"/></div></section>
 
-    <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-5">
-      <Metric label="Operacionales" value={s.operationalReady} detail="Geología utilizable"/>
-      <Metric label="Brecha geométrica" value={s.geometryGaps} detail="Collar / survey pendiente"/>
-      <Metric label="Revisión" value={s.reviewRequired} detail="Cronología material"/>
-      <Metric label="Bloqueados" value={s.blocked} detail="No interpretar continuidad"/>
-      <Metric label="Sin evidencia" value={s.insufficientEvidence} detail="Cobertura insuficiente"/>
-    </section>
+    <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-5"><Metric label="Operacionales" value={s.operationalReady} detail="Geología utilizable"/><Metric label="Brecha geométrica" value={s.geometryGaps} detail="Collar / survey pendiente"/><Metric label="Revisión" value={s.reviewRequired} detail="Cronología material"/><Metric label="Bloqueados" value={s.blocked} detail="No interpretar continuidad"/><Metric label="Sin evidencia" value={s.insufficientEvidence} detail="Cobertura insuficiente"/></section>
 
-    <section className="grid gap-4 lg:grid-cols-4">
-      <div className="rounded-lg border bg-card p-4"><Layers3 className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.structuredIntervals}</p><p className="text-sm text-muted-foreground">intervalos estructurados</p></div>
-      <div className="rounded-lg border bg-card p-4"><Compass className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.pointObservations+s.transitions}</p><p className="text-sm text-muted-foreground">puntos + transiciones</p></div>
-      <div className="rounded-lg border bg-card p-4"><MapPinned className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.topographyPending}</p><p className="text-sm text-muted-foreground">con evidencia topográfica</p></div>
-      <div className="rounded-lg border bg-card p-4"><AlertTriangle className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.mineralizationConflicts}</p><p className="text-sm text-muted-foreground">conflictos mineralógicos</p></div>
-    </section>
+    <section className="grid gap-4 lg:grid-cols-4"><div className="rounded-lg border bg-card p-4"><Layers3 className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.structuredIntervals}</p><p className="text-sm text-muted-foreground">intervalos estructurados</p></div><div className="rounded-lg border bg-card p-4"><Compass className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.pointObservations+s.transitions}</p><p className="text-sm text-muted-foreground">puntos + transiciones</p></div><div className="rounded-lg border bg-card p-4"><MapPinned className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.topographyPending}</p><p className="text-sm text-muted-foreground">con evidencia topográfica</p></div><div className="rounded-lg border bg-card p-4"><AlertTriangle className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.mineralizationConflicts}</p><p className="text-sm text-muted-foreground">conflictos mineralógicos</p></div></section>
 
-    <section className="overflow-hidden rounded-lg border bg-card">
-      <div className="flex items-start justify-between gap-4 border-b px-4 py-3"><div><p className="font-medium">Reconciliación de metrajes</p><p className="mt-1 text-sm text-muted-foreground">Casos con retroceso material o severo. La fuente RAW se conserva; estos casos requieren confirmación antes de interpretar continuidad.</p></div><FileSearch className="mt-1 h-4 w-4 text-muted-foreground"/></div>
-      <div className="grid gap-px border-b bg-border sm:grid-cols-3"><Metric label="Casos" value={s.reconciliationCases} detail="Total detectado"/><Metric label="Bloqueados" value={s.blockedCases} detail="Retroceso severo"/><Metric label="Revisión" value={s.reviewCases} detail="Retroceso material"/></div>
-      <div className="max-h-[430px] overflow-auto"><table className="w-full text-sm"><thead className="sticky top-0 bg-muted/70 text-left text-xs text-muted-foreground backdrop-blur"><tr><th className="px-4 py-3">Sondaje / fuente</th><th className="px-4 py-3">Metraje</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Acción requerida</th></tr></thead><tbody className="divide-y">{data.reconciliation.map((item)=><tr key={item.source_report_id}><td className="px-4 py-3 align-top"><p className="font-medium">{item.hole_code}</p><p className="mt-1 text-xs text-muted-foreground">RAW {item.hole_code_raw||'—'} · fila {item.source_row??'—'}</p><p className="mt-1 text-xs text-muted-foreground">{item.operation_date||'Fecha pendiente'}</p></td><td className="px-4 py-3 align-top text-xs"><p>Previo: {formatMeters(item.prev_drilling_meter_final)}</p><p className="mt-1">Actual: {formatMeters(item.meter_initial)} → {formatMeters(item.meter_final)}</p><p className="mt-1 font-medium">Δ {formatMeters(item.continuity_delta_m)}</p></td><td className="px-4 py-3 align-top"><span className="font-medium">{item.reconciliation_state==='blocked'?'Bloqueado':'Revisión'}</span><p className="mt-1 text-xs text-muted-foreground">{item.meter_quality_status||'calidad no clasificada'}</p></td><td className="max-w-xl px-4 py-3 align-top"><p>{item.required_action}</p>{item.drilling_observations?<p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.drilling_observations}</p>:null}<p className="mt-1 text-xs text-muted-foreground">{item.source_reference}</p></td></tr>)}</tbody></table></div>
-    </section>
+    <section className="overflow-hidden rounded-lg border bg-card"><div className="flex items-start justify-between gap-4 border-b px-4 py-3"><div><p className="font-medium">Reconciliación de metrajes</p><p className="mt-1 text-sm text-muted-foreground">La fuente RAW se conserva. Los casos severos bloquean continuidad; los materiales requieren revisión.</p></div><FileSearch className="mt-1 h-4 w-4 text-muted-foreground"/></div><div className="grid gap-px border-b bg-border sm:grid-cols-3"><Metric label="Casos" value={s.reconciliationCases} detail="Total detectado"/><Metric label="Bloqueados" value={s.blockedCases} detail="Retroceso severo"/><Metric label="Revisión" value={s.reviewCases} detail="Retroceso material"/></div><div className="max-h-[430px] overflow-auto"><table className="w-full text-sm"><thead className="sticky top-0 bg-muted/70 text-left text-xs text-muted-foreground backdrop-blur"><tr><th className="px-4 py-3">Sondaje / fuente</th><th className="px-4 py-3">Metraje</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Acción requerida</th></tr></thead><tbody className="divide-y">{data.reconciliation.map((item)=><tr key={item.source_report_id}><td className="px-4 py-3 align-top"><p className="font-medium">{item.hole_code}</p><p className="mt-1 text-xs text-muted-foreground">RAW {item.hole_code_raw||'—'} · fila {item.source_row??'—'}</p><p className="mt-1 text-xs text-muted-foreground">{item.operation_date||'Fecha pendiente'}</p></td><td className="px-4 py-3 align-top text-xs"><p>Previo: {formatMeters(item.prev_drilling_meter_final)}</p><p className="mt-1">Actual: {formatMeters(item.meter_initial)} → {formatMeters(item.meter_final)}</p><p className="mt-1 font-medium">Δ {formatMeters(item.continuity_delta_m)}</p></td><td className="px-4 py-3 align-top"><span className="font-medium">{item.reconciliation_state==='blocked'?'Bloqueado':'Revisión'}</span><p className="mt-1 text-xs text-muted-foreground">{item.meter_quality_status||'calidad no clasificada'}</p></td><td className="max-w-xl px-4 py-3 align-top"><p>{item.required_action}</p>{item.drilling_observations?<p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.drilling_observations}</p>:null}<p className="mt-1 text-xs text-muted-foreground">{item.source_reference}</p></td></tr>)}</tbody></table></div></section>
 
-    <section className="overflow-hidden rounded-lg border bg-card">
-      <div className="flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between"><div><p className="font-medium">Cola del geólogo</p><p className="mt-1 text-sm text-muted-foreground">Primero reconciliación y geometría; después estructuración de evidencia.</p></div><div className="flex flex-col gap-2 sm:flex-row"><div className="relative"><Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground"/><input value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Buscar sondaje" className="h-9 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none sm:w-64"/></div><select value={filter} onChange={(event)=>setFilter(event.target.value)} className="h-9 rounded-md border bg-background px-3 text-sm"><option value="attention">Requiere atención</option><option value="blocked">Bloqueados</option><option value="geometry">Brecha geométrica</option><option value="ready">Operacionales</option><option value="all">Todos</option></select></div></div>
-      <div className="max-h-[560px] overflow-auto"><table className="w-full text-sm"><thead className="sticky top-0 bg-muted/70 text-left text-xs text-muted-foreground backdrop-blur"><tr><th className="px-4 py-3">Sondaje</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Evidencia</th><th className="px-4 py-3">Atención</th></tr></thead><tbody className="divide-y">{rows.map((row)=><tr key={row.drill_hole_id}><td className="px-4 py-3 align-top"><p className="font-medium">{row.hole_code}</p><p className="mt-1 text-xs text-muted-foreground">{[row.mine_name,row.sector_name].filter(Boolean).join(' · ')||'Mina/sector pendiente'}</p></td><td className="px-4 py-3 align-top"><div className="flex items-center gap-2">{row.ai_grounding_state==='operational_geology_available'?<CheckCircle2 className="h-4 w-4"/>:<AlertTriangle className="h-4 w-4"/>}<span>{stateLabel[row.ai_grounding_state]||row.ai_grounding_state}</span></div><p className="mt-1 text-xs text-muted-foreground">P{row.effective_priority_rank}</p></td><td className="px-4 py-3 align-top text-xs text-muted-foreground"><p>{row.interval_count} intervalos · {row.point_observation_count} puntos</p><p className="mt-1">{row.transition_count} transiciones · {row.daily_span_count} tramos diarios</p></td><td className="max-w-xl px-4 py-3 align-top"><p className="text-sm">{row.effective_attention_reason||'Sin acción prioritaria'}</p>{row.severe_chronology_count>0||row.mineralization_conflict_count>0?<p className="mt-1 text-xs font-medium">Continuidad bloqueada hasta reconciliar.</p>:null}</td></tr>)}</tbody></table>{rows.length===0?<div className="px-5 py-8 text-center text-sm text-muted-foreground">No hay sondajes para este filtro.</div>:null}</div>
-    </section>
+    <section className="overflow-hidden rounded-lg border bg-card"><div className="flex items-start justify-between gap-4 border-b px-4 py-3"><div><p className="font-medium">Campañas por confirmar</p><p className="mt-1 text-sm text-muted-foreground">Reinicios de profundidad con evidencia de nueva postura, azimut o una brecha temporal. Son candidatos de segmentación, no nuevos sondajes canónicos.</p></div><Split className="mt-1 h-4 w-4 text-muted-foreground"/></div><div className="grid gap-px border-b bg-border sm:grid-cols-2"><Metric label="Candidatos" value={s.campaignSplitCandidates} detail="Requieren confirmación"/><Metric label="Regla" value="RAW intacto" detail="Sin crear códigos nuevos"/></div><div className="divide-y">{data.campaigns.map((item)=><div key={item.source_report_id} className="grid gap-3 px-4 py-4 md:grid-cols-[180px_180px_1fr]"><div><p className="font-medium">{item.hole_code}</p><p className="mt-1 text-xs text-muted-foreground">fila {item.source_row??'—'} · {item.operation_date||'sin fecha'}</p></div><div className="text-xs"><p>Previo máx.: {formatMeters(item.prior_max_m)}</p><p className="mt-1">Reinicio: {formatMeters(item.meter_initial)} → {formatMeters(item.meter_final)}</p><p className="mt-1">Brecha: {item.gap_days??0} días</p></div><div><p className="text-sm">{item.required_action}</p><p className="mt-1 text-xs text-muted-foreground">{item.split_evidence_class} · evidencia setup fila {item.setup_source_row??'—'}</p>{item.setup_evidence_text?<p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.setup_evidence_text}</p>:null}</div></div>)}</div></section>
+
+    <section className="overflow-hidden rounded-lg border bg-card"><div className="flex flex-col gap-3 border-b px-4 py-3 lg:flex-row lg:items-center lg:justify-between"><div><p className="font-medium">Cola del geólogo</p><p className="mt-1 text-sm text-muted-foreground">Primero reconciliación y geometría; después estructuración de evidencia.</p></div><div className="flex flex-col gap-2 sm:flex-row"><div className="relative"><Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground"/><input value={query} onChange={(event)=>setQuery(event.target.value)} placeholder="Buscar sondaje" className="h-9 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none sm:w-64"/></div><select value={filter} onChange={(event)=>setFilter(event.target.value)} className="h-9 rounded-md border bg-background px-3 text-sm"><option value="attention">Requiere atención</option><option value="blocked">Bloqueados</option><option value="geometry">Brecha geométrica</option><option value="ready">Operacionales</option><option value="all">Todos</option></select></div></div><div className="max-h-[560px] overflow-auto"><table className="w-full text-sm"><thead className="sticky top-0 bg-muted/70 text-left text-xs text-muted-foreground backdrop-blur"><tr><th className="px-4 py-3">Sondaje</th><th className="px-4 py-3">Estado</th><th className="px-4 py-3">Evidencia</th><th className="px-4 py-3">Atención</th></tr></thead><tbody className="divide-y">{rows.map((row)=><tr key={row.drill_hole_id}><td className="px-4 py-3 align-top"><p className="font-medium">{row.hole_code}</p><p className="mt-1 text-xs text-muted-foreground">{[row.mine_name,row.sector_name].filter(Boolean).join(' · ')||'Mina/sector pendiente'}</p></td><td className="px-4 py-3 align-top"><div className="flex items-center gap-2">{row.ai_grounding_state==='operational_geology_available'?<CheckCircle2 className="h-4 w-4"/>:<AlertTriangle className="h-4 w-4"/>}<span>{stateLabel[row.ai_grounding_state]||row.ai_grounding_state}</span></div><p className="mt-1 text-xs text-muted-foreground">P{row.effective_priority_rank}</p></td><td className="px-4 py-3 align-top text-xs text-muted-foreground"><p>{row.interval_count} intervalos · {row.point_observation_count} puntos</p><p className="mt-1">{row.transition_count} transiciones · {row.daily_span_count} tramos diarios</p></td><td className="max-w-xl px-4 py-3 align-top"><p className="text-sm">{row.effective_attention_reason||'Sin acción prioritaria'}</p>{row.severe_chronology_count>0||row.mineralization_conflict_count>0?<p className="mt-1 text-xs font-medium">Continuidad bloqueada hasta reconciliar.</p>:null}</td></tr>)}</tbody></table>{rows.length===0?<div className="px-5 py-8 text-center text-sm text-muted-foreground">No hay sondajes para este filtro.</div>:null}</div></section>
   </div>;
 }
