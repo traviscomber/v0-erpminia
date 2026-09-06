@@ -1,3 +1,5 @@
+import { classifyIntervalEvidence } from '@/lib/geology-ai/interval-evidence-classifier';
+
 type SupabaseClientLike = any;
 
 export type RecoveryCategory = 'collar_geometry' | 'drill_orientation' | 'geological_logging' | 'structural_orientation' | 'assays';
@@ -84,37 +86,71 @@ export async function buildEvidenceRecoveryWorklist(args: {
     };
   }
 
-  if (category === 'geological_logging' || category === 'structural_orientation') {
-    const field = category === 'geological_logging' ? 'lithology_span_count' : 'structure_span_count';
-    let query = supabase
+  if (category === 'geological_logging') {
+    const [contextResult, intervalResult] = await Promise.all([
+      supabase
+        .from('production_geology_hole_context_v2')
+        .select('drill_hole_id,hole_code,mine_name,sector_name,interval_count,lithology_span_count,structure_span_count,first_span_date,last_span_date,source_reference')
+        .eq('organization_id', organizationId)
+        .gt('lithology_span_count', 0)
+        .order('lithology_span_count', { ascending: false })
+        .limit(100),
+      supabase
+        .from('production_drill_intervals')
+        .select('drill_hole_id,notes')
+        .eq('organization_id', organizationId),
+    ]);
+    if (contextResult.error || intervalResult.error) throw new Error((contextResult.error || intervalResult.error).message);
+
+    const formalLoggingHoleIds = new Set((intervalResult.data || [])
+      .filter((row: any) => classifyIntervalEvidence(row.notes) === 'explicit_formal_logging')
+      .map((row: any) => row.drill_hole_id)
+      .filter(Boolean));
+    const rows = (contextResult.data || []).filter((row: any) => !formalLoggingHoleIds.has(row.drill_hole_id));
+
+    return {
+      category,
+      semantics: 'Sondajes con señales litológicas operacionales que pueden ayudar a localizar la fuente de logging original. No son logging geológico formal y no se deben materializar intervalos geológicos a partir de narrativa operacional.',
+      rows: rows.map((row: any) => ({
+        drill_hole_id: row.drill_hole_id,
+        hole_code: row.hole_code,
+        mine_name: row.mine_name,
+        sector_name: row.sector_name,
+        evidence_date: row.last_span_date,
+        evidence_rows: Number(row.lithology_span_count || 0),
+        source_reference: row.source_reference,
+        source_file: physicalSource(row.source_reference),
+        evidence_text: null,
+        state: 'operational_lithology_clue_formal_logging_missing',
+        next_action: 'Localizar el logging geológico original del sondaje y validar su linaje. No crear logging formal desde observaciones operacionales; si la fuente no aparece, mantener la brecha explícita.',
+      })),
+    };
+  }
+
+  if (category === 'structural_orientation') {
+    const result = await supabase
       .from('production_geology_hole_context_v2')
       .select('drill_hole_id,hole_code,mine_name,sector_name,interval_count,lithology_span_count,structure_span_count,first_span_date,last_span_date,source_reference')
       .eq('organization_id', organizationId)
-      .gt(field, 0)
-      .order(field, { ascending: false })
+      .gt('structure_span_count', 0)
+      .order('structure_span_count', { ascending: false })
       .limit(100);
-    if (category === 'geological_logging') query = query.eq('interval_count', 0);
-    const result = await query;
     if (result.error) throw new Error(result.error.message);
     return {
       category,
-      semantics: category === 'geological_logging'
-        ? 'Sondajes sin intervalos canónicos que sí contienen observaciones históricas con señal litológica. Son candidatos para revisar la fuente; no son logging materializado.'
-        : 'Sondajes con observaciones históricas estructurales. La mención de una falla, fractura o estructura no equivale a una medición orientada.',
+      semantics: 'Sondajes con observaciones históricas estructurales. La mención de una falla, fractura o estructura no equivale a una medición orientada.',
       rows: (result.data || []).map((row: any) => ({
         drill_hole_id: row.drill_hole_id,
         hole_code: row.hole_code,
         mine_name: row.mine_name,
         sector_name: row.sector_name,
         evidence_date: row.last_span_date,
-        evidence_rows: Number(row[field] || 0),
+        evidence_rows: Number(row.structure_span_count || 0),
         source_reference: row.source_reference,
         source_file: physicalSource(row.source_reference),
         evidence_text: null,
-        state: category === 'geological_logging' ? 'historical_lithology_clue_not_structured' : 'historical_structure_clue_not_oriented',
-        next_action: category === 'geological_logging'
-          ? 'Abrir la fuente y estructurar sólo intervalos con límites from/to explícitos; validar con geólogo.'
-          : 'Buscar logging orientado o medición estructural original; mantener la observación como no orientada mientras falte medición.',
+        state: 'historical_structure_clue_not_oriented',
+        next_action: 'Buscar logging orientado o medición estructural original; mantener la observación como no orientada mientras falte medición.',
       })),
     };
   }
