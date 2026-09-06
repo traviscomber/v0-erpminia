@@ -238,7 +238,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       preventiveAlerts: trustedReference ? buildReferencePreventiveAlerts(trustedReference) : [],
       componentProfile: suggestedTemplates,
       componentProfileAuthority: 'suggested_from_inferred_family_non_canonical',
-      trustBoundary: 'Only an explicit model or alias signal can propose a technical reference. Family similarity may suggest component templates, but it cannot propose an OEM/model reference or materialize specifications, preventive alerts, operational status, or canonical identity without verified manufacturer and model evidence.',
+      trustBoundary: 'Only an explicit model or alias signal can propose an OEM/model reference. Family similarity may suggest component templates, but it cannot materialize specifications, preventive alerts, operational status, or canonical identity. Verified manufacturer and model evidence is still required before the reference becomes trusted.',
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la ficha tecnica del activo';
