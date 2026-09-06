@@ -36,11 +36,10 @@ test('recovery campaign API is geology-authorized and tenant scoped', async () =
   assert.match(route, /organizationId: context\.organizationId/);
 });
 
-test('priorities workspace exposes direct recovery links without automatic writes', async () => {
+test('recovery campaign remains an optional utility rather than a primary request for missing data', async () => {
   const component = await readFile(componentUrl, 'utf8');
   const shell = await readFile(shellUrl, 'utf8');
-  assert.match(shell, /GeologiaEvidenceRecoveryCampaign/);
   assert.match(component, /recovery=collar_geometry/);
   assert.match(component, /recovery=drill_orientation/);
-  assert.match(component, /Qué fuentes conviene pedir primero/);
+  assert.doesNotMatch(shell, /GeologiaEvidenceRecoveryCampaign/);
 });
