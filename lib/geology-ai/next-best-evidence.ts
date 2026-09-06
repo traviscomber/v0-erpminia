@@ -99,8 +99,13 @@ const pct = (available: number, total: number) => total > 0 ? Number(((available
 
 export async function buildNextBestEvidence(args: { supabase: SupabaseClientLike; organizationId: string }) {
   const { supabase, organizationId } = args;
-  const [matrix, readiness, intervals, chemistry] = await Promise.all([
-    buildInterpretationMatrix(args),
+
+  const matrixPromise = buildInterpretationMatrix(args)
+    .then((value) => ({ value, error: null as Error | null }))
+    .catch((error) => ({ value: null, error: error instanceof Error ? error : new Error(String(error)) }));
+
+  const [matrixResult, readiness, intervals, chemistry] = await Promise.all([
+    matrixPromise,
     supabase
       .from('production_geology_drill_hole_readiness_v1')
       .select('drill_hole_id,collar_easting,collar_northing,coordinate_reference,azimuth_deg,dip_deg,downhole_survey_rows')
@@ -115,12 +120,18 @@ export async function buildNextBestEvidence(args: { supabase: SupabaseClientLike
       .eq('organization_id', organizationId),
   ]);
 
-  const sourceError = readiness.error || intervals.error || chemistry.error;
-  if (sourceError) throw new Error(sourceError.message || 'No fue posible evaluar la cobertura canónica');
+  if (readiness.error) throw new Error(readiness.error.message || 'No fue posible evaluar la cobertura canónica de sondajes');
+
+  const optionalSourceWarnings: string[] = [];
+  if (matrixResult.error) optionalSourceWarnings.push(`interpretation_matrix: ${matrixResult.error.message}`);
+  if (intervals.error) optionalSourceWarnings.push(`drill_intervals: ${intervals.error.message || 'no disponible'}`);
+  if (chemistry.error) optionalSourceWarnings.push(`chemistry_lineage: ${chemistry.error.message || 'no disponible'}`);
+  if (optionalSourceWarnings.length) console.warn('[geology-next-best-evidence] optional source unavailable', optionalSourceWarnings);
 
   const readinessRows = readiness.data || [];
-  const intervalRows = intervals.data || [];
-  const chemistryRows = chemistry.data || [];
+  const intervalRows = intervals.error ? [] : (intervals.data || []);
+  const chemistryRows = chemistry.error ? [] : (chemistry.data || []);
+  const matrixRows = matrixResult.value?.rows || [];
   const totalHoles = readinessRows.length;
 
   const completeCollarHoles = readinessRows.filter((row: any) =>
@@ -188,11 +199,11 @@ export async function buildNextBestEvidence(args: { supabase: SupabaseClientLike
     .filter((item) => totalHoles === 0 || item.available_holes / totalHoles < SOURCE_BOUNDARY_COVERAGE_THRESHOLD)
     .map((item) => item.category));
 
-  const rawRanked = rankNextBestEvidence(matrix.rows || []);
+  const rawRanked = rankNextBestEvidence(matrixRows);
   const ranked = rawRanked.filter((row) => !sourceBoundaryCategories.has(row.category));
 
   return {
-    generated_from: 'production_geology_observed_patterns_v1 + production_geology_drill_hole_readiness_v1 + production_drill_intervals + production_chemistry_lineage_v1',
+    generated_from: 'production_geology_drill_hole_readiness_v1 + optional derived/local evidence layers',
     semantics: 'MOTIL trabaja con la evidencia canónica disponible. Cuando una dimensión existe en menos del 10% del universo de sondajes, se trata como límite conocido de la fuente y no como una tarea masiva de recuperación.',
     ranking_policy: 'Sólo se priorizan faltantes cuando existe cobertura canónica suficiente para que la recuperación sea una excepción accionable. La ausencia estructural o casi universal no se transforma en trabajo operativo ni en solicitud al usuario.',
     rows: ranked,
@@ -201,7 +212,8 @@ export async function buildNextBestEvidence(args: { supabase: SupabaseClientLike
     scope_boundaries: boundaries.filter((item) => sourceBoundaryCategories.has(item.category)),
     source_boundary_threshold_pct: SOURCE_BOUNDARY_COVERAGE_THRESHOLD * 100,
     total_holes: totalHoles,
-    source_pattern_count: (matrix.rows || []).length,
-    regional_context_records: matrix.regional_context_records,
+    source_pattern_count: matrixRows.length,
+    regional_context_records: matrixResult.value?.regional_context_records || 0,
+    optional_source_warnings: optionalSourceWarnings,
   };
 }
