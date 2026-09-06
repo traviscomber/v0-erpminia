@@ -77,7 +77,13 @@ export async function buildCanonicalGeologyContext(args: {
     .order('evidence_strength', { ascending: true })
     .order('evidence_value', { ascending: false, nullsFirst: false });
 
-  const firstError = [mines, sectors, drilling, holes, samples, results, plans, planLines, metallurgy, locationReview, immediateTasks, interpretationSignals, observedPatterns].find((item) => item.error)?.error;
+  const hypotheses = await supabase
+    .from('production_geology_hypotheses')
+    .select('id,drill_hole_id,hole_code,origin_type,origin_pattern_type,title,hypothesis_text,canonical_observation,required_validation,guardrail,source_rows,evidence_for,evidence_against,missing_evidence,state,assigned_to,reviewer_comment,created_by_name,reviewed_by_name,reviewed_at,closed_at,updated_at')
+    .eq('organization_id', organizationId)
+    .order('updated_at', { ascending: false });
+
+  const firstError = [mines, sectors, drilling, holes, samples, results, plans, planLines, metallurgy, locationReview, immediateTasks, interpretationSignals, observedPatterns, hypotheses].find((item) => item.error)?.error;
   if (firstError) throw new Error(firstError.message || 'No fue posible construir contexto canónico');
 
   const mineRows = mines.data || [];
@@ -93,6 +99,7 @@ export async function buildCanonicalGeologyContext(args: {
   const immediateTaskRows = immediateTasks.data || [];
   const interpretationRows = interpretationSignals.data || [];
   const observedPatternRows = observedPatterns.data || [];
+  const hypothesisRows = hypotheses.data || [];
 
   const mineById = new Map(mineRows.map((row: any) => [row.id, row.name]));
   const sectorById = new Map(sectorRows.map((row: any) => [row.id, row.name]));
@@ -275,6 +282,44 @@ export async function buildCanonicalGeologyContext(args: {
     human_checkpoint: 'Geólogo responsable debe revisar evidencia primaria antes de elevar el patrón a interpretación de control, contacto o dominio.',
   }));
 
+  const hypothesisStateSummary = hypothesisRows.reduce((acc: Record<string, number>, row: any) => {
+    const key = String(row.state || 'unknown');
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const reviewedHypotheses = hypothesisRows.map((row: any) => ({
+    id: row.id,
+    hole_code: row.hole_code,
+    origin_type: row.origin_type,
+    origin_pattern_type: row.origin_pattern_type,
+    title: row.title,
+    hypothesis: row.hypothesis_text,
+    canonical_observation: row.canonical_observation,
+    source_rows: row.source_rows || [],
+    workflow_state: row.state,
+    workflow_state_not_geological_truth: true,
+    evidence_for: Array.isArray(row.evidence_for) ? row.evidence_for : [],
+    evidence_against: Array.isArray(row.evidence_against) ? row.evidence_against : [],
+    missing_evidence: Array.isArray(row.missing_evidence) ? row.missing_evidence : [],
+    required_validation: row.required_validation,
+    assigned_to: row.assigned_to,
+    reviewer_comment: row.reviewer_comment,
+    created_by_name: row.created_by_name,
+    reviewed_by_name: row.reviewed_by_name,
+    reviewed_at: row.reviewed_at,
+    closed_at: row.closed_at,
+    updated_at: row.updated_at,
+    guardrail: row.guardrail,
+    human_review_semantics: row.state === 'supported'
+      ? 'Soportada significa que un revisor humano encontró evidencia suficiente para sostener la hipótesis como interpretación de trabajo; no la convierte en logging, ensaye, survey, contacto, dominio, recurso, reserva ni hecho geológico fuente.'
+      : row.state === 'rejected'
+        ? 'Rechazada registra una decisión humana sobre la hipótesis; no elimina ni reescribe la evidencia fuente ni el patrón observado que la originó.'
+        : row.state === 'closed'
+          ? 'Cerrada significa cierre del flujo de revisión; no implica promoción automática a dato canónico fuente.'
+          : 'Estado de workflow de revisión humana; no es probabilidad ni confianza geológica.',
+  }));
+
   return {
     provenance: 'La Patagua canonical only',
     chronology: 'newest_first',
@@ -289,6 +334,8 @@ export async function buildCanonicalGeologyContext(args: {
       'production_geology_topography_source_gap_2026_v1',
       'production_geology_interpretation_signals_v1',
       'production_geology_observed_patterns_v1',
+      'production_geology_hypotheses',
+      'production_geology_hypothesis_events',
       'production_geology_contiguous_units_v1',
       'production_geology_point_observations_v1',
       'production_geology_transition_candidates_v1',
@@ -317,10 +364,13 @@ export async function buildCanonicalGeologyContext(args: {
         .filter((row: any) => row.evidence_strength === 'strong_observed_signal')
         .sort((a: any, b: any) => Number(b.evidence_value || 0) - Number(a.evidence_value || 0))
         .slice(0, 20),
+      hypothesis_state_counts: hypothesisStateSummary,
+      active_hypothesis_reviews: reviewedHypotheses.filter((row: any) => ['detected', 'in_review', 'supported', 'rejected'].includes(row.workflow_state)).slice(0, 30),
     },
     immediate_geology_tasks_2026: immediateGeologyTasks,
     interpretation_signals: interpretationByHole,
     observed_patterns: observedPatternsByHole,
+    reviewed_hypotheses: reviewedHypotheses,
     coverage: {
       mines: mineRows.map((row: any) => ({ id: row.id, code: row.code, name: row.name, status: row.status })),
       sectors: sectorRows.map((row: any) => ({ id: row.id, mine_source_id: row.mine_source_id, name: row.name, status: row.status })),
@@ -332,7 +382,8 @@ export async function buildCanonicalGeologyContext(args: {
       assay_results: resultRows.length,
       unresolved_reconciliation: unresolvedReview.length,
       observed_patterns: observedPatternRows.length,
-      note: 'Los conteos están limitados por las ventanas consultadas cuando corresponda; las colas, interpretación y patrones observados se consultan completos dentro del universo disponible.',
+      reviewed_hypotheses: hypothesisRows.length,
+      note: 'Los conteos están limitados por las ventanas consultadas cuando corresponda; las colas, interpretación, patrones observados e hipótesis revisables se consultan completos dentro del universo disponible.',
     },
     mine_evidence_readiness: mineEvidenceReadiness.map((row) => ({
       mine_id: row.id,
@@ -378,6 +429,7 @@ export async function buildCanonicalGeologyContext(args: {
       orientation_2026: 'Las tareas inmediatas distinguen medición fallida, número con convención pendiente, resultado topográfico externo faltante, setup verificado sin valores y orientación parcial. Los sondajes sin fuente primaria de orientación quedan como backlog de evidencia.',
       interpretation: 'production_geology_interpretation_signals_v1 consolida señales canónicas y operacionales. Sus metros de mineralización visual, ausencia, estructura, litología y condición de roca no son recursos, leyes, contactos ni dominios geológicos formales.',
       observed_patterns: 'production_geology_observed_patterns_v1 contiene relaciones determinísticas entre señales observadas. Un patrón es una hipótesis revisable, no evidencia suficiente de control estructural, contacto, dominio, continuidad, causalidad ni ley.',
+      reviewed_hypotheses: 'production_geology_hypotheses registra el flujo humano sobre hipótesis derivadas. detected/in_review/supported/rejected/closed son estados de revisión, no clases de confianza geológica ni hechos fuente. supported no modifica automáticamente logging, ensayes, survey, contactos, dominios, recursos o reservas.',
     },
   };
 }
