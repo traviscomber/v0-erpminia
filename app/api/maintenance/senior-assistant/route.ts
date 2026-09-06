@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
         .select('work_order_id,work_order_number,canonical_asset_id,asset_code,asset_name,title,ready_to_close,next_action,open_procurement_orders,pending_parts,unmet_material_requirements,pending_external_services,open_labor_entries,external_cost_conflict,standard_plan_steps_pending')
         .eq('organization_id', context.organizationId).limit(100),
       context.supabase.from('maintenance_canonical_assets_v1')
-        .select('id,asset_code,name,asset_type,manufacturer,model,operational_status,criticality,cost_center_code,validation_status')
+        .select('id,asset_code,name,asset_type,category,manufacturer,model,cost_center_code,is_active,validation_status')
         .eq('organization_id', context.organizationId).limit(200),
     ]);
 
