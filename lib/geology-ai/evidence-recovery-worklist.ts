@@ -15,8 +15,10 @@ export function parseRecoveryCategory(value: string | null): RecoveryCategory {
 }
 
 const physicalSource = (value: string | null | undefined) => {
-  const match = String(value || '').match(/([^|]*\.(?:xlsx|xlsm|xls|csv|tsv|dwg|dxf|kmz|kml)(?:\s*\/\s*[^|]+)?)(?:\s+row\s+\d+)?/i);
-  return match?.[1]?.trim() || null;
+  const segment = String(value || '').split('|')
+    .map((item) => item.trim())
+    .find((item) => /\.(xlsx|xlsm|xls|csv|tsv|dwg|dxf|kmz|kml)\b/i.test(item));
+  return segment?.replace(/\s+row\s+\d+.*$/i, '').trim() || null;
 };
 
 export async function buildEvidenceRecoveryWorklist(args: {
