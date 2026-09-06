@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { buildCanonicalGeologyContext } from '@/lib/geology-ai/canonical-context';
+import { buildCoreVisionAssistantContext } from '@/lib/geology-ai/corevision-context';
 import { buildGeologyAgentInstructions, LA_PATAGUA_PROCESS_CONTEXT } from '@/lib/geology-ai/prompt';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
@@ -269,7 +270,7 @@ export async function POST(request: NextRequest) {
     .single();
   if (userMessageError) return NextResponse.json({ error: userMessageError.message }, { status: 500 });
 
-  const [historyResult, memoryResult, cargo, canonical] = await Promise.all([
+  const [historyResult, memoryResult, cargo, canonical, coreVision] = await Promise.all([
     context.supabase
       .from('geology_ai_messages')
       .select('role,content,created_at')
@@ -289,6 +290,7 @@ export async function POST(request: NextRequest) {
       .limit(20),
     resolveCargo(context),
     buildCanonicalGeologyContext({ supabase: context.supabase, organizationId: context.organizationId }),
+    buildCoreVisionAssistantContext({ supabase: context.supabase, organizationId: context.organizationId }),
   ]);
 
   const history = [...(historyResult.data || [])].reverse();
@@ -300,13 +302,14 @@ export async function POST(request: NextRequest) {
     cargo,
     accessLevel: access.canWrite ? 'ED' : 'LEC',
     memory,
-  })}\n${LA_PATAGUA_PROCESS_CONTEXT}`;
+  })}\n${LA_PATAGUA_PROCESS_CONTEXT}\n\nREGLAS COREVision PARA EL ASISTENTE SENIOR:\n1. La evidencia visual validada o editada por geólogo puede usarse como evidencia profesional trazable, pero no sustituye logging, ensayes, survey, modelamiento ni otros datos canónicos.\n2. Los discovery_candidates son exploratorios y pendientes de revisión: si los mencionas, debes identificarlos explícitamente como hallazgos de IA no validados.\n3. Nunca presentes classification_confidence o visual_similarity_score como probabilidad geológica.\n4. La decisión/corrección del geólogo prevalece sobre la sugerencia visual de IA.\n5. Usa learning_corrections para reconocer dónde el motor visual fue corregido y evitar repetir esa interpretación como si estuviera validada.\n6. Ningún resultado CoreVision permite por sí solo concluir ley, continuidad, contacto, control estructural, dominio, recurso o reserva.`;
 
-  const modelInput = `CONVERSACIÓN RECIENTE\n${conversationTranscript(history)}\n\nCONTEXTO CANÓNICO VIVO DE LA PATAGUA\n${JSON.stringify(canonical)}\n\nPREGUNTA ACTUAL\n${message}`;
+  const modelInput = `CONVERSACIÓN RECIENTE\n${conversationTranscript(history)}\n\nCONTEXTO CANÓNICO VIVO DE LA PATAGUA\n${JSON.stringify(canonical)}\n\nCOREVISION — EVIDENCIA VISUAL VALIDADA + DESCUBRIMIENTO EXPLORATORIO\n${JSON.stringify(coreVision)}\n\nPREGUNTA ACTUAL\n${message}`;
 
   try {
     const answer = await callOpenAI({ instructions, input: modelInput });
-    const sourceRefs = canonical.sources.map((source: string) => ({ source }));
+    const sourceNames = Array.from(new Set([...(canonical.sources || []), ...(coreVision.sources || [])]));
+    const sourceRefs = sourceNames.map((source: string) => ({ source }));
 
     const { data: assistantMessage, error: assistantMessageError } = await context.supabase
       .from('geology_ai_messages')
@@ -349,6 +352,11 @@ export async function POST(request: NextRequest) {
       message: assistantMessage,
       learned: learned.length,
       model: answer.model,
+      coreVision: {
+        validated: coreVision.counts.validated,
+        discoveryCandidates: coreVision.counts.discovery_candidates,
+        learningCorrections: coreVision.counts.learning_corrections,
+      },
     });
   } catch (error) {
     const messageText = error instanceof Error ? error.message : 'No fue posible consultar al agente';
