@@ -199,12 +199,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         nextMaintenance: null,
       },
       technicalSheet: {
-        family: assetFamily,
+        family: trustedReference?.family || null,
         sourceUrl: trustedReference?.sourceUrl || null,
         fields: referenceFields,
         rawSpecs: {},
         status: trustedReference ? 'trusted_reference_available' : technicalReference ? 'reference_candidate_pending_validation' : 'pending',
       },
+      inferredFamily: assetFamily,
       referenceAuthority: trustedReference ? 'canonical_identity_match' : technicalReference ? 'reference_candidate_pending_validation' : 'none',
       referenceCandidate: technicalReference && !trustedReference
         ? {
