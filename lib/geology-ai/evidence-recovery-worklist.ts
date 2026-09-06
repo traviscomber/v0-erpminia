@@ -51,7 +51,7 @@ export async function buildEvidenceRecoveryWorklist(args: {
         source_file: physicalSource(row.source_refs),
         evidence_text: row.latest_evidence_text,
         state: row.collar_state,
-        next_action: row.recovery_action || 'Recuperar coordenadas y CRS desde la fuente topográfica original.',
+        next_action: 'Recuperar desde la fuente topográfica original las coordenadas de collar, elevación y CRS; validar antes de materializar.',
       })),
     };
   }
@@ -79,7 +79,7 @@ export async function buildEvidenceRecoveryWorklist(args: {
         source_file: physicalSource(row.source_refs),
         evidence_text: row.latest_evidence_text,
         state: row.orientation_state,
-        next_action: row.recovery_action || 'Recuperar las estaciones numéricas del survey original.',
+        next_action: 'Recuperar la planilla o exportación original del survey con estaciones depth/azimuth/dip y validarlas antes de materializar.',
       })),
     };
   }
