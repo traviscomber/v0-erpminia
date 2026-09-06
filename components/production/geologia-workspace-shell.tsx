@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { GeologiaDashboard } from '@/components/production/geologia-dashboard';
 import { GeologiaHistoricalCanonical } from '@/components/production/geologia-historical-canonical';
@@ -13,22 +13,80 @@ import { GeologiaCoreVision } from '@/components/production/geologia-corevision'
 import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floating-chat';
 
 const tabs = [
-  ['today', 'Hoy'],
-  ['interpretation', 'Interpretación'],
-  ['matrix', 'Matriz'],
+  ['today', 'Resumen'],
   ['priorities', 'Prioridades'],
-  ['corevision', 'CoreVision'],
-  ['holes', 'Sondajes'],
-  ['results', 'Resultados'],
   ['pending', 'Tareas'],
+  ['holes', 'Ficha'],
+  ['corevision', 'CoreVision'],
+  ['interpretation', 'Lectura'],
+  ['matrix', 'Matriz'],
+  ['results', 'Resultados'],
   ['completeness', 'Cobertura'],
-  ['canonical', 'Evidencia'],
+  ['canonical', 'Fuentes'],
   ['history', 'Histórico'],
 ] as const;
 
 type TabKey = (typeof tabs)[number][0];
+type GroupKey = 'today' | 'holes' | 'interpretation' | 'evidence' | 'history';
+
+type NavigationGroup = {
+  key: GroupKey;
+  label: string;
+  description: string;
+  tabs: ReadonlyArray<readonly [TabKey, string]>;
+};
+
+const navigationGroups: NavigationGroup[] = [
+  {
+    key: 'today',
+    label: 'Hoy',
+    description: 'Qué requiere atención ahora.',
+    tabs: [
+      ['today', 'Resumen'],
+      ['priorities', 'Prioridades'],
+      ['pending', 'Tareas'],
+    ],
+  },
+  {
+    key: 'holes',
+    label: 'Sondajes',
+    description: 'Expediente geológico del sondaje canónico.',
+    tabs: [
+      ['holes', 'Ficha'],
+      ['corevision', 'CoreVision'],
+    ],
+  },
+  {
+    key: 'interpretation',
+    label: 'Interpretación',
+    description: 'Lectura profesional e hipótesis revisables.',
+    tabs: [
+      ['interpretation', 'Lectura'],
+      ['matrix', 'Matriz'],
+    ],
+  },
+  {
+    key: 'evidence',
+    label: 'Evidencia',
+    description: 'Resultados, cobertura y procedencia de la fuente.',
+    tabs: [
+      ['results', 'Resultados'],
+      ['completeness', 'Cobertura'],
+      ['canonical', 'Fuentes'],
+    ],
+  },
+  {
+    key: 'history',
+    label: 'Histórico',
+    description: 'Contexto canónico histórico separado de la operación actual.',
+    tabs: [['history', 'Histórico']],
+  },
+];
 
 const tabKeys = new Set<TabKey>(tabs.map(([key]) => key));
+const groupByTab = new Map<TabKey, GroupKey>(
+  navigationGroups.flatMap((group) => group.tabs.map(([key]) => [key, group.key] as const)),
+);
 
 const dashboardLabels: Record<Exclude<TabKey, 'history' | 'canonical' | 'completeness' | 'interpretation' | 'matrix' | 'priorities' | 'corevision'>, string> = {
   today: 'Hoy',
@@ -55,6 +113,11 @@ export function GeologiaWorkspaceShell() {
     target?.click();
   }, [tab]);
 
+  const activeGroup = useMemo(() => {
+    const key = groupByTab.get(tab) || 'today';
+    return navigationGroups.find((group) => group.key === key) || navigationGroups[0];
+  }, [tab]);
+
   const selectTab = (key: TabKey) => {
     setTab(key);
     const url = new URL(window.location.href);
@@ -65,20 +128,51 @@ export function GeologiaWorkspaceShell() {
     window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
   };
 
-  const showDashboard = !['history','canonical','completeness','interpretation','matrix','priorities','corevision'].includes(tab);
+  const selectGroup = (group: NavigationGroup) => {
+    if (group.key === activeGroup.key) return;
+    selectTab(group.tabs[0][0]);
+  };
+
+  const showDashboard = !['history', 'canonical', 'completeness', 'interpretation', 'matrix', 'priorities', 'corevision'].includes(tab);
 
   return (
     <div className="space-y-5">
-      <nav
-        className="sticky top-0 z-30 -mx-1 flex flex-wrap gap-2 border-b bg-background/95 px-1 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80"
-        aria-label="Vistas principales de Geología"
-      >
-        {tabs.map(([key, label]) => (
-          <Button key={key} size="sm" variant={tab === key ? 'default' : 'ghost'} onClick={() => selectTab(key)}>
-            {label}
-          </Button>
-        ))}
-      </nav>
+      <div className="sticky top-0 z-30 -mx-1 border-b bg-background/95 px-1 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+        <nav className="flex gap-1 overflow-x-auto" aria-label="Vistas principales de Geología">
+          {navigationGroups.map((group) => (
+            <Button
+              key={group.key}
+              size="sm"
+              variant={activeGroup.key === group.key ? 'default' : 'ghost'}
+              onClick={() => selectGroup(group)}
+              className="shrink-0"
+            >
+              {group.label}
+            </Button>
+          ))}
+        </nav>
+        {activeGroup.tabs.length > 1 ? (
+          <nav className="mt-2 flex gap-1 overflow-x-auto" aria-label={`Herramientas de ${activeGroup.label}`}>
+            {activeGroup.tabs.map(([key, label]) => (
+              <Button
+                key={key}
+                size="sm"
+                variant="ghost"
+                onClick={() => selectTab(key)}
+                className={`h-8 shrink-0 px-2.5 text-xs ${tab === key ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
+              >
+                {label}
+              </Button>
+            ))}
+          </nav>
+        ) : null}
+        <p className="mt-2 text-xs text-muted-foreground">{activeGroup.description}</p>
+        {activeGroup.key === 'holes' ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            Sondajes aquí = expediente y evidencia geológica del mismo pozo canónico. La ejecución de perforación, equipos y metros está en Producción → Perforación.
+          </p>
+        ) : null}
+      </div>
 
       <div ref={dashboardRef} className={showDashboard ? 'block' : 'hidden'}>
         <style>{`nav[aria-label="Vistas de Geología"] { display: none !important; }`}</style>
