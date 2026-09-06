@@ -5,6 +5,7 @@ import { AlertTriangle, ChevronRight, CircleDot, Layers3, Search, ShieldCheck } 
 import { useMemo, useState } from 'react';
 import { StatePanel } from '@/components/ui/state-panel';
 import { GeologiaInterpretationColumn } from '@/components/production/geologia-interpretation-column';
+import { GeologiaInterpretationComparator } from '@/components/production/geologia-interpretation-comparator';
 
 const fetcher = async (url:string) => { const r=await fetch(url,{credentials:'include',cache:'no-store'}); const d=await r.json(); if(!r.ok) throw new Error(d.error||'No fue posible cargar interpretación'); return d; };
 
@@ -53,6 +54,8 @@ export function GeologiaInterpretation(){
       <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Lectura técnica sobre evidencia canónica. Separa observación operacional de interpretación y no reemplaza logging, survey, ensayes ni validación del geólogo.</p>
       <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm"><span><strong>{s.structured_evidence||0}</strong> estructurados</span><span><strong>{s.operational_evidence||0}</strong> operacionales</span><span><strong>{s.partial_evidence||0}</strong> parciales</span><span><strong>{s.blocked||0}</strong> bloqueados</span><span><strong>{s.insufficient_evidence||0}</strong> insuficientes</span></div>
     </section>
+
+    <GeologiaInterpretationComparator rows={data.rows}/>
 
     <div className="grid gap-5 xl:grid-cols-[310px_minmax(0,1fr)]">
       <aside className="overflow-hidden rounded-lg border bg-card">
