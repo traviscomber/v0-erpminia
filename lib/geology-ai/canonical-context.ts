@@ -70,7 +70,14 @@ export async function buildCanonicalGeologyContext(args: {
       .order('last_observed_at', { ascending: false, nullsFirst: false }),
   ]);
 
-  const firstError = [mines, sectors, drilling, holes, samples, results, plans, planLines, metallurgy, locationReview, immediateTasks, interpretationSignals].find((item) => item.error)?.error;
+  const observedPatterns = await supabase
+    .from('production_geology_observed_patterns_v1')
+    .select('drill_hole_id,hole_code,pattern_type,pattern_label,evidence_strength,evidence_value,evidence_unit,from_m,to_m,source_rows,evidence_summary,review_question,required_validation,pattern_scope,guardrail')
+    .eq('organization_id', organizationId)
+    .order('evidence_strength', { ascending: true })
+    .order('evidence_value', { ascending: false, nullsFirst: false });
+
+  const firstError = [mines, sectors, drilling, holes, samples, results, plans, planLines, metallurgy, locationReview, immediateTasks, interpretationSignals, observedPatterns].find((item) => item.error)?.error;
   if (firstError) throw new Error(firstError.message || 'No fue posible construir contexto canónico');
 
   const mineRows = mines.data || [];
@@ -85,6 +92,7 @@ export async function buildCanonicalGeologyContext(args: {
   const locationReviewRows = locationReview.data || [];
   const immediateTaskRows = immediateTasks.data || [];
   const interpretationRows = interpretationSignals.data || [];
+  const observedPatternRows = observedPatterns.data || [];
 
   const mineById = new Map(mineRows.map((row: any) => [row.id, row.name]));
   const sectorById = new Map(sectorRows.map((row: any) => [row.id, row.name]));
@@ -241,6 +249,32 @@ export async function buildCanonicalGeologyContext(args: {
     last_observed_at: row.last_observed_at,
   }));
 
+  const observedPatternSummary = observedPatternRows.reduce((acc: Record<string, number>, row: any) => {
+    const key = String(row.pattern_type || 'unknown');
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const observedPatternsByHole = observedPatternRows.map((row: any) => ({
+    hole_code: row.hole_code,
+    pattern_type: row.pattern_type,
+    pattern_label: row.pattern_label,
+    evidence_strength: row.evidence_strength,
+    evidence_value: n(row.evidence_value),
+    evidence_unit: row.evidence_unit,
+    from_m: n(row.from_m),
+    to_m: n(row.to_m),
+    source_rows: row.source_rows || [],
+    canonical_fact: row.evidence_summary,
+    senior_interpretation: 'Relación observada que justifica revisión geológica; no es una conclusión geológica confirmada.',
+    hypothesis_to_review: row.review_question,
+    evidence_against_or_missing: row.required_validation,
+    required_validation: row.required_validation,
+    scope: row.pattern_scope,
+    guardrail: row.guardrail,
+    human_checkpoint: 'Geólogo responsable debe revisar evidencia primaria antes de elevar el patrón a interpretación de control, contacto o dominio.',
+  }));
+
   return {
     provenance: 'La Patagua canonical only',
     chronology: 'newest_first',
@@ -254,6 +288,7 @@ export async function buildCanonicalGeologyContext(args: {
       'production_geology_orientation_recovery_queue_2026_v1',
       'production_geology_topography_source_gap_2026_v1',
       'production_geology_interpretation_signals_v1',
+      'production_geology_observed_patterns_v1',
       'production_geology_contiguous_units_v1',
       'production_geology_point_observations_v1',
       'production_geology_transition_candidates_v1',
@@ -277,9 +312,15 @@ export async function buildCanonicalGeologyContext(args: {
       top_immediate_geology_tasks: immediateGeologyTasks.slice(0, 10),
       interpretation_state_counts: interpretationSummary,
       top_interpretation_attention: interpretationByHole.filter((row: any) => row.interpretation_state === 'blocked' || row.interpretation_state === 'partial_evidence').slice(0, 20),
+      observed_pattern_counts: observedPatternSummary,
+      top_observed_patterns: observedPatternsByHole
+        .filter((row: any) => row.evidence_strength === 'strong_observed_signal')
+        .sort((a: any, b: any) => Number(b.evidence_value || 0) - Number(a.evidence_value || 0))
+        .slice(0, 20),
     },
     immediate_geology_tasks_2026: immediateGeologyTasks,
     interpretation_signals: interpretationByHole,
+    observed_patterns: observedPatternsByHole,
     coverage: {
       mines: mineRows.map((row: any) => ({ id: row.id, code: row.code, name: row.name, status: row.status })),
       sectors: sectorRows.map((row: any) => ({ id: row.id, mine_source_id: row.mine_source_id, name: row.name, status: row.status })),
@@ -290,7 +331,8 @@ export async function buildCanonicalGeologyContext(args: {
       samples: sampleRows.length,
       assay_results: resultRows.length,
       unresolved_reconciliation: unresolvedReview.length,
-      note: 'Los conteos están limitados por las ventanas consultadas cuando corresponda; las colas e interpretación se consultan completas dentro del universo disponible.',
+      observed_patterns: observedPatternRows.length,
+      note: 'Los conteos están limitados por las ventanas consultadas cuando corresponda; las colas, interpretación y patrones observados se consultan completos dentro del universo disponible.',
     },
     mine_evidence_readiness: mineEvidenceReadiness.map((row) => ({
       mine_id: row.id,
@@ -335,6 +377,7 @@ export async function buildCanonicalGeologyContext(args: {
       source_inclination: 'inclination_raw puede existir en reportes fuente, pero no se convierte automáticamente a dip_deg sin regla validada de La Patagua.',
       orientation_2026: 'Las tareas inmediatas distinguen medición fallida, número con convención pendiente, resultado topográfico externo faltante, setup verificado sin valores y orientación parcial. Los sondajes sin fuente primaria de orientación quedan como backlog de evidencia.',
       interpretation: 'production_geology_interpretation_signals_v1 consolida señales canónicas y operacionales. Sus metros de mineralización visual, ausencia, estructura, litología y condición de roca no son recursos, leyes, contactos ni dominios geológicos formales.',
+      observed_patterns: 'production_geology_observed_patterns_v1 contiene relaciones determinísticas entre señales observadas. Un patrón es una hipótesis revisable, no evidencia suficiente de control estructural, contacto, dominio, continuidad, causalidad ni ley.',
     },
   };
 }
