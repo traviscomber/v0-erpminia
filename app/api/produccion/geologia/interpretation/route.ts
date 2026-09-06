@@ -21,13 +21,16 @@ export async function GET(request: NextRequest) {
     .order('hole_code', { ascending: true });
 
   if (!holeId) {
-    const [signals, patterns] = await Promise.all([
+    const [signals, patterns, hypotheses] = await Promise.all([
       signalsQuery,
       context.supabase.from('production_geology_observed_patterns_v1')
         .select('pattern_type,evidence_strength')
         .eq('organization_id', context.organizationId),
+      context.supabase.from('production_geology_hypotheses')
+        .select('state')
+        .eq('organization_id', context.organizationId),
     ]);
-    const error = signals.error || patterns.error;
+    const error = signals.error || patterns.error || hypotheses.error;
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
     const rows = signals.data || [];
     const summary = rows.reduce((acc: Record<string, number>, row: any) => {
@@ -40,10 +43,22 @@ export async function GET(request: NextRequest) {
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {});
-    return NextResponse.json({ rows, summary, patternSummary, patternCount: (patterns.data || []).length });
+    const hypothesisSummary = (hypotheses.data || []).reduce((acc: Record<string, number>, row: any) => {
+      const key = String(row.state || 'unknown');
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+    return NextResponse.json({
+      rows,
+      summary,
+      patternSummary,
+      patternCount: (patterns.data || []).length,
+      hypothesisSummary,
+      hypothesisCount: (hypotheses.data || []).length,
+    });
   }
 
-  const [signal, units, points, transitions, intervals, patterns] = await Promise.all([
+  const [signal, units, points, transitions, intervals, patterns, hypotheses] = await Promise.all([
     context.supabase.from('production_geology_interpretation_signals_v1').select('*').eq('organization_id', context.organizationId).eq('drill_hole_id', holeId).maybeSingle(),
     context.supabase.from('production_geology_contiguous_units_v1')
       .select('from_m,to_m,length_m,evidence_class,lithology_observed,mineralization_state,rock_conditions,structural_features,source_rows,evidence_text,confidence,interpretation_guardrail,first_observed_at,last_observed_at')
@@ -61,15 +76,20 @@ export async function GET(request: NextRequest) {
       .select('pattern_type,pattern_label,evidence_strength,evidence_value,evidence_unit,from_m,to_m,source_rows,evidence_summary,review_question,required_validation,pattern_scope,guardrail')
       .eq('organization_id', context.organizationId).eq('drill_hole_id', holeId)
       .order('evidence_strength', { ascending: true }),
+    context.supabase.from('production_geology_hypotheses')
+      .select('*')
+      .eq('organization_id', context.organizationId).eq('drill_hole_id', holeId)
+      .order('updated_at', { ascending: false }),
   ]);
 
-  const error = signal.error || units.error || points.error || transitions.error || intervals.error || patterns.error;
+  const error = signal.error || units.error || points.error || transitions.error || intervals.error || patterns.error || hypotheses.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   if (!signal.data) return NextResponse.json({ error: 'Sondaje no encontrado' }, { status: 404 });
 
   return NextResponse.json({
     signal: signal.data,
     patterns: patterns.data || [],
+    hypotheses: hypotheses.data || [],
     evidence: {
       contiguousUnits: units.data || [],
       points: points.data || [],
