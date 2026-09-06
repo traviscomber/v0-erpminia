@@ -45,7 +45,7 @@ export default function PreventiveHoursPage() {
       <PageHeaderContent>
         <PageHeaderEyebrow>Mantenimiento · Planificación por uso</PageHeaderEyebrow>
         <PageHeaderTitle>Preventivo por horómetro</PageHeaderTitle>
-        <PageHeaderDescription>Compara el horómetro disponible con la pauta real configurada. MOTIL no inventa frecuencias ni adelanta alertas antes del vencimiento definido.</PageHeaderDescription>
+        <PageHeaderDescription>Compara el horómetro disponible con la pauta real configurada. No existen umbrales genéricos ni alertas antes del vencimiento configurado; MOTIL no inventa frecuencias.</PageHeaderDescription>
       </PageHeaderContent>
       <PageHeaderActions>
         <Button asChild variant="outline"><Link href="/dashboard/mantenimiento/horometros"><Gauge className="h-4 w-4"/>Horómetros</Link></Button>
