@@ -27,15 +27,25 @@ test('geology keeps decision views as local controls inside Production instead o
   assert.match(shell, /mismo sondaje canónico de Producción → Perforación/);
 });
 
-test('production separates drilling execution from geology without duplicating drill-hole identity', async () => {
+test('production uses one operational flow rail while keeping technical disciplines non-sequential', async () => {
   const [layout, drillingHome] = await Promise.all([
     readFile(productionLayoutUrl, 'utf8'),
     readFile(drillingHomeUrl, 'utf8'),
   ]);
 
-  assert.match(layout, /label: 'Perforación'.*group: 'workflow'/);
-  assert.match(layout, /label: 'Geología'.*group: 'technical'/);
-  assert.match(layout, /activeItems = visibleItems\.filter\(\(item\) => item\.group === activeGroupKey\)/);
+  assert.match(layout, /label: 'Resumen'.*lane: 'flow'.*step: 1/);
+  assert.match(layout, /label: 'Mina \/ Sector'.*lane: 'flow'.*step: 2/);
+  assert.match(layout, /label: 'Perforación'.*lane: 'flow'.*step: 3/);
+  assert.match(layout, /label: 'Transporte'.*lane: 'flow'.*step: 4/);
+  assert.match(layout, /label: 'Planta \/ Metalurgia'.*lane: 'flow'.*step: 5/);
+  assert.match(layout, /label: 'Geología'.*lane: 'technical'/);
+  assert.match(layout, /label: 'Topografía'.*lane: 'technical'/);
+  assert.match(layout, /label: 'Química'.*lane: 'technical'/);
+  assert.match(layout, /aria-label="Flujo operacional de Producción"/);
+  assert.match(layout, /aria-label="Control técnico de Producción"/);
+  assert.match(layout, /String\(item\.step\)\.padStart\(2, '0'\)/);
+  assert.doesNotMatch(layout, /Grupos de Producción/);
+  assert.doesNotMatch(layout, /activeGroupKey/);
   assert.match(drillingHome, /mismo sondaje canónico/);
   assert.match(drillingHome, /no son dos bases de datos distintas/i);
   assert.match(drillingHome, /\/dashboard\/produccion\/geologia\?tab=holes/);
