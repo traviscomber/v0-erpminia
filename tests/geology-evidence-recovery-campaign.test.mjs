@@ -23,6 +23,13 @@ test('recovery campaign never turns documentary priority into geological probabi
   assert.match(builder, /validación humana antes de materializarse/i);
 });
 
+test('recovery campaign ranks recent evidence explicitly inside source class', async () => {
+  const builder = await readFile(builderUrl, 'utf8');
+  const component = await readFile(componentUrl, 'utf8');
+  assert.match(builder, /last_evidence_date[\s\S]*localeCompare/);
+  assert.match(component, /pista más reciente/);
+});
+
 test('recovery campaign API is geology-authorized and tenant scoped', async () => {
   const route = await readFile(routeUrl, 'utf8');
   assert.match(route, /requireModuleAccess\(request, MODULE_KEYS\.PROD_GEOLOGIA\)/);
