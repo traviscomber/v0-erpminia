@@ -26,8 +26,8 @@ const unique = (values: Array<string | null | undefined>) => [...new Set(values.
 const parseSourceFiles = (values: Array<string | null | undefined>) => {
   const files = values.flatMap((value) => String(value || '').split('|'))
     .map((value) => value.trim())
-    .filter(Boolean)
-    .map((value) => value.split(' row ')[0].trim());
+    .filter((value) => /^[^()]*\.(xlsx|xlsm|xls|csv|tsv|dwg|dxf|kmz|kml)\b/i.test(value))
+    .map((value) => value.replace(/\s+row\s+\d+.*$/i, '').trim());
   return unique(files).slice(0, 6);
 };
 
@@ -110,7 +110,7 @@ export async function buildEvidenceRecoveryLocator(args: { supabase: SupabaseCli
       status: loggingClues.length ? 'historical_source_clues' : 'lineage_gap',
       candidate_holes: new Set(loggingClues.map((row: any) => row.drill_hole_id).filter(Boolean)).size,
       evidence_rows: loggingClues.reduce((sum: number, row: any) => sum + Number(row.lithology_span_count || 0), 0),
-      source_files: unique(loggingClues.map((row: any) => row.source_reference)).slice(0, 6),
+      source_files: parseSourceFiles(loggingClues.map((row: any) => row.source_reference)),
       source_authority: 'Son observaciones operacionales con señal litológica en sondajes sin intervalos canónicos. Sirven para localizar filas fuente, no para inventar logging.',
       recovery_action: 'Revisar las filas fuente y reconstruir intervalos sólo cuando from/to y descripción geológica sean explícitos; el geólogo valida antes de materializar.',
       examples: loggingClues.slice(0, 5).map((row: any) => ({
@@ -124,7 +124,7 @@ export async function buildEvidenceRecoveryLocator(args: { supabase: SupabaseCli
       status: structuralClues.length ? 'historical_source_clues' : 'lineage_gap',
       candidate_holes: new Set(structuralClues.map((row: any) => row.drill_hole_id).filter(Boolean)).size,
       evidence_rows: structuralClues.reduce((sum: number, row: any) => sum + Number(row.structure_span_count || 0), 0),
-      source_files: unique(structuralClues.map((row: any) => row.source_reference)).slice(0, 6),
+      source_files: parseSourceFiles(structuralClues.map((row: any) => row.source_reference)),
       source_authority: 'Las menciones estructurales son evidencia narrativa/operacional; no equivalen a orientación estructural medida.',
       recovery_action: 'Localizar mediciones estructurales originales o logging orientado. Sin rumbo/buzamiento u otra medición explícita, mantener la estructura como observación no orientada.',
       examples: structuralClues.slice(0, 5).map((row: any) => ({
