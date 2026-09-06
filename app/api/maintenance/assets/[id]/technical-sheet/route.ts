@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
 import { buildReferencePreventiveAlerts, resolveTechnicalSheetReference } from '@/lib/maintenance/technical-sheet-library';
 
@@ -45,6 +46,27 @@ function normalizeText(value: string | null | undefined) {
     .toLowerCase();
 }
 
+function normalizeIdentity(value: string | null | undefined) {
+  return normalizeText(value).replace(/[^a-z0-9]/g, '');
+}
+
+function brandMatches(manufacturer: string, brand: string) {
+  const manufacturerText = normalizeText(manufacturer);
+  const brandText = normalizeText(brand);
+  if (!manufacturerText || !brandText) return false;
+  if (manufacturerText === brandText || manufacturerText.includes(brandText) || brandText.includes(manufacturerText)) return true;
+  return (manufacturerText === 'cat' && brandText === 'caterpillar') || (manufacturerText === 'caterpillar' && brandText === 'cat');
+}
+
+function hasVerifiedReferenceIdentity(asset: AssetRow, reference: ReturnType<typeof resolveTechnicalSheetReference>) {
+  if (!reference || !asset.manufacturer || !asset.model) return false;
+  const assetModel = normalizeIdentity(asset.model);
+  const referenceModel = normalizeIdentity(reference.model);
+  if (!assetModel || !referenceModel) return false;
+  const modelMatches = assetModel === referenceModel || assetModel.includes(referenceModel) || referenceModel.includes(assetModel);
+  return modelMatches && brandMatches(asset.manufacturer, reference.brand);
+}
+
 function familyMatchesTemplate(family: string | null, template: TemplateRow) {
   const familyText = normalizeText(family);
   const nameText = normalizeText(template.name);
@@ -72,6 +94,9 @@ function familyMatchesTemplate(family: string | null, template: TemplateRow) {
 }
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES);
+  if (!access.authorized) return access.response;
+
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
@@ -92,6 +117,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const safeTemplates = templateResult.error ? [] : templateResult.data;
     const safeFaultModes = faultModeResult.error ? [] : faultModeResult.data;
     let asset = !assetResult.error && assetResult.data ? (assetResult.data as AssetRow) : null;
+    let assetOrigin: 'maintenance_master' | 'cost_center_fallback' = 'maintenance_master';
 
     if (!asset) {
       const { data: costCenter } = await context.supabase
@@ -102,13 +128,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         .maybeSingle();
 
       if (costCenter) {
+        assetOrigin = 'cost_center_fallback';
         asset = {
           id: costCenter.id,
           asset_code: costCenter.code ?? null,
           asset_name: costCenter.name ?? null,
           asset_type: null,
           location: null,
-          status: costCenter.status ?? 'activo',
+          status: costCenter.status ?? null,
           manufacturer: null,
           model: null,
           serial_number: null,
@@ -126,11 +153,13 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const assetText = `${asset.asset_name || ''} ${asset.asset_type || ''} ${asset.model || ''} ${asset.manufacturer || ''}`;
     const assetFamily = inferMachineFamilyFromText(assetText);
     const technicalReference = resolveTechnicalSheetReference(assetText, assetFamily);
-    const referenceFields = technicalReference
+    const referenceIdentityVerified = assetOrigin === 'maintenance_master' && hasVerifiedReferenceIdentity(asset, technicalReference);
+    const trustedReference = referenceIdentityVerified ? technicalReference : null;
+    const referenceFields = trustedReference
       ? [
-          ...technicalReference.keySpecs.map((item) => ({ key: item.label, value: item.value })),
-          { key: 'Fuente oficial', value: technicalReference.sourceLabel },
-          { key: 'Familia', value: technicalReference.family },
+          ...trustedReference.keySpecs.map((item) => ({ key: item.label, value: item.value })),
+          { key: 'Fuente oficial', value: trustedReference.sourceLabel },
+          { key: 'Familia', value: trustedReference.family },
         ]
       : [];
 
@@ -174,26 +203,39 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         nextMaintenance: null,
       },
       technicalSheet: {
-        family: assetFamily,
-        sourceUrl: technicalReference?.sourceUrl || null,
+        family: trustedReference?.family || null,
+        sourceUrl: trustedReference?.sourceUrl || null,
         fields: referenceFields,
         rawSpecs: {},
-        status: referenceFields.length > 0 ? 'reference_available' : 'pending',
+        status: trustedReference ? 'trusted_reference_available' : technicalReference ? 'reference_candidate_pending_validation' : 'pending',
       },
-      referenceSheet: technicalReference
+      inferredFamily: assetFamily,
+      referenceAuthority: trustedReference ? 'canonical_identity_match' : technicalReference ? 'reference_candidate_pending_validation' : 'none',
+      referenceCandidate: technicalReference && !trustedReference
         ? {
             brand: technicalReference.brand,
             model: technicalReference.model,
             family: technicalReference.family,
             sourceUrl: technicalReference.sourceUrl,
             sourceLabel: technicalReference.sourceLabel,
-            summary: technicalReference.summary,
-            keySpecs: technicalReference.keySpecs,
-            components: technicalReference.components,
           }
         : null,
-      preventiveAlerts: buildReferencePreventiveAlerts(technicalReference),
+      referenceSheet: trustedReference
+        ? {
+            brand: trustedReference.brand,
+            model: trustedReference.model,
+            family: trustedReference.family,
+            sourceUrl: trustedReference.sourceUrl,
+            sourceLabel: trustedReference.sourceLabel,
+            summary: trustedReference.summary,
+            keySpecs: trustedReference.keySpecs,
+            components: trustedReference.components,
+          }
+        : null,
+      preventiveAlerts: trustedReference ? buildReferencePreventiveAlerts(trustedReference) : [],
       componentProfile: suggestedTemplates,
+      componentProfileAuthority: 'suggested_from_inferred_family_non_canonical',
+      trustBoundary: 'Text or family similarity can propose a technical reference, but it cannot materialize specifications, preventive alerts, operational status, or canonical identity without verified manufacturer and model evidence.',
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la ficha tecnica del activo';
