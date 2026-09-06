@@ -37,7 +37,9 @@ test('geology dashboard follows the La Patagua operating workflow', async () => 
   assert.match(dashboard, /GeologiaResultsDecisionBoard/);
   assert.match(dashboard, /GeologiaPendingDecisionQueue/);
   assert.match(dashboard, /JSON\.stringify\(\{reportId,mineId\}\)/);
-  assert.match(today, /No se infiere geología inexistente/);
+  assert.match(today, /La ausencia estructural de la fuente se informa, pero no se convierte en tarea/i);
+  assert.match(today, /fuera de alcance/i);
+  assert.doesNotMatch(today, /Completar ubicación de sondajes/);
   assert.match(today, /Ahora · \{currentYear\}/);
   assert.match(today, /Evidencia vigente primero/);
   assert.match(today, /currentWithMine/);
@@ -70,7 +72,8 @@ test('dashboard and assistant share readiness evidence without turning sparse co
     readFile(promptUrl, 'utf8'),
   ]);
   assert.match(overview, /buildMineEvidenceReadiness/);
-  assert.match(overview, /Propósito/);
+  assert.match(overview, /Qué evidencia existe por mina/);
+  assert.match(overview, /no ranking de minas ni lista de datos por pedir/i);
   assert.match(readiness, /locatedPct\+orientedPct\+purposePct/);
   assert.match(readiness, /primaryGap/);
   assert.match(canonical, /mine_evidence_readiness/);
