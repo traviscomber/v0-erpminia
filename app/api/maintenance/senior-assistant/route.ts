@@ -129,6 +129,17 @@ Cuando el usuario pregunte qué equipo requiere atención, compara señales obse
       policy: 'Copiloto explicable: evidencia canónica → interpretación → hipótesis → acción humana. No decisión autónoma.',
     });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo consultar el Asistente Senior de Mantenimiento' }, { status: 500 });
+    const detail = error instanceof Error ? error.message : String(error ?? 'unknown');
+    const configurationError = detail.includes('OPENAI_API_KEY');
+    console.error('[maintenance-senior-assistant] request failed', {
+      code: configurationError ? 'AI_CONFIGURATION_REQUIRED' : 'AI_REQUEST_FAILED',
+      detail,
+    });
+    return NextResponse.json({
+      error: configurationError
+        ? 'El servicio de IA no está configurado en este entorno.'
+        : 'No se pudo consultar el Asistente Senior de Mantenimiento.',
+      code: configurationError ? 'AI_CONFIGURATION_REQUIRED' : 'AI_REQUEST_FAILED',
+    }, { status: 503 });
   }
 }
