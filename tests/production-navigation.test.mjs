@@ -4,11 +4,13 @@ import test from 'node:test';
 
 const sidebarUrl = new URL('../components/layout/sidebar.tsx', import.meta.url);
 const productionLayoutUrl = new URL('../app/dashboard/produccion/layout.tsx', import.meta.url);
+const drillingHomeUrl = new URL('../app/dashboard/produccion/sondaje/page.tsx', import.meta.url);
 
-test('Sondaje remains inside Produccion and not in the global sidebar', async () => {
-  const [sidebar, productionLayout] = await Promise.all([
+test('drilling stays inside Produccion while geology owns the geological drill-hole view', async () => {
+  const [sidebar, productionLayout, drillingHome] = await Promise.all([
     readFile(sidebarUrl, 'utf8'),
     readFile(productionLayoutUrl, 'utf8'),
+    readFile(drillingHomeUrl, 'utf8'),
   ]);
 
   assert.doesNotMatch(
@@ -18,7 +20,13 @@ test('Sondaje remains inside Produccion and not in the global sidebar', async ()
   );
   assert.match(
     productionLayout,
-    /href: '\/dashboard\/produccion\/sondaje', label: 'Sondaje'/,
-    'Sondaje must remain available within Produccion',
+    /href: '\/dashboard\/produccion\/sondaje', label: 'Perforación'/,
+    'Operational drilling must remain available inside Produccion without presenting a second geology domain',
   );
+  assert.match(productionLayout, /label: 'Geología'.*group: 'technical'/);
+  assert.match(productionLayout, /Flujo operacional/);
+  assert.match(productionLayout, /Control técnico/);
+  assert.match(drillingHome, /Un sondaje, dos responsabilidades/);
+  assert.match(drillingHome, /no son dos bases de datos distintas/i);
+  assert.match(drillingHome, /\/dashboard\/produccion\/geologia\?tab=holes/);
 });
