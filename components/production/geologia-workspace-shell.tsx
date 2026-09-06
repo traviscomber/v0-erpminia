@@ -40,7 +40,7 @@ const navigationGroups: NavigationGroup[] = [
   {
     key: 'today',
     label: 'Hoy',
-    description: 'Qué requiere atención ahora.',
+    description: 'Atención y decisiones actuales.',
     tabs: [
       ['today', 'Resumen'],
       ['priorities', 'Prioridades'],
@@ -68,7 +68,7 @@ const navigationGroups: NavigationGroup[] = [
   {
     key: 'evidence',
     label: 'Evidencia',
-    description: 'Resultados, cobertura y procedencia de la fuente.',
+    description: 'Resultados, cobertura y procedencia.',
     tabs: [
       ['results', 'Resultados'],
       ['completeness', 'Cobertura'],
@@ -78,7 +78,7 @@ const navigationGroups: NavigationGroup[] = [
   {
     key: 'history',
     label: 'Histórico',
-    description: 'Contexto canónico histórico separado de la operación actual.',
+    description: 'Contexto histórico separado de la operación actual.',
     tabs: [['history', 'Histórico']],
   },
 ];
@@ -138,42 +138,45 @@ export function GeologiaWorkspaceShell() {
 
   return (
     <div className="space-y-5">
-      <div className="sticky top-0 z-30 -mx-1 border-b bg-background/95 px-1 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80">
-        <nav className="flex gap-1 overflow-x-auto" aria-label="Vistas principales de Geología">
+      <section className="border-b pb-3" aria-label="Controles locales de Geología">
+        <div className="flex flex-wrap items-center gap-1" role="tablist" aria-label="Vista de Geología">
           {navigationGroups.map((group) => (
             <Button
               key={group.key}
               size="sm"
-              variant={activeGroup.key === group.key ? 'default' : 'ghost'}
+              variant="ghost"
+              role="tab"
+              aria-selected={activeGroup.key === group.key}
               onClick={() => selectGroup(group)}
-              className="shrink-0"
+              className={`h-8 px-2.5 text-xs ${activeGroup.key === group.key ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
             >
               {group.label}
             </Button>
           ))}
-        </nav>
+        </div>
         {activeGroup.tabs.length > 1 ? (
-          <nav className="mt-2 flex gap-1 overflow-x-auto" aria-label={`Herramientas de ${activeGroup.label}`}>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+            <span className="mr-1">Vista</span>
             {activeGroup.tabs.map(([key, label]) => (
-              <Button
+              <button
                 key={key}
-                size="sm"
-                variant="ghost"
+                type="button"
                 onClick={() => selectTab(key)}
-                className={`h-8 shrink-0 px-2.5 text-xs ${tab === key ? 'bg-muted text-foreground' : 'text-muted-foreground'}`}
+                aria-current={tab === key ? 'page' : undefined}
+                className={`rounded-md px-2 py-1 transition-colors ${tab === key ? 'bg-muted font-medium text-foreground' : 'hover:bg-muted/60 hover:text-foreground'}`}
               >
                 {label}
-              </Button>
+              </button>
             ))}
-          </nav>
+          </div>
         ) : null}
         <p className="mt-2 text-xs text-muted-foreground">{activeGroup.description}</p>
         {activeGroup.key === 'holes' ? (
           <p className="mt-1 text-xs text-muted-foreground">
-            Sondajes aquí = expediente y evidencia geológica del mismo pozo canónico. La ejecución de perforación, equipos y metros está en Producción → Perforación.
+            El expediente usa el mismo sondaje canónico de Producción → Perforación; aquí sólo cambia la responsabilidad geológica.
           </p>
         ) : null}
-      </div>
+      </section>
 
       <div ref={dashboardRef} className={dashboardClassName}>
         <style>{`
