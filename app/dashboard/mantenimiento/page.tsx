@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
+import { MaintenanceSeniorAssistant } from '@/components/maintenance/maintenance-senior-assistant';
 
 type ActionItem = { id:string; kind:string; priority:number; title:string; description:string; evidence:string; href:string; assetHref?:string|null };
 type Response = {
@@ -75,11 +76,13 @@ export default function MantenimientoPage(){
       </CardContent>
     </Card>
 
-    <div className="grid gap-3 md:grid-cols-4">
+    <div className="grid gap-3 md:grid-cols-5">
+      <Button asChild variant="outline" className="justify-between"><Link href="/dashboard/mantenimiento/decision-intelligence">Decision Intelligence<ArrowRight className="h-4 w-4"/></Link></Button>
       <Button asChild variant="outline" className="justify-between"><Link href="/dashboard/mantenimiento/preventivo-horas">Preventivo por horas<ArrowRight className="h-4 w-4"/></Link></Button>
       <Button asChild variant="outline" className="justify-between"><Link href="/dashboard/mantenimiento/ordenes-trabajo/cierre">Cierre progresivo<ArrowRight className="h-4 w-4"/></Link></Button>
       <Button asChild variant="outline" className="justify-between"><Link href="/dashboard/mantenimiento/horometros">Horómetros<ArrowRight className="h-4 w-4"/></Link></Button>
       <Button asChild variant="outline" className="justify-between"><Link href="/dashboard/mantenimiento/confiabilidad">Confiabilidad<ArrowRight className="h-4 w-4"/></Link></Button>
     </div>
+    <MaintenanceSeniorAssistant />
   </div>;
 }
