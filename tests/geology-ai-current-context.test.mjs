@@ -13,7 +13,8 @@ test('geology assistant receives the same current-year and reconciliation truth 
 
   assert.match(canonical, /production_drill_hole_location_review_queue_v5/);
   assert.match(canonical, /\.order\('operational_priority', \{ ascending: true \}\)/);
-  assert.doesNotMatch(canonical.match(/production_drill_hole_location_review_queue_v5[\s\S]*?\n\s*\],/)?.[0] || '', /\.limit\(/);
+  const reconciliationQuery = canonical.match(/production_drill_hole_location_review_queue_v5[\s\S]*?(?=\n\s*supabase\.from\('production_geology_immediate_tasks_2026_v1'\))/)?.[0] || '';
+  assert.doesNotMatch(reconciliationQuery, /\.limit\(/);
   assert.match(canonical, /year_snapshot: currentYearSnapshot/);
   assert.match(canonical, /pending_reconciliation_count: unresolvedReview\.length/);
   assert.match(canonical, /top_pending_reconciliation/);
@@ -22,5 +23,7 @@ test('geology assistant receives the same current-year and reconciliation truth 
   assert.match(canonical, /with_sector/);
   assert.match(canonical, /with_depth/);
   assert.match(canonical, /source_inclination/);
+  assert.match(canonical, /production_geology_interpretation_signals_v1/);
+  assert.match(canonical, /interpretation_signals: interpretationByHole/);
   assert.match(prompt, /latest-first/i);
 });

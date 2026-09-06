@@ -5,20 +5,22 @@ import { Button } from '@/components/ui/button';
 import { GeologiaDashboard } from '@/components/production/geologia-dashboard';
 import { GeologiaHistoricalCanonical } from '@/components/production/geologia-historical-canonical';
 import { GeologiaCanonicalStatus } from '@/components/production/geologia-canonical-status';
+import { GeologiaInterpretation } from '@/components/production/geologia-interpretation';
 import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floating-chat';
 
 const tabs = [
   ['today', 'Hoy'],
-  ['canonical', 'Estado canónico'],
-  ['holes', 'Mapa y sondajes'],
+  ['interpretation', 'Interpretación'],
+  ['holes', 'Sondajes'],
   ['results', 'Resultados'],
-  ['pending', 'Pendientes'],
+  ['pending', 'Tareas'],
+  ['canonical', 'Evidencia'],
   ['history', 'Histórico'],
 ] as const;
 
 type TabKey = (typeof tabs)[number][0];
 
-const dashboardLabels: Record<Exclude<TabKey, 'history' | 'canonical'>, string> = {
+const dashboardLabels: Record<Exclude<TabKey, 'history' | 'canonical' | 'interpretation'>, string> = {
   today: 'Hoy',
   holes: 'Mapa y sondajes',
   results: 'Resultados',
@@ -30,7 +32,7 @@ export function GeologiaWorkspaceShell() {
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (tab === 'history' || tab === 'canonical') return;
+    if (tab === 'history' || tab === 'canonical' || tab === 'interpretation') return;
     const root = dashboardRef.current;
     if (!root) return;
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('nav[aria-label="Vistas de Geología"] button'));
@@ -38,7 +40,7 @@ export function GeologiaWorkspaceShell() {
     target?.click();
   }, [tab]);
 
-  const showDashboard = tab !== 'history' && tab !== 'canonical';
+  const showDashboard = !['history','canonical','interpretation'].includes(tab);
 
   return (
     <div className="space-y-5">
@@ -47,12 +49,7 @@ export function GeologiaWorkspaceShell() {
         aria-label="Vistas principales de Geología"
       >
         {tabs.map(([key, label]) => (
-          <Button
-            key={key}
-            size="sm"
-            variant={tab === key ? 'default' : 'ghost'}
-            onClick={() => setTab(key)}
-          >
+          <Button key={key} size="sm" variant={tab === key ? 'default' : 'ghost'} onClick={() => setTab(key)}>
             {label}
           </Button>
         ))}
@@ -63,6 +60,7 @@ export function GeologiaWorkspaceShell() {
         <GeologiaDashboard />
       </div>
 
+      {tab === 'interpretation' ? <GeologiaInterpretation /> : null}
       {tab === 'canonical' ? <GeologiaCanonicalStatus /> : null}
       {tab === 'history' ? <GeologiaHistoricalCanonical /> : null}
       <GeologiaAiFloatingChat />
