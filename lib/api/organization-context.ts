@@ -17,6 +17,7 @@ const productionWriteRoles = new Set([
 
 const productionSelfServiceMutationPaths = new Set([
   '/api/produccion/geologia/assistant',
+  '/api/produccion/geologia/hypotheses',
 ]);
 
 export type OrganizationContext =
