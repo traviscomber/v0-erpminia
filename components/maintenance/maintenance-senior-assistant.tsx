@@ -70,7 +70,7 @@ export function MaintenanceSeniorAssistant() {
       type="button"
       onClick={() => setOpen(true)}
       className={cn(
-        'fixed bottom-4 right-4 z-50 grid h-[88px] w-[88px] place-items-center rounded-full border bg-background/95 text-primary shadow-none backdrop-blur transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        'fixed bottom-4 right-4 z-50 grid h-[88px] w-[88px] place-items-center bg-transparent text-primary transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         open && 'pointer-events-none scale-95 opacity-0',
       )}
       aria-label="Abrir Asistente Senior de Mantenimiento"
