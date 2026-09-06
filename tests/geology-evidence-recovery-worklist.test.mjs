@@ -37,7 +37,7 @@ test('recovery worklist API is tenant scoped and category allowlisted', async ()
 test('geology priorities support reproducible deep-linked reviews', async () => {
   const component = await readFile(componentUrl, 'utf8');
   const shell = await readFile(shellUrl, 'utf8');
-  assert.match(shell, /searchParams\.get\('tab'\)/);
+  assert.match(shell, /URLSearchParams\(window\.location\.search\)\.get\('tab'\)/);
   assert.match(shell, /GeologiaEvidenceRecoveryWorklist/);
   assert.match(component, /params\.get\('recovery'\)/);
   assert.match(component, /params\.get\('hole'\)/);
