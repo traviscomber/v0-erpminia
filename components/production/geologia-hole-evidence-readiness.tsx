@@ -49,17 +49,17 @@ export function GeologiaHoleEvidenceReadiness({hole,intervalCount,sampleCount}:P
       icon:Target,
     },
     {
-      label:'Logging',
+      label:'Intervalos fuente',
       ready:intervalCount>0,
-      detail:intervalCount>0?`${intervalCount} intervalos canónicos`:'Sin intervalos canónicos',
-      action:'Cargar o reconciliar logging antes de interpretar litología, alteración o mineralización.',
+      detail:intervalCount>0?`${intervalCount} intervalos operacionales estructurados`:'Sin intervalos operacionales estructurados',
+      action:'Revisar reportes fuente y recuperar logging geológico formal si la decisión requiere litología, alteración, RQD, recuperación o contactos validados.',
       icon:Layers3,
     },
     {
-      label:'Muestras',
+      label:'Química vinculada',
       ready:sampleCount>0,
-      detail:sampleCount>0?`${sampleCount} muestras vinculadas`:'Sin muestras vinculadas',
-      action:'Revisar trazabilidad de muestras hacia este sondaje.',
+      detail:sampleCount>0?`${sampleCount} registros químicos ligados al pozo`:'Sin química ligada explícitamente al pozo',
+      action:'Revisar trazabilidad muestra → sondaje → intervalo antes de usar química en interpretación local.',
       icon:Beaker,
     },
   ];
@@ -86,7 +86,7 @@ export function GeologiaHoleEvidenceReadiness({hole,intervalCount,sampleCount}:P
     <div className="mt-4 border-t pt-4">
       <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Siguiente acción de datos</p>
       <p className="mt-1 text-sm">{next?next.action:'Las cinco capas mínimas están disponibles. La interpretación sigue limitada por la calidad y contenido real de cada registro.'}</p>
-      <p className="mt-2 text-xs text-muted-foreground">Este porcentaje mide completitud de evidencia mínima, no certeza geológica ni calidad de mineralización.</p>
+      <p className="mt-2 text-xs text-muted-foreground">“Intervalos fuente disponibles” no significa logging geológico formal. Este porcentaje mide completitud operacional mínima, no certeza geológica, ley ni calidad de mineralización.</p>
     </div>
   </section>;
 }
