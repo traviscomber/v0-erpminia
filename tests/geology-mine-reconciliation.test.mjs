@@ -94,7 +94,7 @@ test('geology exposes canonical historical chemistry without inventing drill-hol
   assert.match(results, /no los convierte en muestras de sondaje/i);
   assert.match(history, /Histórico canónico de La Patagua/);
   assert.match(history, /vínculo canónico explícito/);
-  assert.match(history, /Ensayes históricos/);
+  assert.match(history, /Química histórica/);
   assert.match(history, /no se adhieren a pozos por similitud o fecha/);
   assert.match(history, /Sólo datos La Patagua/);
 });
@@ -115,7 +115,7 @@ test('La Patagua historical geology endpoint exposes validated current-first hea
   assert.match(history, /Ahora · 2026/);
   assert.match(history, /Plan minero vigente/);
   assert.match(history, /Ley cabeza · más reciente primero/);
-  assert.match(history, /Ensayes · más reciente primero/);
+  assert.match(history, /Resultados químicos · más reciente primero/);
   assert.match(history, /Calculado directamente desde la tabla canónica vigente/);
   assert.match(history, /La lectura siempre prioriza el dato más reciente/);
   assert.doesNotMatch(history, /SERNAGEOMIN/i);
