@@ -12,40 +12,26 @@ function MaintenanceAiMark() {
       aria-hidden="true"
       className="h-[76px] w-[76px] overflow-visible text-primary"
     >
-      <g fill="none" strokeLinecap="round" strokeLinejoin="round">
-        <path
-          d="M18 44A31 31 0 0 1 44 17"
-          stroke="var(--primary)"
-          strokeWidth="5"
-        />
-        <path
-          d="M51 17A31 31 0 0 1 73 29"
-          stroke="var(--secondary)"
-          strokeWidth="5"
-        />
-        <path
-          d="M77 39A31 31 0 0 1 72 68"
-          stroke="var(--primary)"
-          strokeWidth="5"
-        />
-        <path
-          d="M64 75A31 31 0 0 1 31 75"
-          stroke="var(--secondary)"
-          strokeWidth="5"
-        />
-        <path
-          d="M24 68A31 31 0 0 1 17 52"
-          stroke="var(--primary)"
-          strokeWidth="5"
-        />
+      <g
+        fill="none"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="origin-center motion-safe:animate-[spin_18s_linear_infinite] motion-reduce:animate-none"
+      >
+        <path d="M18 44A31 31 0 0 1 44 17" stroke="var(--primary)" strokeWidth="5" />
+        <path d="M51 17A31 31 0 0 1 73 29" stroke="var(--secondary)" strokeWidth="5" />
+        <path d="M77 39A31 31 0 0 1 72 68" stroke="var(--primary)" strokeWidth="5" />
+        <path d="M64 75A31 31 0 0 1 31 75" stroke="var(--secondary)" strokeWidth="5" />
+        <path d="M24 68A31 31 0 0 1 17 52" stroke="var(--primary)" strokeWidth="5" />
+      </g>
 
+      <g fill="none" strokeLinecap="round" strokeLinejoin="round">
         <path
           d="M58.5 27.5a14 14 0 0 0-17.2 17.2L28.7 57.3a7.2 7.2 0 1 0 10.2 10.2l12.6-12.6a14 14 0 0 0 17.2-17.2l-8.2 8.2-7.6-2-2-7.6 7.6-8.8Z"
           stroke="var(--secondary)"
           strokeWidth="4"
         />
         <circle cx="33.7" cy="62.4" r="2.6" stroke="var(--secondary)" strokeWidth="3" />
-
         <path
           d="M51 57.5h16.5a5.5 5.5 0 0 1 5.5 5.5v12l-7-4H51a5.5 5.5 0 0 1-5.5-5.5V63a5.5 5.5 0 0 1 5.5-5.5Z"
           stroke="var(--primary)"
@@ -53,7 +39,13 @@ function MaintenanceAiMark() {
         />
       </g>
 
-      <circle cx="78" cy="30" r="4.2" fill="var(--secondary)" />
+      <circle
+        cx="78"
+        cy="30"
+        r="4.2"
+        fill="var(--secondary)"
+        className="motion-safe:animate-[pulse_3.6s_ease-in-out_infinite] motion-reduce:animate-none"
+      />
       <circle cx="54" cy="64.5" r="2.2" fill="var(--primary)" />
       <circle cx="60.5" cy="64.5" r="2.2" fill="var(--primary)" />
       <circle cx="67" cy="64.5" r="2.2" fill="var(--primary)" />
@@ -110,12 +102,16 @@ export function MaintenanceSeniorAssistant() {
       type="button"
       onClick={() => setOpen(true)}
       className={cn(
-        'fixed bottom-5 right-5 z-50 grid h-[88px] w-[88px] place-items-center rounded-full bg-transparent p-0 transition-transform hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        'group fixed bottom-5 right-5 z-50 grid h-[88px] w-[88px] place-items-center rounded-full bg-transparent p-0 transition-transform duration-300 hover:scale-[1.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
         open && 'pointer-events-none scale-95 opacity-0',
       )}
       aria-label="Abrir Asistente Senior de Mantenimiento"
       title="Asistente Senior de Mantenimiento"
     >
+      <span
+        aria-hidden="true"
+        className="absolute inset-[9px] rounded-full border border-primary/20 opacity-50 motion-safe:animate-[pulse_4.8s_ease-in-out_infinite] motion-reduce:animate-none"
+      />
       <MaintenanceAiMark />
     </button>
 
