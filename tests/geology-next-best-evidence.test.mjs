@@ -7,23 +7,28 @@ const routeUrl = new URL('../app/api/produccion/geologia/next-best-evidence/rout
 const workspaceUrl = new URL('../components/production/geologia-next-best-evidence.tsx', import.meta.url);
 const shellUrl = new URL('../components/production/geologia-workspace-shell.tsx', import.meta.url);
 
-test('next best evidence ranks recovery work without geological pseudo scoring', async () => {
+test('next best evidence avoids geological pseudo scoring', async () => {
   const builder = await readFile(builderUrl, 'utf8');
-  assert.match(builder, /foundation > validation > support/);
   assert.match(builder, /affected_patterns/);
   assert.match(builder, /affected_holes/);
-  assert.match(builder, /No representa probabilidad geológica/i);
   assert.doesNotMatch(builder, /patternWeight|evidenceWeight|score:/);
 });
 
-test('foundation evidence stays ahead of interpretation validation evidence', async () => {
+test('sparse dimensions become canonical source boundaries instead of mass recovery work', async () => {
   const builder = await readFile(builderUrl, 'utf8');
-  assert.match(builder, /collar xy/);
-  assert.match(builder, /crs/);
-  assert.match(builder, /orientación completa/);
-  assert.match(builder, /survey downhole/);
-  assert.match(builder, /logging/);
-  assert.match(builder, /ensaye/);
+  assert.match(builder, /SOURCE_BOUNDARY_COVERAGE_THRESHOLD = 0\.10/);
+  assert.match(builder, /menos del 10% del universo de sondajes/i);
+  assert.match(builder, /no como una tarea masiva de recuperación/i);
+  assert.match(builder, /sourceBoundaryCategories/);
+  assert.match(builder, /suppressed_recovery_rows/);
+  assert.match(builder, /scope_boundaries/);
+});
+
+test('formal logging boundary uses the canonical interval classifier', async () => {
+  const builder = await readFile(builderUrl, 'utf8');
+  assert.match(builder, /classifyIntervalEvidence/);
+  assert.match(builder, /explicit_formal_logging/);
+  assert.match(builder, /production_drill_intervals/);
 });
 
 test('next best evidence API remains tenant and geology access scoped', async () => {
@@ -33,12 +38,14 @@ test('next best evidence API remains tenant and geology access scoped', async ()
   assert.match(route, /getOrganizationContext/);
 });
 
-test('workspace explains authority boundary and human checkpoint', async () => {
+test('workspace is canonical first and does not ask for sparse data', async () => {
   const workspace = await readFile(workspaceUrl, 'utf8');
   const shell = await readFile(shellUrl, 'utf8');
-  assert.match(workspace, /No es probabilidad geológica, ley, valor económico ni recomendación de perforación/i);
-  assert.match(workspace, /El geólogo decide/);
-  assert.match(workspace, /Fundacional/);
+  assert.match(workspace, /Trabajar con lo que sí tenemos/);
+  assert.match(workspace, /Sin deuda de datos accionable/);
+  assert.match(workspace, /Límites conocidos de la fuente/);
+  assert.match(workspace, /no como lista de datos que haya que conseguir/i);
   assert.match(shell, /\['priorities', 'Prioridades'\]/);
   assert.match(shell, /GeologiaNextBestEvidence/);
+  assert.doesNotMatch(shell, /GeologiaEvidenceRecoveryCampaign|GeologiaEvidenceRecoverySources|GeologiaEvidenceRecoveryWorklist/);
 });
