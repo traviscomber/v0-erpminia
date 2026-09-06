@@ -9,12 +9,13 @@ test('asset recovery candidates remain tenant scoped and derive from the canonic
   assert.match(api, /requireModuleAccess\(request, MODULE_KEYS\.MANT_OPERACIONES\)/);
   assert.match(api, /canonical_assets_current/);
   assert.match(api, /eq\('organization_id', context\.organizationId\)/);
-  assert.match(api, /inferMachineFamilyFromText/);
-  assert.match(api, /resolveTechnicalSheetReference/);
+  assert.match(api, /resolveExplicitTechnicalReference/);
+  assert.doesNotMatch(api, /resolveTechnicalSheetReference\(recoveryText,\s*inferredFamily\)/);
 });
 
 test('technical references are discovery candidates, never automatic canonical materialization', () => {
   assert.match(api, /reference_candidate_pending_validation/);
+  assert.match(api, /señal explícita de modelo o alias/i);
   assert.match(api, /no materializa fabricante, modelo, tipo, criticidad, estado, ubicación ni especificaciones/i);
   assert.match(page, /Pendiente de validación · no canónica/);
   assert.match(page, /Recuperación asistida/);
