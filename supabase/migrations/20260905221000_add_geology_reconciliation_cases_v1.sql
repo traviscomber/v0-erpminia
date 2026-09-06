@@ -37,5 +37,7 @@ from public.production_drilling_chronology_quality_v3 c
 where c.chronology_state in ('severe_backward_sequence','material_backward_sequence');
 
 revoke all on public.production_geology_reconciliation_cases_v1 from anon;
+revoke all on public.production_geology_reconciliation_cases_v1 from authenticated;
+revoke all on public.production_geology_reconciliation_cases_v1 from service_role;
 grant select on public.production_geology_reconciliation_cases_v1 to authenticated;
 grant select on public.production_geology_reconciliation_cases_v1 to service_role;
