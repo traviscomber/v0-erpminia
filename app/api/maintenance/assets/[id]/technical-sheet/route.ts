@@ -4,7 +4,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { inferMachineFamilyFromText } from '@/lib/maintenance/cost-center-machines';
-import { buildReferencePreventiveAlerts, resolveTechnicalSheetReference } from '@/lib/maintenance/technical-sheet-library';
+import { buildReferencePreventiveAlerts } from '@/lib/maintenance/technical-sheet-library';
+import { resolveExplicitTechnicalReference } from '@/lib/maintenance/technical-reference-matcher';
 
 type AssetRow = {
   id: string;
@@ -55,10 +56,12 @@ function brandMatches(manufacturer: string, brand: string) {
   const brandText = normalizeText(brand);
   if (!manufacturerText || !brandText) return false;
   if (manufacturerText === brandText || manufacturerText.includes(brandText) || brandText.includes(manufacturerText)) return true;
-  return (manufacturerText === 'cat' && brandText === 'caterpillar') || (manufacturerText === 'caterpillar' && brandText === 'cat');
+  if ((manufacturerText === 'cat' && brandText === 'caterpillar') || (manufacturerText === 'caterpillar' && brandText === 'cat')) return true;
+  if ((manufacturerText === 'mitsubishi' && brandText === 'mitsubishi fuso') || (manufacturerText === 'mitsubishi fuso' && brandText === 'mitsubishi')) return true;
+  return false;
 }
 
-function hasVerifiedReferenceIdentity(asset: AssetRow, reference: ReturnType<typeof resolveTechnicalSheetReference>) {
+function hasVerifiedReferenceIdentity(asset: AssetRow, reference: ReturnType<typeof resolveExplicitTechnicalReference>) {
   if (!reference || !asset.manufacturer || !asset.model) return false;
   const assetModel = normalizeIdentity(asset.model);
   const referenceModel = normalizeIdentity(reference.model);
@@ -152,7 +155,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     const assetText = `${asset.asset_name || ''} ${asset.asset_type || ''} ${asset.model || ''} ${asset.manufacturer || ''}`;
     const assetFamily = inferMachineFamilyFromText(assetText);
-    const technicalReference = resolveTechnicalSheetReference(assetText, assetFamily);
+    const technicalReference = resolveExplicitTechnicalReference(assetText);
     const referenceIdentityVerified = assetOrigin === 'maintenance_master' && hasVerifiedReferenceIdentity(asset, technicalReference);
     const trustedReference = referenceIdentityVerified ? technicalReference : null;
     const referenceFields = trustedReference
@@ -235,7 +238,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       preventiveAlerts: trustedReference ? buildReferencePreventiveAlerts(trustedReference) : [],
       componentProfile: suggestedTemplates,
       componentProfileAuthority: 'suggested_from_inferred_family_non_canonical',
-      trustBoundary: 'Text or family similarity can propose a technical reference, but it cannot materialize specifications, preventive alerts, operational status, or canonical identity without verified manufacturer and model evidence.',
+      trustBoundary: 'Only an explicit model or alias signal can propose a technical reference. Family similarity may suggest component templates, but it cannot propose an OEM/model reference or materialize specifications, preventive alerts, operational status, or canonical identity without verified manufacturer and model evidence.',
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la ficha tecnica del activo';
