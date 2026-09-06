@@ -1,7 +1,7 @@
 'use client';
 
 import useSWR from 'swr';
-import { AlertTriangle, CheckCircle2, Compass, FileSearch, Layers3, MapPinned, Search, ShieldAlert, Split } from 'lucide-react';
+import { AlertTriangle, Bot, CheckCircle2, Compass, FileSearch, HelpCircle, Layers3, MapPinned, Search, ShieldAlert, Split } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { StatePanel } from '@/components/ui/state-panel';
 
@@ -25,15 +25,25 @@ type CampaignCandidate = {
   setup_source_row:number|null; setup_evidence_text:string|null; evidence_text:string|null; split_evidence_class:string; required_action:string;
 };
 
+type ImmediateTask = {
+  drill_hole_id:string; hole_code:string; orientation_state:string; task_priority:number; task_category:string; task_title:string;
+  clarifying_question:string; why_it_matters:string; recommended_action:string; required_source_action:string; source_rows:number[]|null;
+  first_evidence_date:string|null; last_evidence_date:string|null; completed_measurements:number; failed_or_pending_measurements:number;
+  verified_setups:number; current_hole_numeric_candidates:number; excluded_next_hole_numeric_mentions:number; task_state:string;
+  is_immediate:boolean; human_checkpoint:string; evidence_summary:string; audit_scope:string;
+};
+
 type CanonicalData = {
-  summary:{ holes:number; structuredIntervals:number; pointObservations:number; transitions:number; dailySpans:number; blocked:number; reviewRequired:number; geometryGaps:number; operationalReady:number; insufficientEvidence:number; topographyPending:number; surveyPending:number; severeChronology:number; mineralizationConflicts:number; reconciliationCases:number; blockedCases:number; reviewCases:number; campaignSplitCandidates:number };
+  summary:{ holes:number; structuredIntervals:number; pointObservations:number; transitions:number; dailySpans:number; blocked:number; reviewRequired:number; geometryGaps:number; operationalReady:number; insufficientEvidence:number; topographyPending:number; surveyPending:number; severeChronology:number; mineralizationConflicts:number; reconciliationCases:number; blockedCases:number; reviewCases:number; campaignSplitCandidates:number; immediateTasks:number; immediateCritical:number; immediateNumericReview:number; immediateTopographyRecovery:number };
   holes:HoleContext[];
   reconciliation:ReconciliationCase[];
   campaigns:CampaignCandidate[];
+  immediateTasks:ImmediateTask[];
 };
 
 const fetcher=async(url:string):Promise<CanonicalData>=>{const response=await fetch(url,{credentials:'include'});const data=await response.json();if(!response.ok)throw new Error(data.error||'No fue posible cargar el estado canónico');return data;};
 const stateLabel:Record<string,string>={operational_geology_available:'Operacional',usable_with_geometry_gaps:'Brecha geométrica',review_required:'Revisión',blocked_reconciliation:'Bloqueado',insufficient_geology_evidence:'Sin evidencia suficiente'};
+const taskPriorityLabel:Record<number,string>={0:'Crítica',1:'Alta',2:'Alta',3:'Media',4:'Media'};
 function Metric({label,value,detail}:{label:string;value:number|string;detail:string}){return <div className="bg-card px-5 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums">{value}</p><p className="mt-1 text-xs text-muted-foreground">{detail}</p></div>;}
 function formatMeters(value:number|null){return value==null?'—':`${Number(value).toLocaleString('es-CL',{maximumFractionDigits:2})} m`;}
 
@@ -45,9 +55,16 @@ export function GeologiaCanonicalStatus(){
   if(isLoading||!data)return <StatePanel title="Cargando estado canónico" description="Revisando evidencia, reconciliación y brechas por sondaje." className="min-h-0 py-5"/>;
   const s=data.summary;
   return <div className="space-y-5">
-    <section className="rounded-lg border bg-card p-5"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Control geológico</p><h2 className="mt-1 text-xl font-semibold tracking-tight">Estado canónico de La Patagua</h2><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Separa evidencia utilizable, brechas, reconciliación y posibles reutilizaciones de código antes de interpretar continuidad geológica.</p></div><ShieldAlert className="h-5 w-5 text-muted-foreground"/></div></section>
+    <section className="rounded-lg border bg-card p-5"><div className="flex items-start justify-between gap-4"><div><p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Control geológico</p><h2 className="mt-1 text-xl font-semibold tracking-tight">Estado canónico de La Patagua</h2><p className="mt-2 max-w-3xl text-sm text-muted-foreground">Separa evidencia utilizable, tareas inmediatas, brechas, reconciliación y posibles reutilizaciones de código antes de interpretar continuidad geológica.</p></div><ShieldAlert className="h-5 w-5 text-muted-foreground"/></div></section>
 
     <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-5"><Metric label="Operacionales" value={s.operationalReady} detail="Geología utilizable"/><Metric label="Brecha geométrica" value={s.geometryGaps} detail="Collar / survey pendiente"/><Metric label="Revisión" value={s.reviewRequired} detail="Cronología material"/><Metric label="Bloqueados" value={s.blocked} detail="No interpretar continuidad"/><Metric label="Sin evidencia" value={s.insufficientEvidence} detail="Cobertura insuficiente"/></section>
+
+    <section className="overflow-hidden rounded-lg border bg-card">
+      <div className="flex items-start justify-between gap-4 border-b px-4 py-4"><div><p className="text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">Resolver ahora · 2026</p><h3 className="mt-1 text-lg font-semibold tracking-tight">Tareas inmediatas para Geología</h3><p className="mt-1 max-w-3xl text-sm text-muted-foreground">Sólo incluye casos accionables. Los sondajes sin fuente primaria de orientación quedan en backlog y no desplazan trabajo que sí puede resolverse hoy.</p></div><Bot className="mt-1 h-5 w-5 text-muted-foreground"/></div>
+      <div className="grid gap-px border-b bg-border sm:grid-cols-4"><Metric label="Tareas inmediatas" value={s.immediateTasks} detail="2026 · accionables"/><Metric label="Críticas" value={s.immediateCritical} detail="Medición incompleta"/><Metric label="Ángulos por validar" value={s.immediateNumericReview} detail="Convención pendiente"/><Metric label="Topografía por recuperar" value={s.immediateTopographyRecovery} detail="Medido, resultado externo faltante"/></div>
+      <div className="divide-y">{data.immediateTasks.map((task)=><div key={task.drill_hole_id} className="grid gap-4 px-4 py-4 lg:grid-cols-[160px_minmax(0,1fr)_minmax(0,1fr)]"><div><div className="flex items-center gap-2"><p className="font-medium">{task.hole_code}</p><span className="rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">P{task.task_priority} · {taskPriorityLabel[task.task_priority]||'Prioridad'}</span></div><p className="mt-1 text-xs text-muted-foreground">{task.task_title}</p><p className="mt-2 text-xs text-muted-foreground">{task.evidence_summary}</p></div><div><p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-muted-foreground"><HelpCircle className="h-3.5 w-3.5"/>Pregunta a resolver</p><p className="mt-1 text-sm font-medium">{task.clarifying_question}</p><p className="mt-2 text-xs text-muted-foreground">{task.why_it_matters}</p></div><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Acción para cerrar</p><p className="mt-1 text-sm">{task.recommended_action}</p><p className="mt-2 text-xs text-muted-foreground"><span className="font-medium">Checkpoint humano:</span> {task.human_checkpoint}</p><p className="mt-1 text-xs text-muted-foreground">Evidencia: {task.first_evidence_date||'—'} → {task.last_evidence_date||'—'}</p></div></div>)}</div>
+      <div className="border-t bg-muted/20 px-4 py-3 text-sm text-muted-foreground"><span className="font-medium text-foreground">Asistente IA:</span> esta misma cola alimenta su contexto. Puede responder qué falta en cada sondaje, por qué quedó pendiente, qué fila lo respalda y qué dato debe aportar Topografía/Geología para cerrarlo.</div>
+    </section>
 
     <section className="grid gap-4 lg:grid-cols-4"><div className="rounded-lg border bg-card p-4"><Layers3 className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.structuredIntervals}</p><p className="text-sm text-muted-foreground">intervalos estructurados</p></div><div className="rounded-lg border bg-card p-4"><Compass className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.pointObservations+s.transitions}</p><p className="text-sm text-muted-foreground">puntos + transiciones</p></div><div className="rounded-lg border bg-card p-4"><MapPinned className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.topographyPending}</p><p className="text-sm text-muted-foreground">con evidencia topográfica</p></div><div className="rounded-lg border bg-card p-4"><AlertTriangle className="h-4 w-4 text-muted-foreground"/><p className="mt-3 text-2xl font-semibold tabular-nums">{s.mineralizationConflicts}</p><p className="text-sm text-muted-foreground">conflictos mineralógicos</p></div></section>
 
