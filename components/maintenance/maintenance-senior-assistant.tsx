@@ -1,9 +1,32 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
-import { Bot, Send, X } from 'lucide-react';
+import { FormEvent, KeyboardEvent, useState } from 'react';
+import { Database, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+
+function MaintenanceAiMark() {
+  return (
+    <svg viewBox="0 0 96 96" aria-hidden="true" className="h-[72px] w-[72px] text-primary">
+      <g fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="48" cy="48" r="29" opacity="0.22" />
+        <circle cx="48" cy="48" r="20" opacity="0.16" />
+        <path d="M31 61 61 31" />
+        <path d="m35 29 7 7-8 8-7-7" />
+        <path d="m54 54 7 7" />
+        <path d="M65 67c-2.8 2.8-7.2 2.8-10 0l-5-5 10-10 5 5c2.8 2.8 2.8 7.2 0 10Z" />
+      </g>
+      <circle cx="48" cy="48" r="3.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+const starters = [
+  '¿Qué equipos requieren atención primero y por qué?',
+  '¿Qué señales parecen mecánicas y cuáles operacionales?',
+  '¿Qué preventivos están vencidos y con qué evidencia?',
+  '¿Qué dato faltante tendría más valor para decidir mejor?',
+];
 
 export function MaintenanceSeniorAssistant() {
   const [open, setOpen] = useState(false);
@@ -12,8 +35,8 @@ export function MaintenanceSeniorAssistant() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  async function submit(event: FormEvent) {
-    event.preventDefault();
+  async function submit(event?: FormEvent) {
+    event?.preventDefault();
     const question = message.trim();
     if (!question || loading) return;
     setLoading(true);
@@ -35,26 +58,55 @@ export function MaintenanceSeniorAssistant() {
     }
   }
 
+  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      void submit();
+    }
+  };
+
   return <>
-    {!open ? <Button onClick={() => setOpen(true)} className="fixed bottom-6 right-6 z-50 shadow-lg"><Bot className="h-4 w-4"/>Asistente Senior</Button> : null}
-    {open ? <Card className="fixed bottom-6 right-6 z-50 flex h-[min(620px,calc(100vh-3rem))] w-[min(460px,calc(100vw-3rem))] flex-col shadow-2xl">
-      <CardHeader className="flex flex-row items-center justify-between border-b py-4"><div><CardTitle className="text-base">Asistente Senior de Mantenimiento</CardTitle><p className="mt-1 text-xs text-muted-foreground">Grounded en evidencia canónica MOTIL. La decisión final es humana.</p></div><Button size="icon-sm" variant="ghost" onClick={() => setOpen(false)} aria-label="Cerrar asistente"><X className="h-4 w-4"/></Button></CardHeader>
-      <CardContent className="flex min-h-0 flex-1 flex-col gap-4 p-4">
+    <button
+      type="button"
+      onClick={() => setOpen(true)}
+      className={cn(
+        'fixed bottom-4 right-4 z-50 grid h-[88px] w-[88px] place-items-center rounded-full border bg-background/95 text-primary shadow-none backdrop-blur transition-transform hover:scale-[1.02] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+        open && 'pointer-events-none scale-95 opacity-0',
+      )}
+      aria-label="Abrir Asistente Senior de Mantenimiento"
+      title="Asistente Senior de Mantenimiento"
+    >
+      <MaintenanceAiMark />
+    </button>
+
+    {open ? <section className="fixed bottom-4 right-4 z-50 flex h-[min(640px,calc(100vh-2rem))] w-[min(430px,calc(100vw-2rem))] flex-col overflow-hidden rounded-xl border bg-background shadow-none" aria-label="Asistente Senior de Mantenimiento">
+      <header className="border-b bg-card px-4 py-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold">Asistente Senior de Mantenimiento</p>
+            <p className="mt-1 text-xs text-muted-foreground">Evidencia canónica MOTIL · decisión humana</p>
+            <span className="mt-2 inline-flex items-center gap-1 rounded-full border px-2 py-1 text-[10px] text-muted-foreground"><Database className="h-3 w-3"/>Canónico</span>
+          </div>
+          <Button size="icon-sm" variant="ghost" onClick={() => setOpen(false)} aria-label="Cerrar asistente"><X className="h-4 w-4"/></Button>
+        </div>
+      </header>
+
+      <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
         <div className="min-h-0 flex-1 overflow-y-auto rounded-lg border bg-muted/10 p-4 text-sm leading-relaxed whitespace-pre-wrap">
-          {answer || 'Pregunta qué equipo requiere atención, por qué, qué evidencia lo respalda, qué contradice la señal o qué dato conviene capturar antes de intervenir.'}
+          {answer || 'Pregunta qué requiere atención, qué evidencia lo respalda, qué contradice la señal y cuál es la próxima acción de mayor valor.'}
           {error ? <p className="mt-3 text-destructive">{error}</p> : null}
         </div>
-        <div className="grid grid-cols-2 gap-2 text-xs">
-          <button type="button" className="rounded-md border p-2 text-left hover:bg-muted" onClick={() => setMessage('¿Qué equipos requieren atención primero y por qué?')}>Prioridad de equipos</button>
-          <button type="button" className="rounded-md border p-2 text-left hover:bg-muted" onClick={() => setMessage('¿Qué señales parecen mecánicas y cuáles pueden deberse a agua, energía o dotación?')}>Mecánico vs. operacional</button>
-          <button type="button" className="rounded-md border p-2 text-left hover:bg-muted" onClick={() => setMessage('¿Qué preventivos están vencidos y cuál es la evidencia de horómetro?')}>Preventivos vencidos</button>
-          <button type="button" className="rounded-md border p-2 text-left hover:bg-muted" onClick={() => setMessage('¿Qué dato faltante tendría más valor para mejorar la decisión de mantenimiento?')}>Próxima mejor evidencia</button>
-        </div>
-        <form onSubmit={submit} className="flex gap-2">
-          <textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={3} maxLength={12000} placeholder="Consulta de mantenimiento..." className="min-h-[76px] flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"/>
+
+        {!answer ? <div className="grid gap-2">
+          {starters.map((starter) => <button key={starter} type="button" className="min-h-10 rounded-md border px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" onClick={() => setMessage(starter)}>{starter}</button>)}
+        </div> : null}
+
+        <form onSubmit={submit} className="flex items-end gap-2">
+          <label className="sr-only" htmlFor="maintenance-assistant-question">Consulta de mantenimiento</label>
+          <textarea id="maintenance-assistant-question" value={message} onChange={(event) => setMessage(event.target.value)} onKeyDown={onKeyDown} rows={3} maxLength={12000} placeholder="Consulta de mantenimiento..." className="min-h-[76px] flex-1 resize-none rounded-md border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"/>
           <Button type="submit" size="icon" disabled={loading || !message.trim()} aria-label="Enviar consulta"><Send className="h-4 w-4"/></Button>
         </form>
-      </CardContent>
-    </Card> : null}
+      </div>
+    </section> : null}
   </>;
 }
