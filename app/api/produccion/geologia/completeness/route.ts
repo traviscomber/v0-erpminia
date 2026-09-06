@@ -97,10 +97,13 @@ export async function GET(request: NextRequest) {
   const withTopographyEvidence = rows.filter((row) => Number(row.explicit_topography_rows || 0) > 0).length;
   const withSurveyEvidence = rows.filter((row) => Number(row.downhole_survey_rows || 0) > 0).length;
   const completeOrientation = rows.filter((row) => row.azimuth_deg != null && row.dip_deg != null).length;
+  const dipRecoverable = rows.filter((row) => Number(row.downhole_survey_rows || 0) > 0 && row.dip_deg == null).length;
+  const azimuthRecoverable = rows.filter((row) => Number(row.downhole_survey_rows || 0) > 0 && row.azimuth_deg == null).length;
+  const orientationRecoverable = rows.filter((row) => Number(row.downhole_survey_rows || 0) > 0 && !(row.azimuth_deg != null && row.dip_deg != null)).length;
 
   const summary = {
     totalCanonicalRows: total,
-    estimatedDistinctHoleCodes: Math.max(0, total - duplicateExcessRows),
+    normalizedIdentityLowerBound: Math.max(0, total - duplicateExcessRows),
     duplicateGroups: duplicateGroups.length,
     duplicateExcessRows,
     withMine: rows.filter((row) => Boolean(row.mine_name)).length,
@@ -108,8 +111,11 @@ export async function GET(request: NextRequest) {
     withCollarXY: rows.filter((row) => row.collar_easting != null && row.collar_northing != null).length,
     withCrs: rows.filter((row) => Boolean(row.coordinate_reference)).length,
     withDip: rows.filter((row) => row.dip_deg != null).length,
+    dipRecoverable,
     withAzimuth: rows.filter((row) => row.azimuth_deg != null).length,
+    azimuthRecoverable,
     completeOrientation,
+    orientationRecoverable,
     withDrilledDepth: rows.filter((row) => row.drilled_depth_m != null).length,
     withPlannedDepth: holeRows.filter((row) => row.planned_depth_m != null).length,
     withGeologicalPurpose: holeRows.filter((row) => Boolean(row.geological_purpose?.trim())).length,
@@ -118,7 +124,6 @@ export async function GET(request: NextRequest) {
     withTopographyEvidence,
     topographyRecoverable: rows.filter((row) => Number(row.explicit_topography_rows || 0) > 0 && !(row.collar_easting != null && row.collar_northing != null)).length,
     withSurveyEvidence,
-    surveyRecoverable: rows.filter((row) => Number(row.downhole_survey_rows || 0) > 0 && !(row.azimuth_deg != null && row.dip_deg != null)).length,
     textEvidenceOnly: rows.filter((row) => row.geology_structuring_state === 'text_evidence_only').length,
     noGeologyEvidence: rows.filter((row) => row.geology_structuring_state === 'no_geology_evidence').length,
     negativeMeterRows: qualityRows.reduce((sum, row) => sum + Number(row.negative_drilled_meter_rows || 0), 0),
@@ -155,6 +160,7 @@ export async function GET(request: NextRequest) {
       recoverable: 'Existe evidencia fuente, pero falta materializar o validar el dato canónico.',
       absent: 'No se localizó evidencia suficiente en las fuentes actualmente cargadas.',
       duplicate: 'Candidato de identidad duplicada por normalización tipográfica; requiere reconciliación humana antes de fusionar.',
+      normalizedIdentityLowerBound: 'Cota tipográfica: no equivale a cantidad de sondajes físicos hasta revisar reutilización de códigos entre campañas.',
     },
   });
 }
