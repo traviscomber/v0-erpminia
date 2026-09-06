@@ -25,9 +25,11 @@ test('drilling stays inside Produccion while geology owns the geological drill-h
     /href: '\/dashboard\/produccion\/sondaje', label: 'Perforación'/,
     'Operational drilling must remain available inside Produccion without presenting a second geology domain',
   );
-  assert.match(productionLayout, /label: 'Geología'.*group: 'technical'/);
-  assert.match(productionLayout, /Flujo operacional/);
-  assert.match(productionLayout, /Control técnico/);
+  assert.match(productionLayout, /label: 'Perforación'.*lane: 'flow'.*step: 3/);
+  assert.match(productionLayout, /label: 'Geología'.*lane: 'technical'/);
+  assert.match(productionLayout, /Flujo operacional de Producción/);
+  assert.match(productionLayout, /Control técnico de Producción/);
+  assert.doesNotMatch(productionLayout, /Grupos de Producción/);
   assert.match(header, /sondaje: 'Perforación'/);
   assert.match(header, /exploracion: 'Campañas exploratorias'/);
   assert.match(drillingHome, /Un sondaje, dos responsabilidades/);
