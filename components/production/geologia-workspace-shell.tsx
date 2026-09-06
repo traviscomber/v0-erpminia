@@ -9,6 +9,7 @@ import { GeologiaDataCompleteness } from '@/components/production/geologia-data-
 import { GeologiaInterpretation } from '@/components/production/geologia-interpretation';
 import { GeologiaInterpretationMatrix } from '@/components/production/geologia-interpretation-matrix';
 import { GeologiaNextBestEvidence } from '@/components/production/geologia-next-best-evidence';
+import { GeologiaEvidenceRecoverySources } from '@/components/production/geologia-evidence-recovery-sources';
 import { GeologiaCoreVision } from '@/components/production/geologia-corevision';
 import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floating-chat';
 
@@ -70,7 +71,7 @@ export function GeologiaWorkspaceShell() {
 
       {tab === 'interpretation' ? <GeologiaInterpretation /> : null}
       {tab === 'matrix' ? <GeologiaInterpretationMatrix /> : null}
-      {tab === 'priorities' ? <GeologiaNextBestEvidence /> : null}
+      {tab === 'priorities' ? <div className="space-y-8"><GeologiaNextBestEvidence /><GeologiaEvidenceRecoverySources /></div> : null}
       {tab === 'corevision' ? <GeologiaCoreVision /> : null}
       {tab === 'completeness' ? <GeologiaDataCompleteness /> : null}
       {tab === 'canonical' ? <GeologiaCanonicalStatus /> : null}
