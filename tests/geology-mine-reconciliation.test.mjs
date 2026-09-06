@@ -62,7 +62,7 @@ test('geology dashboard follows the La Patagua operating workflow', async () => 
   assert.match(page, /GeologiaWorkspaceShell/);
 });
 
-test('dashboard and assistant share the same mine evidence readiness rule', async () => {
+test('dashboard and assistant share readiness evidence without turning sparse coverage into recovery work', async () => {
   const [overview, readiness, canonical, prompt] = await Promise.all([
     readFile(mineOverviewUrl, 'utf8'),
     readFile(readinessUrl, 'utf8'),
@@ -76,8 +76,9 @@ test('dashboard and assistant share the same mine evidence readiness rule', asyn
   assert.match(canonical, /mine_evidence_readiness/);
   assert.match(canonical, /mine_needing_evidence_attention/);
   assert.match(canonical, /buildMineEvidenceReadiness/);
-  assert.match(prompt, /preparación estructural = promedio simple de cobertura de collar \+ orientación \+ propósito geológico/i);
-  assert.match(prompt, /muestras vinculadas se reportan aparte/i);
+  assert.match(prompt, /Ese ranking es diagnóstico y debe coincidir con la UI/i);
+  assert.match(prompt, /límite de la fuente y NO lo conviertas en una prioridad de recuperación/i);
+  assert.match(prompt, /No pidas al usuario datos ausentes por defecto/i);
 });
 
 test('geology exposes canonical historical chemistry without inventing drill-hole links', async () => {
