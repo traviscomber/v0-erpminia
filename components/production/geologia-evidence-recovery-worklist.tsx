@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 import { ExternalLink, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,11 +38,20 @@ const categories: Array<[Category, string]> = [
   ['structural_orientation', 'Estructuras'],
   ['assays', 'Ensayes'],
 ];
+const categoryKeys = new Set<Category>(categories.map(([key]) => key));
 
 export function GeologiaEvidenceRecoveryWorklist() {
   const [category, setCategory] = useState<Category>('collar_geometry');
   const [query, setQuery] = useState('');
   const { data, error, isLoading } = useSWR<Response>(`/api/produccion/geologia/evidence-recovery-worklist?category=${category}`, fetcher);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const recovery = params.get('recovery') as Category | null;
+    const hole = params.get('hole');
+    if (recovery && categoryKeys.has(recovery)) setCategory(recovery);
+    if (hole) setQuery(hole);
+  }, []);
 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -50,15 +59,24 @@ export function GeologiaEvidenceRecoveryWorklist() {
       .some((value) => String(value || '').toLowerCase().includes(q)));
   }, [data?.rows, query]);
 
+  const syncUrl = (nextCategory: Category, nextQuery: string) => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', 'priorities');
+    url.searchParams.set('recovery', nextCategory);
+    if (nextQuery.trim()) url.searchParams.set('hole', nextQuery.trim());
+    else url.searchParams.delete('hole');
+    window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  };
+
   const selectCategory = (value: Category) => {
     setCategory(value);
     setQuery('');
-    if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.searchParams.set('tab', 'priorities');
-      url.searchParams.set('recovery', value);
-      window.history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
-    }
+    syncUrl(value, '');
+  };
+
+  const changeQuery = (value: string) => {
+    setQuery(value);
+    syncUrl(category, value);
   };
 
   return <section className="space-y-4 border-t pt-6">
@@ -74,7 +92,7 @@ export function GeologiaEvidenceRecoveryWorklist() {
 
     <div className="relative max-w-lg">
       <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-      <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar sondaje, mina, sector o fuente" className="h-9 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none" />
+      <input value={query} onChange={(event) => changeQuery(event.target.value)} placeholder="Buscar sondaje, mina, sector o fuente" className="h-9 w-full rounded-md border bg-background pl-9 pr-3 text-sm outline-none" />
     </div>
 
     {error ? <StatePanel tone="error" title="No fue posible cargar la bandeja" description="Las fuentes canónicas permanecen intactas; falló sólo esta lectura derivada." className="min-h-0 py-5" /> : null}
@@ -108,7 +126,7 @@ export function GeologiaEvidenceRecoveryWorklist() {
             <div>
               <p className="text-xs text-muted-foreground">Acción segura</p>
               <p className="mt-1 text-sm">{row.next_action}</p>
-              {row.hole_code ? <a href={`/dashboard/produccion/geologia?tab=priorities&recovery=${category}&hole=${encodeURIComponent(row.hole_code)}`} className="mt-2 inline-flex items-center gap-1 text-xs font-medium underline underline-offset-4">Copiar enlace de revisión <ExternalLink className="h-3 w-3" /></a> : null}
+              {row.hole_code ? <a href={`/dashboard/produccion/geologia?tab=priorities&recovery=${category}&hole=${encodeURIComponent(row.hole_code)}`} className="mt-2 inline-flex items-center gap-1 text-xs font-medium underline underline-offset-4">Abrir revisión enlazada <ExternalLink className="h-3 w-3" /></a> : null}
             </div>
           </div>
         </article>)}</div>
