@@ -140,6 +140,7 @@ export async function GET(request: NextRequest) {
 
   const sampleById = new Map(sampleRows.map((sample) => [sample.id, sample]));
   const mineById = new Map(mineRows.map((mine) => [mine.id, mine]));
+  // La química histórica conserva únicamente los vínculos explícitos del registro de muestra; los resultados no se asignan a sondajes sin evidencia.
   const historicalAssays = chemistryResultRows.map((result) => {
     const sample = sampleById.get(result.sample_id) || null;
     const mine = sample?.mine_source_id ? mineById.get(sample.mine_source_id) || null : null;
