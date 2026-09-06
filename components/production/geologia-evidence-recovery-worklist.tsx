@@ -40,6 +40,20 @@ const categories: Array<[Category, string]> = [
 ];
 const categoryKeys = new Set<Category>(categories.map(([key]) => key));
 
+const stateLabels: Record<string, string> = {
+  operational_lithology_clue_formal_logging_missing: 'Pista operacional · falta logging original',
+  historical_structure_clue_not_oriented: 'Estructura observada · falta medición orientada',
+  explicit_hole_link_requires_interval_validation: 'Sondaje vinculado · falta validar intervalo',
+  sample_to_hole_lineage_gap: 'Falta vínculo muestra → sondaje → intervalo',
+  complete: 'Completo',
+  partial: 'Parcial',
+  missing: 'Fuente pendiente',
+};
+
+function humanState(value: string) {
+  return stateLabels[value] || 'Evidencia pendiente de recuperar';
+}
+
 export function GeologiaEvidenceRecoveryWorklist() {
   const [category, setCategory] = useState<Category>('collar_geometry');
   const [query, setQuery] = useState('');
@@ -107,7 +121,7 @@ export function GeologiaEvidenceRecoveryWorklist() {
           <div className="grid gap-4 xl:grid-cols-[minmax(160px,0.7fr)_minmax(220px,1.1fr)_110px_minmax(280px,1.4fr)_minmax(300px,1.5fr)]">
             <div>
               <p className="font-medium">{row.hole_code || 'Sin sondaje enlazado'}</p>
-              <p className="mt-1 text-xs text-muted-foreground">{[row.mine_name, row.sector_name].filter(Boolean).join(' · ') || row.state}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{[row.mine_name, row.sector_name].filter(Boolean).join(' · ') || humanState(row.state)}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Fuente</p>
