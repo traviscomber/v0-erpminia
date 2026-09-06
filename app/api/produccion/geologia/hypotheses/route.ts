@@ -19,9 +19,12 @@ function stringArray(value: unknown) {
   return value.map((item) => String(item || '').trim()).filter(Boolean).slice(0, 50);
 }
 
-async function authorizedContext(request: NextRequest) {
+async function authorizedContext(request: NextRequest, requireWrite = false) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_GEOLOGIA);
   if (!access.authorized) return { ok: false as const, response: access.response };
+  if (requireWrite && !access.canWrite) {
+    return { ok: false as const, response: NextResponse.json({ error: 'Forbidden: geology write access required' }, { status: 403 }) };
+  }
   return getOrganizationContext(request);
 }
 
@@ -58,7 +61,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const context = await authorizedContext(request);
+  const context = await authorizedContext(request, true);
   if (!context.ok) return context.response;
 
   const body = await request.json().catch(() => ({}));
@@ -119,7 +122,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const context = await authorizedContext(request);
+  const context = await authorizedContext(request, true);
   if (!context.ok) return context.response;
 
   const body = await request.json().catch(() => ({}));
