@@ -37,6 +37,7 @@ type SupplementalData = { holes:CurrentHole[] };
 type Props = {
   summary:Summary;
   pending:PendingRow[];
+  chemistryLinkedToHole:number;
   onOpenHoles:()=>void;
   onOpenResults:()=>void;
   onOpenPending:()=>void;
@@ -64,7 +65,7 @@ function Signal({label,value,detail,tone='neutral'}:{label:string;value:string;d
   return <div className="rounded-lg border bg-card p-4"><p className="text-xs text-muted-foreground">{label}</p><p className={`mt-1 text-2xl font-semibold tracking-tight ${toneClass}`}>{value}</p><p className="mt-1 text-xs text-muted-foreground">{detail}</p></div>;
 }
 
-export function GeologiaTodayDecisionBoard({summary:s,pending,onOpenHoles,onOpenResults,onOpenPending}:Props){
+export function GeologiaTodayDecisionBoard({summary:s,pending,chemistryLinkedToHole,onOpenHoles,onOpenResults,onOpenPending}:Props){
   const {data:supplemental}=useSWR('/api/produccion/geologia',supplementalFetcher);
   const currentYear=new Date().getFullYear();
   const currentHoles=(supplemental?.holes||[]).filter((hole)=>hole.start_at&&new Date(hole.start_at).getFullYear()===currentYear);
@@ -76,7 +77,6 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,onOpenHoles,onOpen
   const locatedPct=pct(s.locatedHoles,s.holes);
   const orientedPct=pct(s.orientedHoles,s.holes);
   const purposePct=pct(s.purposeHoles,s.holes);
-  const validatedPct=pct(s.samplesValidated,s.samples);
   const topPending=[...pending].sort((a,b)=>(b.review_priority||0)-(a.review_priority||0)).slice(0,3);
 
   const decisions=[
@@ -90,9 +90,9 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,onOpenHoles,onOpen
       active:s.holes>s.locatedHoles,
     },
     {
-      title:'Cerrar revisión de muestras',
-      detail:`${s.samplesReview} muestras requieren revisión; ${s.samplesValidated} están validadas.`,
-      impact:'Las muestras en revisión no deberían tratarse como evidencia cerrada para decisiones de ley o reconciliación.',
+      title:'Revisar evidencia química histórica',
+      detail:`${s.samplesReview} registros químicos requieren revisión; ${s.samplesValidated} están validados.`,
+      impact:`Sólo ${chemistryLinkedToHole} de ${s.samples} registros están ligados a un sondaje. Validación química no equivale a ensayo de sondaje ni autoriza atribución por profundidad.`,
       action:'Abrir resultados',
       onClick:onOpenResults,
       icon:Beaker,
@@ -149,7 +149,7 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,onOpenHoles,onOpen
       <Signal label="Collar georreferenciado" value={`${locatedPct}%`} detail={`${s.locatedHoles}/${s.holes} sondajes ubicados`} tone={locatedPct===100?'ok':locatedPct<70?'warn':'neutral'}/>
       <Signal label="Orientación completa" value={`${orientedPct}%`} detail={`${s.orientedHoles}/${s.holes} con azimut + inclinación`} tone={orientedPct===100?'ok':orientedPct<70?'warn':'neutral'}/>
       <Signal label="Propósito geológico" value={`${purposePct}%`} detail={`${s.purposeHoles}/${s.holes} con objetivo documentado`} tone={purposePct===100?'ok':purposePct<70?'warn':'neutral'}/>
-      <Signal label="Muestras validadas" value={`${validatedPct}%`} detail={`${s.samplesValidated}/${s.samples} disponibles con validación`} tone={validatedPct===100?'ok':validatedPct<70?'warn':'neutral'}/>
+      <Signal label="Química histórica" value={`${s.samplesValidated}`} detail={`${s.samplesValidated}/${s.samples} validados · ${chemistryLinkedToHole} ligados a sondaje`} />
     </section>
 
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,.8fr)]">
@@ -157,8 +157,8 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,onOpenHoles,onOpen
         <div className="flex items-center gap-2"><FileSearch className="h-4 w-4 text-muted-foreground"/><p className="font-medium">Lectura senior de la evidencia</p></div>
         <div className="mt-4 space-y-3 text-sm">
           <div className="flex gap-3"><Compass className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">Interpretación espacial</p><p className="mt-1 text-muted-foreground">{s.locatedHoles===s.holes?'Los collares disponibles permiten una lectura espacial completa del universo canónico de sondajes.':`La lectura espacial es parcial: faltan ${s.holes-s.locatedHoles} collares. Hasta resolverlos, cualquier análisis por posición debe tratarse como incompleto.`}</p></div></div>
-          <div className="flex gap-3"><Drill className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">Capacidad de interpretación geológica</p><p className="mt-1 text-muted-foreground">{s.intervals>0?`Hay ${s.intervals} intervalos de logging disponibles para interpretación litológica, de alteración o mineralización.`:'Aún no existen intervalos canónicos de logging. El sistema puede analizar sondajes y muestras, pero no debe afirmar litología, alteración, mineralización, RQD ni estructuras por profundidad.'}</p></div></div>
-          <div className="flex gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">Calidad de evidencia</p><p className="mt-1 text-muted-foreground">{s.samplesReview>0?`${s.samplesReview} muestras siguen abiertas a revisión. Conviene resolverlas antes de usarlas como evidencia cerrada en comparaciones o recomendaciones.`:'No hay muestras marcadas para revisión en el resumen actual.'}</p></div></div>
+          <div className="flex gap-3"><Drill className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">Capacidad de interpretación geológica</p><p className="mt-1 text-muted-foreground">{s.intervals>0?`Hay ${s.intervals} intervalos de logging disponibles para interpretación litológica, de alteración o mineralización.`:'Aún no existen intervalos canónicos de logging. El sistema puede analizar sondajes y evidencia química histórica, pero no debe afirmar litología, alteración, mineralización, RQD ni estructuras por profundidad.'}</p></div></div>
+          <div className="flex gap-3"><CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"/><div><p className="font-medium">Calidad de evidencia</p><p className="mt-1 text-muted-foreground">{s.samplesReview>0?`${s.samplesReview} registros químicos históricos siguen abiertos a revisión. Conviene resolverlos antes de usarlos como evidencia cerrada de muestra/mina.`:`No hay registros químicos históricos marcados para revisión. Esto valida su registro, no los convierte en ensayes de sondaje: ${chemistryLinkedToHole}/${s.samples} tienen vínculo explícito a pozo.`}</p></div></div>
         </div>
       </section>
 
