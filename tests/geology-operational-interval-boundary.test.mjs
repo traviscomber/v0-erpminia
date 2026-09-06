@@ -32,8 +32,9 @@ test('today and hole workspace never present operational intervals as formal log
   assert.doesNotMatch(today, /intervalos de logging disponibles/i);
   assert.match(dashboard, /Intervalos operacionales por profundidad/);
   assert.match(dashboard, /evidence_class==='operational_source_interval'/);
-  assert.match(readiness, /Intervalos fuente/);
-  assert.match(readiness, /no significa logging geológico formal/i);
+  assert.match(readiness, /Intervalos operacionales/);
+  assert.match(readiness, /no equivalen a logging geológico formal/i);
+  assert.doesNotMatch(readiness, /Preparación de evidencia/);
 });
 
 test('interpretation surfaces preserve the operational interval provenance boundary', async () => {
