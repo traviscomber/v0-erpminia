@@ -4,13 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { applyDatePeriod, getDashboardPeriod } from '@/lib/api/dashboard-period';
-
-function classifyIntervalEvidence(row: { notes?: string | null }) {
-  const notes = String(row.notes || '').toLowerCase();
-  if (/formal logging|geologist logging|logging geológico formal|validated geological logging/.test(notes)) return 'explicit_formal_logging' as const;
-  if (/operational observation|operator observation|production_drilling_source_reports|derived only between two consecutive explicit depth transitions|canonical geology pass|exelito interval pass|geology evidence extraction/.test(notes)) return 'operational_source_interval' as const;
-  return 'unclassified_interval' as const;
-}
+import { classifyIntervalEvidence } from '@/lib/geology-ai/interval-evidence-classifier';
 
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_GEOLOGIA);
@@ -117,7 +111,7 @@ export async function GET(request: NextRequest) {
   const drillingRows = drilling.data || [];
   const holeRows = holes.data || [];
   const rawIntervalRows = intervals.data || [];
-  const intervalRows = rawIntervalRows.map((row) => ({ ...row, evidence_class: classifyIntervalEvidence(row) }));
+  const intervalRows = rawIntervalRows.map((row) => ({ ...row, evidence_class: classifyIntervalEvidence(row.notes) }));
   const sampleRows = samples.data || [];
   const chemistryResultRows = chemistryResults.data || [];
   const reviewRows = locationReview.data || [];
