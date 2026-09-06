@@ -31,6 +31,14 @@ type CampaignCandidate = {
   setup_evidence_text: string | null; evidence_text: string | null; split_evidence_class: string; review_state: string; required_action: string;
 };
 
+type ImmediateTask = {
+  drill_hole_id: string; hole_code: string; orientation_state: string; task_priority: number; task_category: string;
+  task_title: string; clarifying_question: string; why_it_matters: string; recommended_action: string; required_source_action: string;
+  source_rows: number[] | null; source_report_ids: string[] | null; first_evidence_date: string | null; last_evidence_date: string | null;
+  completed_measurements: number; failed_or_pending_measurements: number; verified_setups: number; current_hole_numeric_candidates: number;
+  excluded_next_hole_numeric_mentions: number; task_state: string; is_immediate: boolean; human_checkpoint: string; evidence_summary: string; audit_scope: string;
+};
+
 function recalculateHoleStates(holes: CanonicalHoleRow[], cases: ReconciliationCase[]) {
   const chronology = new Map<string, { severe: number; material: number }>();
   for (const item of cases) {
@@ -80,7 +88,7 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const [holes, reconciliation, campaigns] = await Promise.all([
+  const [holes, reconciliation, campaigns, immediateTasks] = await Promise.all([
     context.supabase.from('production_geology_hole_context_v1').select([
       'drill_hole_id','hole_code','mine_name','sector_name','status','drilled_depth_m','orientation_confidence','interval_count',
       'mineralization_interval_count','structural_interval_count','point_observation_count','mineral_point_count','structure_point_count',
@@ -94,13 +102,20 @@ export async function GET(request: NextRequest) {
     context.supabase.from('production_geology_campaign_split_candidates_v1')
       .select('drill_hole_id,hole_code,source_report_id,operation_date,source_row,hole_code_raw,meter_initial,meter_final,drilled_meters,prior_max_m,prior_last_date,gap_days,setup_source_row,setup_evidence_text,evidence_text,split_evidence_class,review_state,required_action')
       .eq('organization_id', context.organizationId).order('operation_date', { ascending: false }).order('source_row', { ascending: false }),
+    context.supabase.from('production_geology_immediate_tasks_2026_v1')
+      .select('drill_hole_id,hole_code,orientation_state,task_priority,task_category,task_title,clarifying_question,why_it_matters,recommended_action,required_source_action,source_rows,source_report_ids,first_evidence_date,last_evidence_date,completed_measurements,failed_or_pending_measurements,verified_setups,current_hole_numeric_candidates,excluded_next_hole_numeric_mentions,task_state,is_immediate,human_checkpoint,evidence_summary,audit_scope')
+      .eq('organization_id', context.organizationId)
+      .eq('is_immediate', true)
+      .order('task_priority', { ascending: true })
+      .order('hole_code', { ascending: true }),
   ]);
 
-  const error = holes.error || reconciliation.error || campaigns.error;
+  const error = holes.error || reconciliation.error || campaigns.error || immediateTasks.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const reconciliationRows = (reconciliation.data || []) as unknown as ReconciliationCase[];
   const campaignRows = (campaigns.data || []) as unknown as CampaignCandidate[];
+  const taskRows = (immediateTasks.data || []) as unknown as ImmediateTask[];
   const holeRows = recalculateHoleStates((holes.data || []) as unknown as CanonicalHoleRow[], reconciliationRows);
   const stateCounts = holeRows.reduce<Record<string, number>>((acc, row) => {
     const key = String(row.ai_grounding_state || 'unknown'); acc[key] = (acc[key] || 0) + 1; return acc;
@@ -123,7 +138,11 @@ export async function GET(request: NextRequest) {
     blockedCases: reconciliationRows.filter((row) => row.reconciliation_state === 'blocked').length,
     reviewCases: reconciliationRows.filter((row) => row.reconciliation_state === 'review_required').length,
     campaignSplitCandidates: campaignRows.length,
+    immediateTasks: taskRows.length,
+    immediateCritical: taskRows.filter((row) => row.task_priority === 0).length,
+    immediateNumericReview: taskRows.filter((row) => row.task_priority === 1).length,
+    immediateTopographyRecovery: taskRows.filter((row) => row.task_category === 'topography_recovery').length,
   };
 
-  return NextResponse.json({ canWrite: access.canWrite, summary, holes: holeRows, queue: holeRows, reconciliation: reconciliationRows, campaigns: campaignRows });
+  return NextResponse.json({ canWrite: access.canWrite, summary, holes: holeRows, queue: holeRows, reconciliation: reconciliationRows, campaigns: campaignRows, immediateTasks: taskRows });
 }
