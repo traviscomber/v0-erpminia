@@ -34,3 +34,13 @@ test('maintenance control center exposes the senior assistant', async () => {
   assert.match(component, /\/api\/maintenance\/senior-assistant/);
   assert.match(component, /dato faltante tendría más valor para decidir mejor/i);
 });
+
+test('maintenance assistant launcher is a transparent in-code corporate mark', async () => {
+  const component = await readFile(componentUrl, 'utf8');
+  assert.match(component, /function MaintenanceAiMark/);
+  assert.match(component, /bg-transparent/);
+  assert.match(component, /var\(--primary\)/);
+  assert.match(component, /var\(--secondary\)/);
+  assert.doesNotMatch(component, /<img\b/i);
+  assert.doesNotMatch(component, /bg-primary[^-]/);
+});
