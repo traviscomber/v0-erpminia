@@ -36,25 +36,6 @@ type CanonicalHoleRow = {
   source_reference: string | null;
 };
 
-type QueueRow = {
-  drill_hole_id: string;
-  hole_code: string;
-  mine_name: string | null;
-  sector_name: string | null;
-  drilled_depth_m: number | null;
-  effective_priority_rank: number | null;
-  effective_attention_reason: string | null;
-  mineralization_conflict_count: number | null;
-  severe_chronology_count: number | null;
-  material_chronology_count: number | null;
-  topography_evidence_count: number | null;
-  survey_evidence_count: number | null;
-  visual_mineral_evidence_count: number | null;
-  structural_evidence_count: number | null;
-  lithology_evidence_count: number | null;
-  interval_count: number | null;
-};
-
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_GEOLOGIA);
   if (!access.authorized) return access.response;
@@ -62,58 +43,48 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  const [holes, queue] = await Promise.all([
-    context.supabase
-      .from('production_geology_hole_context_v1')
-      .select([
-        'drill_hole_id',
-        'hole_code',
-        'mine_name',
-        'sector_name',
-        'status',
-        'drilled_depth_m',
-        'orientation_confidence',
-        'interval_count',
-        'mineralization_interval_count',
-        'structural_interval_count',
-        'point_observation_count',
-        'mineral_point_count',
-        'structure_point_count',
-        'transition_count',
-        'daily_span_count',
-        'positive_visual_span_count',
-        'negative_visual_span_count',
-        'structure_span_count',
-        'lithology_span_count',
-        'rock_condition_span_count',
-        'topography_evidence_count',
-        'survey_evidence_count',
-        'severe_chronology_count',
-        'material_chronology_count',
-        'mineralization_conflict_count',
-        'effective_priority_rank',
-        'effective_attention_reason',
-        'ai_grounding_state',
-        'source_reference',
-      ].join(','))
-      .eq('organization_id', context.organizationId)
-      .order('effective_priority_rank', { ascending: true })
-      .order('hole_code', { ascending: true }),
-    context.supabase
-      .from('production_geology_geologist_queue_v3')
-      .select('drill_hole_id,hole_code,mine_name,sector_name,drilled_depth_m,effective_priority_rank,effective_attention_reason,mineralization_conflict_count,severe_chronology_count,material_chronology_count,topography_evidence_count,survey_evidence_count,visual_mineral_evidence_count,structural_evidence_count,lithology_evidence_count,interval_count')
-      .eq('organization_id', context.organizationId)
-      .order('effective_priority_rank', { ascending: true })
-      .order('hole_code', { ascending: true }),
-  ]);
+  const holes = await context.supabase
+    .from('production_geology_hole_context_v1')
+    .select([
+      'drill_hole_id',
+      'hole_code',
+      'mine_name',
+      'sector_name',
+      'status',
+      'drilled_depth_m',
+      'orientation_confidence',
+      'interval_count',
+      'mineralization_interval_count',
+      'structural_interval_count',
+      'point_observation_count',
+      'mineral_point_count',
+      'structure_point_count',
+      'transition_count',
+      'daily_span_count',
+      'positive_visual_span_count',
+      'negative_visual_span_count',
+      'structure_span_count',
+      'lithology_span_count',
+      'rock_condition_span_count',
+      'topography_evidence_count',
+      'survey_evidence_count',
+      'severe_chronology_count',
+      'material_chronology_count',
+      'mineralization_conflict_count',
+      'effective_priority_rank',
+      'effective_attention_reason',
+      'ai_grounding_state',
+      'source_reference',
+    ].join(','))
+    .eq('organization_id', context.organizationId)
+    .order('effective_priority_rank', { ascending: true })
+    .order('hole_code', { ascending: true });
 
-  const error = holes.error || queue.error;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (holes.error) return NextResponse.json({ error: holes.error.message }, { status: 500 });
 
-  // These views are newer than the generated Supabase Database type snapshot used by this app.
-  // Keep runtime access fully tenant-scoped and make the expected read contract explicit here.
+  // The canonical context view is newer than the generated Supabase Database
+  // type snapshot used by this app. Runtime access remains tenant-scoped above.
   const holeRows = (holes.data || []) as unknown as CanonicalHoleRow[];
-  const queueRows = (queue.data || []) as unknown as QueueRow[];
   const stateCounts = holeRows.reduce<Record<string, number>>((acc, row) => {
     const key = String(row.ai_grounding_state || 'unknown');
     acc[key] = (acc[key] || 0) + 1;
@@ -141,6 +112,6 @@ export async function GET(request: NextRequest) {
     canWrite: access.canWrite,
     summary,
     holes: holeRows,
-    queue: queueRows,
+    queue: holeRows,
   });
 }
