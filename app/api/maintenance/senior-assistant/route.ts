@@ -3,10 +3,11 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { getSupabaseAdmin } from '@/lib/db/supabase';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const DEFAULT_MODEL = 'gpt-5.6';
-const FALLBACK_MODELS = ['gpt-5.6', 'gpt-5.6-luna'];
+const FALLBACK_MODELS = ['gpt-5.6', 'gpt-5.6-terra', 'gpt-5.6-luna'];
 const MAX_MESSAGE_CHARS = 12000;
 
 function extractResponseText(payload: any) {
@@ -74,26 +75,32 @@ export async function POST(request: NextRequest) {
   if (message.length > MAX_MESSAGE_CHARS) return NextResponse.json({ error: 'La consulta es demasiado extensa.' }, { status: 400 });
 
   try {
+    // Authorization is evaluated with the authenticated user above. Canonical reads are then
+    // performed server-side with the service role and always constrained to the resolved org.
+    // This preserves security_invoker views without granting authenticated users direct access
+    // to protected canonical-schema dependencies such as canonical.asset_availability_daily.
+    const canonicalDb = getSupabaseAdmin();
+
     const [reviews, operationalEvidence, preventive, workOrders, reliability, closeReadiness, assets] = await Promise.all([
-      context.supabase.from('drilling_maintenance_review_queue_v1')
+      canonicalDb.from('drilling_maintenance_review_queue_v1')
         .select('review_id,canonical_asset_id,asset_code,asset_name,operation_date,review_reason,equipment_status_raw,machine_observations,review_status,has_linked_work_order')
         .eq('organization_id', context.organizationId).eq('review_status', 'pending').eq('has_linked_work_order', false).limit(50),
-      context.supabase.from('drill_asset_operational_evidence_90d_v1')
+      canonicalDb.from('drill_asset_operational_evidence_90d_v1')
         .select('canonical_asset_id,asset_code,asset_name,drilling_reports,out_of_service_reports,operational_with_observations_reports,operational_reports,equipment_without_crew_reports,power_outage_reports,water_shortage_reports,evidence_status')
         .eq('organization_id', context.organizationId).limit(100),
-      context.supabase.from('preventive_maintenance_hour_status_v1')
+      canonicalDb.from('preventive_maintenance_hour_status_v1')
         .select('schedule_id,canonical_asset_id,asset_code,asset_name,task_name,frequency_hours,effective_current_meter,due_meter,meter_evidence_source,meter_basis_conflict,hour_status,remaining_hours,generated_work_order_id')
         .eq('organization_id', context.organizationId).limit(100),
-      context.supabase.from('maintenance_work_orders')
+      canonicalDb.from('maintenance_work_orders')
         .select('id,work_order_number,canonical_asset_id,title,description,work_type,status,priority,scheduled_date,completion_date,actual_duration_hours,down_time_hours,root_cause,preventive_actions,external_cost,created_by')
         .eq('organization_id', context.organizationId).not('created_by', 'is', null).limit(100),
-      context.supabase.from('maintenance_reliability_base_v1')
+      canonicalDb.from('maintenance_reliability_base_v1')
         .select('work_order_id,canonical_asset_id,asset_code,asset_name,root_cause,root_cause_key,work_type,actual_duration_hours,down_time_hours,total_cost,closed_at')
         .eq('organization_id', context.organizationId).limit(100),
-      context.supabase.from('work_order_close_readiness_v2')
+      canonicalDb.from('work_order_close_readiness_v2')
         .select('work_order_id,work_order_number,canonical_asset_id,title,ready_to_close,next_action,open_procurement_orders,pending_parts,unmet_material_requirements,pending_external_services,open_labor_entries,external_cost_conflict,standard_plan_steps_pending')
         .eq('organization_id', context.organizationId).limit(100),
-      context.supabase.from('maintenance_canonical_assets_v1')
+      canonicalDb.from('maintenance_canonical_assets_v1')
         .select('id,asset_code,name,asset_type,category,manufacturer,model,cost_center_code,is_active,validation_status')
         .eq('organization_id', context.organizationId).limit(200),
     ]);
