@@ -1,38 +1,50 @@
 import Link from 'next/link';
-import { ArrowRight, MapPin, Pickaxe, Search } from 'lucide-react';
+import { ArrowRight, Drill, Gem, MapPin, Search } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ProductionSectionShell } from '@/components/production/production-section-shell';
 
 export default function SondajePage() {
   return (
     <ProductionSectionShell
-      title="Sondaje"
-      description="Sondaje se divide en exploración, producción y revisión de calidad operacional."
+      title="Perforación"
+      description="Ejecución operacional de sondajes: campañas, equipos, metros, avance y calidad de la ejecución. El expediente e interpretación geológica del mismo sondaje canónico vive en Geología → Sondajes."
       capabilities={[
-        'Campañas y pozos de sondaje',
+        'Campañas y ejecución de perforación',
         'Metros perforados y avance',
-        'Coordenadas, orientación y profundidad',
-        'Intervalos y muestras',
-        'Vinculación con geología y química',
-        'Revisión trazable de ubicación',
+        'Sondas, operadores y estado operacional',
+        'Programa mensual versus ejecución real',
+        'Revisión trazable de ubicación operacional',
+        'Vínculo al mismo sondaje canónico usado por Geología',
       ]}
     >
+      <section className="rounded-lg border bg-muted/15 px-4 py-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium">Un sondaje, dos responsabilidades</p>
+            <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Perforación controla cómo se ejecuta el pozo. Geología usa ese mismo pozo canónico para revisar evidencia, intervalos, resultados e interpretación. No son dos bases de datos distintas.</p>
+          </div>
+          <Link href="/dashboard/produccion/geologia?tab=holes" className="inline-flex shrink-0 items-center gap-2 text-sm font-medium text-primary hover:underline">
+            <Gem className="h-4 w-4" /> Ver en Geología <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </section>
+
       <div className="grid gap-4 md:grid-cols-3">
-        <Link href="/dashboard/produccion/sondaje/exploracion" className="block">
-          <Card className="h-full transition-colors hover:border-primary/50">
-            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Search className="h-4 w-4" />Sondaje de Exploración</CardTitle><CardDescription>Conocimiento del subsuelo, geometría, continuidad y potencial del yacimiento.</CardDescription></CardHeader>
-            <CardContent className="flex items-center gap-2 text-sm font-medium text-primary">Abrir exploración <ArrowRight className="h-4 w-4" /></CardContent>
-          </Card>
-        </Link>
         <Link href="/dashboard/produccion/sondaje/produccion" className="block">
           <Card className="h-full transition-colors hover:border-primary/50">
-            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Pickaxe className="h-4 w-4" />Sondaje de Producción</CardTitle><CardDescription>Perforación operacional, avance, control de ejecución y soporte a la mina activa.</CardDescription></CardHeader>
-            <CardContent className="flex items-center gap-2 text-sm font-medium text-primary">Abrir producción <ArrowRight className="h-4 w-4" /></CardContent>
+            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Drill className="h-4 w-4" />Operación de perforación</CardTitle><CardDescription>Metros, sondas, operadores, disponibilidad, programa mensual y ejecución real.</CardDescription></CardHeader>
+            <CardContent className="flex items-center gap-2 text-sm font-medium text-primary">Abrir operación <ArrowRight className="h-4 w-4" /></CardContent>
+          </Card>
+        </Link>
+        <Link href="/dashboard/produccion/sondaje/exploracion" className="block">
+          <Card className="h-full transition-colors hover:border-primary/50">
+            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><Search className="h-4 w-4" />Campañas exploratorias</CardTitle><CardDescription>Planificación y seguimiento operacional de perforación exploratoria. La interpretación permanece en Geología.</CardDescription></CardHeader>
+            <CardContent className="flex items-center gap-2 text-sm font-medium text-primary">Abrir campañas <ArrowRight className="h-4 w-4" /></CardContent>
           </Card>
         </Link>
         <Link href="/dashboard/produccion/sondaje/revision-ubicacion" className="block">
           <Card className="h-full transition-colors hover:border-primary/50">
-            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><MapPin className="h-4 w-4" />Revisión de ubicación</CardTitle><CardDescription>Resolver conflictos y confirmar sectores de pozos activos con evidencia humana trazable.</CardDescription></CardHeader>
+            <CardHeader><CardTitle className="flex items-center gap-2 text-base"><MapPin className="h-4 w-4" />Revisión operacional</CardTitle><CardDescription>Resolver conflictos de mina/sector en reportes de perforación con evidencia humana trazable.</CardDescription></CardHeader>
             <CardContent className="flex items-center gap-2 text-sm font-medium text-primary">Abrir revisión <ArrowRight className="h-4 w-4" /></CardContent>
           </Card>
         </Link>
