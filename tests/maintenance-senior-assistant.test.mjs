@@ -32,5 +32,5 @@ test('maintenance control center exposes the senior assistant', async () => {
   assert.match(page, /MaintenanceSeniorAssistant/);
   assert.match(page, /Decision Intelligence/);
   assert.match(component, /\/api\/maintenance\/senior-assistant/);
-  assert.match(component, /Próxima mejor evidencia/);
+  assert.match(component, /dato faltante tendría más valor para decidir mejor/i);
 });
