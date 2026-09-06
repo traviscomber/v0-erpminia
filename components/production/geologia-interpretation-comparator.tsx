@@ -49,7 +49,7 @@ export function GeologiaInterpretationComparator({ rows }:{ rows:Signal[] }) {
           <tbody className="divide-y">
             <CompareRow label="Estado" values={selected.map((row)=>row.interpretation_state.replaceAll('_',' '))}/>
             <CompareRow label="Profundidad" values={selected.map((row)=>row.drilled_depth_m==null?'—':`${n(row.drilled_depth_m)} m`)}/>
-            <CompareRow label="Intervalos estructurados" values={selected.map((row)=>String(row.structured_intervals||0))}/>
+            <CompareRow label="Intervalos operacionales estructurados" values={selected.map((row)=>String(row.structured_intervals||0))}/>
             <CompareRow label="Mineralización visual" values={selected.map((row)=>`${n(row.visual_mineral_m)} m`)}/>
             <CompareRow label="Ausencia explícita" values={selected.map((row)=>`${n(row.explicit_no_mineral_m)} m`)}/>
             <CompareRow label="Estructuras" values={selected.map((row)=>`${n(row.structure_m)} m`)}/>
@@ -58,7 +58,7 @@ export function GeologiaInterpretationComparator({ rows }:{ rows:Signal[] }) {
             <CompareRow label="Puntos / transiciones" values={selected.map((row)=>`${row.point_observations||0} / ${row.transition_points||0}`)}/>
           </tbody>
         </table>
-        <p className="mt-4 text-xs text-muted-foreground">Comparar magnitudes ayuda a priorizar revisión. No normaliza por longitud perforada ni demuestra continuidad entre sondajes; cualquier comparación espacial requiere geometría canónica suficiente.</p>
+        <p className="mt-4 text-xs text-muted-foreground">Los intervalos comparados son evidencia operacional estructurada, no logging geológico formal. Comparar magnitudes ayuda a priorizar revisión, pero no normaliza por longitud perforada ni demuestra continuidad entre sondajes; cualquier comparación espacial requiere geometría canónica suficiente.</p>
       </div>}
     </div>
   </details>;
