@@ -44,7 +44,7 @@ function clamp(value: number, min: number, max: number) {
 }
 
 function intervalTitle(row: IntervalRow) {
-  return [row.lithology, row.mineralization, row.operational_result].filter(Boolean).join(' · ') || 'Intervalo estructurado';
+  return [row.lithology, row.mineralization, row.operational_result].filter(Boolean).join(' · ') || 'Intervalo operacional estructurado';
 }
 
 function unitTitle(row: UnitRow) {
@@ -83,8 +83,8 @@ export function GeologiaInterpretationColumn({
     <section className="rounded-lg border bg-card p-5">
       <div className="flex flex-col gap-2 border-b pb-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="font-medium">Columna interpretada</p>
-          <p className="mt-1 text-sm text-muted-foreground">Evidencia ordenada por profundidad. Los carriles no implican correlación ni continuidad fuera de los tramos observados.</p>
+          <p className="font-medium">Columna de evidencia por profundidad</p>
+          <p className="mt-1 text-sm text-muted-foreground">Evidencia operacional y estructurada ordenada por profundidad. Los carriles no son logging geológico formal y no implican correlación ni continuidad fuera de los tramos observados.</p>
         </div>
         <p className="text-xs tabular-nums text-muted-foreground">0–{maxDepth.toLocaleString('es-CL', { maximumFractionDigits: 1 })} m</p>
       </div>
@@ -92,7 +92,7 @@ export function GeologiaInterpretationColumn({
       <div className="mt-4 overflow-x-auto">
         <div className="min-w-[680px]">
           <div className="grid grid-cols-[74px_repeat(4,minmax(120px,1fr))] gap-2 pb-2 text-xs text-muted-foreground">
-            <span>Prof.</span><span>Litología / intervalos</span><span>Mineralización</span><span>Estructuras / roca</span><span>Puntos / transiciones</span>
+            <span>Prof.</span><span>Litología / intervalos fuente</span><span>Mineralización visual</span><span>Estructuras / roca</span><span>Puntos / transiciones</span>
           </div>
           <div className="relative grid grid-cols-[74px_repeat(4,minmax(120px,1fr))] gap-2" style={{ height: chartHeight }}>
             <div className="relative border-r">
@@ -144,7 +144,7 @@ export function GeologiaInterpretationColumn({
       </div>
 
       <div className="mt-4 grid gap-2 border-t pt-4 text-xs text-muted-foreground sm:grid-cols-3">
-        <p><strong className="text-foreground">Intervalo:</strong> tramo estructurado o unidad operacional observada.</p>
+        <p><strong className="text-foreground">Intervalo fuente:</strong> tramo operacional estructurado desde evidencia explícita; no logging formal.</p>
         <p><strong className="text-foreground">Punto:</strong> observación explícita a una profundidad.</p>
         <p><strong className="text-foreground">Transición:</strong> cambio reportado; requiere validación para usarlo como contacto.</p>
       </div>
