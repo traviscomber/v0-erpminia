@@ -64,8 +64,13 @@ export function GeologiaInterpretation(){
       </aside>
 
       <main className="min-w-0">
-        {detailError?<StatePanel tone="error" title="No fue posible cargar este sondaje" description="Selecciona otro sondaje o revisa la capa canónica." className="min-h-0 py-5"/>:null}
-        {detailLoading||!detail?<StatePanel title="Leyendo evidencia" description="Ordenando señales por profundidad y tipo." className="min-h-0 py-5"/>:<InterpretationDetail data={detail}/>} 
+        {rows.length===0
+          ? <StatePanel title="Sin sondajes para interpretar" description={query?'No hay sondajes que coincidan con la búsqueda.':'No existe evidencia canónica disponible para esta vista.'} className="min-h-0 py-5"/>
+          : detailError
+            ? <StatePanel tone="error" title="No fue posible cargar este sondaje" description="Selecciona otro sondaje o revisa la capa canónica." className="min-h-0 py-5"/>
+            : detailLoading||!detail
+              ? <StatePanel title="Leyendo evidencia" description="Ordenando señales por profundidad y tipo." className="min-h-0 py-5"/>
+              : <InterpretationDetail data={detail}/>} 
       </main>
     </div>
   </div>;
