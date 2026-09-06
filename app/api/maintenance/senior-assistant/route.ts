@@ -9,6 +9,7 @@ const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const DEFAULT_MODEL = 'gpt-5.6';
 const FALLBACK_MODELS = ['gpt-5.6', 'gpt-5.6-terra', 'gpt-5.6-luna'];
 const MAX_MESSAGE_CHARS = 12000;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 function extractResponseText(payload: any) {
   for (const item of payload?.output || []) {
@@ -62,6 +63,10 @@ async function callOpenAI(instructions: string, input: string) {
 }
 
 const isSynthetic = (value: unknown) => /\buat\b|simulad|prueba|test controlado/i.test(String(value ?? ''));
+const hasOperationalSignal = (value: unknown) => {
+  const normalized = String(value ?? '').trim().toLowerCase();
+  return Boolean(normalized) && !['0', 'no', 'n/a', 'na', '-'].includes(normalized);
+};
 
 export async function POST(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES);
@@ -75,19 +80,19 @@ export async function POST(request: NextRequest) {
   if (message.length > MAX_MESSAGE_CHARS) return NextResponse.json({ error: 'La consulta es demasiado extensa.' }, { status: 400 });
 
   try {
-    // Authorization is evaluated with the authenticated user above. Canonical reads are then
-    // performed server-side with the service role and always constrained to the resolved org.
-    // This preserves security_invoker views without granting authenticated users direct access
-    // to protected canonical-schema dependencies such as canonical.asset_availability_daily.
     const canonicalDb = getSupabaseAdmin();
+    const windowStart = new Date(Date.now() - 89 * DAY_MS).toISOString().slice(0, 10);
 
-    const [reviews, operationalEvidence, preventive, workOrders, reliability, closeReadiness, assets] = await Promise.all([
+    const [reviews, operationalReports, preventive, workOrders, reliability, closeReadiness, assets] = await Promise.all([
       canonicalDb.from('drilling_maintenance_review_queue_v1')
         .select('review_id,canonical_asset_id,asset_code,asset_name,operation_date,review_reason,equipment_status_raw,machine_observations,review_status,has_linked_work_order')
         .eq('organization_id', context.organizationId).eq('review_status', 'pending').eq('has_linked_work_order', false).limit(50),
-      canonicalDb.from('drill_asset_operational_evidence_90d_v1')
-        .select('canonical_asset_id,asset_code,asset_name,drilling_reports,out_of_service_reports,operational_with_observations_reports,operational_reports,equipment_without_crew_reports,power_outage_reports,water_shortage_reports,evidence_status')
-        .eq('organization_id', context.organizationId).limit(100),
+      canonicalDb.from('production_drilling_source_reports')
+        .select('canonical_asset_id,operation_date,equipment_status_raw,equipment_without_crew_raw,power_outage_raw,water_shortage_raw')
+        .eq('organization_id', context.organizationId)
+        .gte('operation_date', windowStart)
+        .not('canonical_asset_id', 'is', null)
+        .limit(5000),
       canonicalDb.from('preventive_maintenance_hour_status_v1')
         .select('schedule_id,canonical_asset_id,asset_code,asset_name,task_name,frequency_hours,effective_current_meter,due_meter,meter_evidence_source,meter_basis_conflict,hour_status,remaining_hours,generated_work_order_id')
         .eq('organization_id', context.organizationId).limit(100),
@@ -107,7 +112,7 @@ export async function POST(request: NextRequest) {
 
     const queryErrors = [
       ['drilling_maintenance_review_queue_v1', reviews.error],
-      ['drill_asset_operational_evidence_90d_v1', operationalEvidence.error],
+      ['production_drilling_source_reports', operationalReports.error],
       ['preventive_maintenance_hour_status_v1', preventive.error],
       ['maintenance_work_orders', workOrders.error],
       ['maintenance_reliability_base_v1', reliability.error],
@@ -120,6 +125,41 @@ export async function POST(request: NextRequest) {
       const detail = (error as any)?.message || JSON.stringify(error);
       throw new Error(`${source}: ${detail}`);
     }
+
+    const assetMap = new Map((assets.data || []).map((row: any) => [String(row.id), row]));
+    const operationalMap = new Map<string, any>();
+    for (const row of operationalReports.data || []) {
+      const assetId = String(row.canonical_asset_id || '');
+      if (!assetId) continue;
+      const asset = assetMap.get(assetId);
+      const current = operationalMap.get(assetId) || {
+        canonical_asset_id: assetId,
+        asset_code: asset?.asset_code || null,
+        asset_name: asset?.name || null,
+        window_start: windowStart,
+        drilling_reports: 0,
+        out_of_service_reports: 0,
+        operational_with_observations_reports: 0,
+        operational_reports: 0,
+        equipment_without_crew_reports: 0,
+        power_outage_reports: 0,
+        water_shortage_reports: 0,
+        evidence_status: 'source_operational_evidence_only',
+      };
+      current.drilling_reports += 1;
+      const status = String(row.equipment_status_raw || '').trim().toUpperCase();
+      if (status === 'FUERA DE SERVICIO') current.out_of_service_reports += 1;
+      if (status === 'OPERATIVO CON OBSERVACIONES') current.operational_with_observations_reports += 1;
+      if (status === 'OPERATIVO') current.operational_reports += 1;
+      if (hasOperationalSignal(row.equipment_without_crew_raw)) current.equipment_without_crew_reports += 1;
+      if (hasOperationalSignal(row.power_outage_raw)) current.power_outage_reports += 1;
+      if (hasOperationalSignal(row.water_shortage_raw)) current.water_shortage_reports += 1;
+      operationalMap.set(assetId, current);
+    }
+    const observedConditions90d = Array.from(operationalMap.values()).sort((a, b) =>
+      (b.out_of_service_reports + b.operational_with_observations_reports) -
+      (a.out_of_service_reports + a.operational_with_observations_reports)
+    );
 
     const workOrderMap = new Map((workOrders.data || []).map((row: any) => [String(row.id), row]));
     const reliableClosures = (reliability.data || []).filter((row: any) => {
@@ -138,7 +178,7 @@ export async function POST(request: NextRequest) {
       },
       assets: assets.data || [],
       pending_operational_reviews: reviews.data || [],
-      observed_conditions_90d: operationalEvidence.data || [],
+      observed_conditions_90d: observedConditions90d,
       preventive_hour_status: preventive.data || [],
       operational_work_orders: workOrders.data || [],
       audited_non_synthetic_reliability: reliableClosures,
@@ -152,7 +192,7 @@ export async function POST(request: NextRequest) {
       answer: result.text,
       model: result.model,
       responseId: result.responseId,
-      sources: ['maintenance_canonical_assets_v1','drilling_maintenance_review_queue_v1','drill_asset_operational_evidence_90d_v1','preventive_maintenance_hour_status_v1','maintenance_work_orders','maintenance_reliability_base_v1','work_order_close_readiness_v2'],
+      sources: ['maintenance_canonical_assets_v1','drilling_maintenance_review_queue_v1','production_drilling_source_reports','preventive_maintenance_hour_status_v1','maintenance_work_orders','maintenance_reliability_base_v1','work_order_close_readiness_v2'],
       policy: 'Copiloto explicable: evidencia canónica → interpretación → hipótesis → acción humana. No decisión autónoma.',
     });
   } catch (error) {
