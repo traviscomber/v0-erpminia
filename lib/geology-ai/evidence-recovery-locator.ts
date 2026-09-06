@@ -1,3 +1,5 @@
+import { classifyIntervalEvidence } from '@/lib/geology-ai/interval-evidence-classifier';
+
 type SupabaseClientLike = any;
 
 type SourceStatus = 'exact_source_clues' | 'historical_source_clues' | 'lineage_gap';
@@ -34,7 +36,7 @@ const parseSourceFiles = (values: Array<string | null | undefined>) => {
 export async function buildEvidenceRecoveryLocator(args: { supabase: SupabaseClientLike; organizationId: string }) {
   const { supabase, organizationId } = args;
 
-  const [topography, survey, topographyGap, holeContext, chemistry] = await Promise.all([
+  const [topography, survey, topographyGap, holeContext, intervals, chemistry] = await Promise.all([
     supabase
       .from('production_geology_topography_recovery_v1')
       .select('drill_hole_id,hole_code,topography_evidence_rows,source_refs,latest_evidence_text,recovery_action')
@@ -54,21 +56,28 @@ export async function buildEvidenceRecoveryLocator(args: { supabase: SupabaseCli
       .select('drill_hole_id,hole_code,interval_count,lithology_span_count,structure_span_count,source_reference')
       .eq('organization_id', organizationId),
     supabase
+      .from('production_drill_intervals')
+      .select('drill_hole_id,notes,lithology,mineralization,operational_result')
+      .eq('organization_id', organizationId),
+    supabase
       .from('production_chemistry_lineage_v1')
       .select('sample_code,drill_hole_id,source_file,source_sheet,source_row,lineage_status')
       .eq('organization_id', organizationId),
   ]);
 
-  const error = topography.error || survey.error || topographyGap.error || holeContext.error || chemistry.error;
+  const error = topography.error || survey.error || topographyGap.error || holeContext.error || intervals.error || chemistry.error;
   if (error) throw new Error(error.message || 'No fue posible localizar fuentes de recuperación');
 
   const topographyRows = topography.data || [];
   const surveyRows = survey.data || [];
   const topographyGapRows = topographyGap.data || [];
   const contextRows = holeContext.data || [];
+  const intervalRows = intervals.data || [];
   const chemistryRows = chemistry.data || [];
 
-  const loggingClues = contextRows.filter((row: any) => Number(row.interval_count || 0) === 0 && Number(row.lithology_span_count || 0) > 0);
+  const holeCodeById = new Map(contextRows.map((row: any) => [row.drill_hole_id, row.hole_code]));
+  const formalLoggingRows = intervalRows.filter((row: any) => classifyIntervalEvidence(row.notes) === 'explicit_formal_logging');
+  const operationalIntervalRows = intervalRows.filter((row: any) => classifyIntervalEvidence(row.notes) === 'operational_source_interval');
   const structuralClues = contextRows.filter((row: any) => Number(row.structure_span_count || 0) > 0);
   const linkedChemistry = chemistryRows.filter((row: any) => Boolean(row.drill_hole_id));
 
@@ -106,16 +115,35 @@ export async function buildEvidenceRecoveryLocator(args: { supabase: SupabaseCli
     },
     {
       category: 'geological_logging',
-      label: 'Logging / intervalos geológicos',
-      status: loggingClues.length ? 'historical_source_clues' : 'lineage_gap',
-      candidate_holes: new Set(loggingClues.map((row: any) => row.drill_hole_id).filter(Boolean)).size,
-      evidence_rows: loggingClues.reduce((sum: number, row: any) => sum + Number(row.lithology_span_count || 0), 0),
-      source_files: parseSourceFiles(loggingClues.map((row: any) => row.source_reference)),
-      source_authority: 'Son observaciones operacionales con señal litológica en sondajes sin intervalos canónicos. Sirven para localizar filas fuente, no para inventar logging.',
-      recovery_action: 'Revisar las filas fuente y reconstruir intervalos sólo cuando from/to y descripción geológica sean explícitos; el geólogo valida antes de materializar.',
-      examples: loggingClues.slice(0, 5).map((row: any) => ({
-        hole_code: row.hole_code || null,
-        source_reference: String(row.source_reference || ''),
+      label: 'Logging geológico formal',
+      status: formalLoggingRows.length ? 'exact_source_clues' : 'lineage_gap',
+      candidate_holes: new Set(formalLoggingRows.map((row: any) => row.drill_hole_id).filter(Boolean)).size,
+      evidence_rows: formalLoggingRows.length,
+      source_files: parseSourceFiles(formalLoggingRows.map((row: any) => row.notes)),
+      source_authority: formalLoggingRows.length
+        ? 'Sólo se cuentan intervalos cuya procedencia está explícitamente identificada como logging geológico formal. No se mezclan con observaciones operacionales.'
+        : 'No hay intervalos cuya procedencia esté explícitamente identificada como logging geológico formal. Las observaciones operacionales existentes no cierran esta brecha.',
+      recovery_action: formalLoggingRows.length
+        ? 'Revisar trazabilidad, columnas y validación del geólogo antes de usar estos intervalos como logging formal.'
+        : 'Solicitar la fuente original de logging por sondaje e intervalo. Debe preservar hole_code, from/to y los atributos realmente registrados —litología, alteración, mineralización, estructuras, recuperación/RQD y muestra sólo cuando existan— junto con archivo/hoja/fila o identificador fuente. El geólogo valida antes de materializar.',
+      examples: formalLoggingRows.slice(0, 5).map((row: any) => ({
+        hole_code: holeCodeById.get(row.drill_hole_id) || null,
+        source_reference: String(row.notes || 'logging formal sin referencia textual'),
+      })),
+    },
+    {
+      category: 'operational_interval_evidence',
+      label: 'Intervalos operacionales existentes',
+      status: operationalIntervalRows.length ? 'historical_source_clues' : 'lineage_gap',
+      candidate_holes: new Set(operationalIntervalRows.map((row: any) => row.drill_hole_id).filter(Boolean)).size,
+      evidence_rows: operationalIntervalRows.length,
+      source_files: parseSourceFiles(operationalIntervalRows.map((row: any) => row.notes)),
+      source_authority: 'Son tramos estructurados desde reportes de perforación u observaciones operacionales. Pueden contener litología o mineralización visual, pero no equivalen a logging geológico formal, RQD, recuperación, alteración validada, muestreo ni contacto geológico cerrado.',
+      recovery_action: 'Usarlos como pista para localizar el registro fuente correspondiente y contrastarlo con el logging original. No promover estos tramos a logging formal por similitud de profundidad o descripción.',
+      examples: operationalIntervalRows.slice(0, 5).map((row: any) => ({
+        hole_code: holeCodeById.get(row.drill_hole_id) || null,
+        source_reference: String(row.notes || 'intervalo operacional sin referencia textual'),
+        evidence_text: [row.lithology, row.mineralization, row.operational_result].filter(Boolean).join(' · ') || null,
       })),
     },
     {
@@ -153,15 +181,17 @@ export async function buildEvidenceRecoveryLocator(args: { supabase: SupabaseCli
   ];
 
   return {
-    semantics: 'Este mapa localiza fuentes candidatas para recuperar evidencia faltante. Una pista de fuente no materializa hechos geológicos y una fuente sin linaje explícito no se asigna a un sondaje.',
+    semantics: 'Este mapa localiza fuentes candidatas para recuperar evidencia faltante. Una pista de fuente no materializa hechos geológicos y una fuente sin linaje explícito no se asigna a un sondaje. Logging formal y evidencia operacional permanecen separados.',
     sources,
     summary: {
       topography_candidate_holes: sources[0].candidate_holes,
       survey_candidate_holes: sources[1].candidate_holes,
-      logging_clue_holes: sources[2].candidate_holes,
-      structural_clue_holes: sources[3].candidate_holes,
+      formal_logging_holes: sources[2].candidate_holes,
+      operational_interval_holes: sources[3].candidate_holes,
+      logging_clue_holes: sources[3].candidate_holes,
+      structural_clue_holes: sources[4].candidate_holes,
       chemistry_rows: chemistryRows.length,
-      chemistry_linked_holes: sources[4].candidate_holes,
+      chemistry_linked_holes: sources[5].candidate_holes,
     },
   };
 }
