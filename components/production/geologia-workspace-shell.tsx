@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { GeologiaDashboard } from '@/components/production/geologia-dashboard';
 import { GeologiaHistoricalCanonical } from '@/components/production/geologia-historical-canonical';
 import { GeologiaCanonicalStatus } from '@/components/production/geologia-canonical-status';
+import { GeologiaDataCompleteness } from '@/components/production/geologia-data-completeness';
 import { GeologiaInterpretation } from '@/components/production/geologia-interpretation';
 import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floating-chat';
 
@@ -14,13 +15,14 @@ const tabs = [
   ['holes', 'Sondajes'],
   ['results', 'Resultados'],
   ['pending', 'Tareas'],
+  ['completeness', 'Cobertura'],
   ['canonical', 'Evidencia'],
   ['history', 'Histórico'],
 ] as const;
 
 type TabKey = (typeof tabs)[number][0];
 
-const dashboardLabels: Record<Exclude<TabKey, 'history' | 'canonical' | 'interpretation'>, string> = {
+const dashboardLabels: Record<Exclude<TabKey, 'history' | 'canonical' | 'completeness' | 'interpretation'>, string> = {
   today: 'Hoy',
   holes: 'Mapa y sondajes',
   results: 'Resultados',
@@ -32,7 +34,7 @@ export function GeologiaWorkspaceShell() {
   const dashboardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (tab === 'history' || tab === 'canonical' || tab === 'interpretation') return;
+    if (tab === 'history' || tab === 'canonical' || tab === 'completeness' || tab === 'interpretation') return;
     const root = dashboardRef.current;
     if (!root) return;
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('nav[aria-label="Vistas de Geología"] button'));
@@ -40,7 +42,7 @@ export function GeologiaWorkspaceShell() {
     target?.click();
   }, [tab]);
 
-  const showDashboard = !['history','canonical','interpretation'].includes(tab);
+  const showDashboard = !['history','canonical','completeness','interpretation'].includes(tab);
 
   return (
     <div className="space-y-5">
@@ -61,6 +63,7 @@ export function GeologiaWorkspaceShell() {
       </div>
 
       {tab === 'interpretation' ? <GeologiaInterpretation /> : null}
+      {tab === 'completeness' ? <GeologiaDataCompleteness /> : null}
       {tab === 'canonical' ? <GeologiaCanonicalStatus /> : null}
       {tab === 'history' ? <GeologiaHistoricalCanonical /> : null}
       <GeologiaAiFloatingChat />
