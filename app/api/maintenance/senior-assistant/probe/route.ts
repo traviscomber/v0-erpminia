@@ -8,7 +8,10 @@ export async function GET(request: NextRequest) {
   const probeRequest = new NextRequest(target, {
     method: 'POST',
     headers: request.headers,
-    body: JSON.stringify({ message: '¿Qué equipos requieren atención primero y por qué?' }),
+    body: JSON.stringify({
+      message: '¿Qué equipos requieren atención primero y por qué?',
+      ephemeral: true,
+    }),
   });
 
   const response = await POST(probeRequest);
