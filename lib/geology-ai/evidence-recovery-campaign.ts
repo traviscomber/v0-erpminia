@@ -116,6 +116,8 @@ export async function buildEvidenceRecoveryCampaign(args: {
       const sourceClassA = a.has_topography && a.has_survey ? 0 : a.has_topography ? 1 : 2;
       const sourceClassB = b.has_topography && b.has_survey ? 0 : b.has_topography ? 1 : 2;
       if (sourceClassA !== sourceClassB) return sourceClassA - sourceClassB;
+      const dateDifference = String(b.last_evidence_date || '').localeCompare(String(a.last_evidence_date || ''));
+      if (dateDifference !== 0) return dateDifference;
       const priorityA = a.effective_priority_rank ?? 99;
       const priorityB = b.effective_priority_rank ?? 99;
       if (priorityA !== priorityB) return priorityA - priorityB;
@@ -132,7 +134,7 @@ export async function buildEvidenceRecoveryCampaign(args: {
 
   return {
     year: currentYear,
-    semantics: 'Prioriza recuperación documental del año vigente por recencia, superposición de fuentes y cantidad de evidencia operacional que queda limitada por la brecha. No representa probabilidad geológica, calidad de target, ley ni recomendación de perforación.',
+    semantics: 'Prioriza recuperación documental del año vigente por superposición de fuentes, recencia y cantidad de evidencia operacional que queda limitada por la brecha. No representa probabilidad geológica, calidad de target, ley ni recomendación de perforación.',
     source_policy: 'Una mención de Topografía o survey sólo localiza una fuente candidata. Coordenadas, CRS, azimut y estaciones downhole requieren el archivo o exportación numérica original y validación humana antes de materializarse.',
     summary: {
       current_candidate_holes: currentRows.length,
