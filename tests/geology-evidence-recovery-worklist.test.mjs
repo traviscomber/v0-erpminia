@@ -54,14 +54,10 @@ test('recovery worklist renders internal states as human operational labels', as
   assert.doesNotMatch(component, /\|\| row\.state/);
 });
 
-test('geology priorities support reproducible deep-linked reviews', async () => {
+test('recovery worklist remains optional and is not mounted in primary priorities', async () => {
   const component = await readFile(componentUrl, 'utf8');
   const shell = await readFile(shellUrl, 'utf8');
-  assert.match(shell, /URLSearchParams\(window\.location\.search\)\.get\('tab'\)/);
-  assert.match(shell, /GeologiaEvidenceRecoveryWorklist/);
-  assert.match(component, /params\.get\('recovery'\)/);
-  assert.match(component, /params\.get\('hole'\)/);
-  assert.match(component, /tab=priorities&recovery=/);
   assert.match(component, /Logging fuente/);
   assert.match(component, /Abrir revisión enlazada/);
+  assert.doesNotMatch(shell, /GeologiaEvidenceRecoveryWorklist/);
 });
