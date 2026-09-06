@@ -5,6 +5,13 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { applyDatePeriod, getDashboardPeriod } from '@/lib/api/dashboard-period';
 
+function classifyIntervalEvidence(row: { notes?: string | null }) {
+  const notes = String(row.notes || '').toLowerCase();
+  if (/formal logging|geologist logging|logging geológico formal|validated geological logging/.test(notes)) return 'explicit_formal_logging' as const;
+  if (/operational observation|operator observation|production_drilling_source_reports|derived only between two consecutive explicit depth transitions|canonical geology pass|exelito interval pass|geology evidence extraction/.test(notes)) return 'operational_source_interval' as const;
+  return 'unclassified_interval' as const;
+}
+
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.PROD_GEOLOGIA);
   if (!access.authorized) return access.response;
@@ -101,28 +108,23 @@ export async function GET(request: NextRequest) {
   ]);
 
   const error =
-    mines.error ||
-    sectors.error ||
-    drilling.error ||
-    recentDrilling.error ||
-    drillingHistory.error ||
-    chemistryIntelligence.error ||
-    holes.error ||
-    intervals.error ||
-    samples.error ||
-    chemistryResults.error ||
-    locationReview.error;
+    mines.error || sectors.error || drilling.error || recentDrilling.error || drillingHistory.error ||
+    chemistryIntelligence.error || holes.error || intervals.error || samples.error || chemistryResults.error || locationReview.error;
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 
   const mineRows = mines.data || [];
   const sectorRows = sectors.data || [];
   const drillingRows = drilling.data || [];
   const holeRows = holes.data || [];
-  const intervalRows = intervals.data || [];
+  const rawIntervalRows = intervals.data || [];
+  const intervalRows = rawIntervalRows.map((row) => ({ ...row, evidence_class: classifyIntervalEvidence(row) }));
   const sampleRows = samples.data || [];
   const chemistryResultRows = chemistryResults.data || [];
   const reviewRows = locationReview.data || [];
 
+  const operationalIntervals = intervalRows.filter((row) => row.evidence_class === 'operational_source_interval').length;
+  const formalLoggingIntervals = intervalRows.filter((row) => row.evidence_class === 'explicit_formal_logging').length;
+  const unclassifiedIntervals = intervalRows.filter((row) => row.evidence_class === 'unclassified_interval').length;
   const linkedMineReports = drillingRows.filter((row) => row.canonical_mine_source_id).length;
   const linkedSectorReports = drillingRows.filter((row) => row.canonical_mine_sector_id).length;
   const linkedHoleReports = drillingRows.filter((row) => row.canonical_drill_hole_id).length;
@@ -189,6 +191,9 @@ export async function GET(request: NextRequest) {
       orientedHoles,
       purposeHoles,
       intervals: intervalRows.length,
+      operationalIntervals,
+      formalLoggingIntervals,
+      unclassifiedIntervals,
       samples: sampleRows.length,
       samplesValidated,
       samplesReview,
@@ -206,12 +211,12 @@ export async function GET(request: NextRequest) {
     locationReview: reviewRows,
     recentDrilling: recentDrilling.data || [],
     intelligenceStatus: {
-      geologicalSamplesCanonical: intervalRows.length > 0,
+      geologicalSamplesCanonical: formalLoggingIntervals > 0,
       assaysCanonical: chemistryResultRows.length > 0,
       drillHolesCanonical: holeRows.length > 0,
-      note: intervalRows.length === 0
-        ? 'Hay sondajes canónicos, pero todavía no existen intervalos de logging geológico. Los ensayes históricos se muestran por su relación canónica real con muestra y mina; no se asignan a sondajes sin evidencia.'
-        : 'El logging geológico se muestra desde intervalos canónicos de La Patagua.',
+      note: formalLoggingIntervals === 0
+        ? `Existen ${operationalIntervals} intervalos operacionales estructurados desde reportes fuente, pero no hay logging geológico formal explícitamente validado. No usar esos intervalos como RQD, alteración, muestreo o contacto geológico formal.`
+        : `Hay ${formalLoggingIntervals} intervalos identificados explícitamente como logging geológico formal; los intervalos operacionales permanecen separados.`,
     },
   });
 }
