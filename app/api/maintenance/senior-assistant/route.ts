@@ -5,7 +5,8 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
-const DEFAULT_MODEL = 'gpt-5.6-terra';
+const DEFAULT_MODEL = 'gpt-5.6';
+const FALLBACK_MODELS = ['gpt-5.6', 'gpt-5.6-luna'];
 const MAX_MESSAGE_CHARS = 12000;
 
 function extractResponseText(payload: any) {
@@ -20,23 +21,43 @@ function extractResponseText(payload: any) {
 async function callOpenAI(instructions: string, input: string) {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error('OPENAI_API_KEY no está configurada en el servidor');
-  const response = await fetch(OPENAI_RESPONSES_URL, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: process.env.OPENAI_MAINTENANCE_MODEL || DEFAULT_MODEL,
-      instructions,
-      input,
-      reasoning: { effort: 'medium' },
-      max_output_tokens: 3600,
-    }),
-    cache: 'no-store',
-  });
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error?.message || `OpenAI respondió ${response.status}`);
-  const text = extractResponseText(payload);
-  if (!text) throw new Error('OpenAI no devolvió texto utilizable');
-  return { text, model: payload?.model || DEFAULT_MODEL, responseId: payload?.id || null };
+
+  const configuredModel = process.env.OPENAI_MAINTENANCE_MODEL?.trim();
+  const models = Array.from(new Set([configuredModel, DEFAULT_MODEL, ...FALLBACK_MODELS].filter(Boolean))) as string[];
+  let lastError = 'No hay un modelo de OpenAI disponible';
+
+  for (const model of models) {
+    const response = await fetch(OPENAI_RESPONSES_URL, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        instructions,
+        input,
+        reasoning: { effort: 'medium' },
+        max_output_tokens: 3600,
+      }),
+      cache: 'no-store',
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const detail = payload?.error?.message || `OpenAI respondió ${response.status}`;
+      lastError = detail;
+      const invalidModel = /invalid model|model.*not.*found|does not exist|not permitted|not available/i.test(detail);
+      if (invalidModel) {
+        console.warn('[maintenance-senior-assistant] model unavailable, retrying', { model, detail });
+        continue;
+      }
+      throw new Error(detail);
+    }
+
+    const text = extractResponseText(payload);
+    if (!text) throw new Error('OpenAI no devolvió texto utilizable');
+    return { text, model: payload?.model || model, responseId: payload?.id || null };
+  }
+
+  throw new Error(lastError);
 }
 
 const isSynthetic = (value: unknown) => /\buat\b|simulad|prueba|test controlado/i.test(String(value ?? ''));
@@ -104,21 +125,7 @@ export async function POST(request: NextRequest) {
       closure_readiness: closeReadiness.data || [],
     };
 
-    const instructions = `Eres el Asistente Senior de Mantenimiento de MOTIL para una operación minera chilena. Respondes como copiloto técnico de un jefe de mantenimiento, planificador o supervisor.
-
-REGLAS DE AUTORIDAD Y SEGURIDAD:
-1. Usa únicamente el CONTEXTO CANÓNICO entregado. Si falta evidencia, dilo explícitamente.
-2. Distingue siempre DATO CANÓNICO, INTERPRETACIÓN PROFESIONAL, HIPÓTESIS A REVISAR y RECOMENDACIÓN/PRÓXIMA ACCIÓN cuando corresponda.
-3. Un porcentaje de reportes fuera de servicio u observados describe frecuencia histórica observada; jamás lo llames probabilidad de falla.
-4. Separa causas mecánicas de restricciones externas como falta de agua, corte de energía o falta de dotación.
-5. No uses UAT, simulaciones o pruebas como evidencia de confiabilidad real.
-6. No declares causa raíz si no está validada. No declares MTBF/MTTR predictivo si no existe evidencia suficiente.
-7. No inventes repuestos, costos, horas, manuales, tolerancias ni procedimientos OEM.
-8. No crees, cierres, priorices de forma irreversible ni autorices una OT. Puedes recomendar qué revisar y por qué; la decisión final es humana.
-9. Si existe evidencia contradictoria, muéstrala. Si una máquina tuvo reportes degradados y también muchos reportes operativos normales, incluye ambos.
-10. Prioriza respuestas operacionales y concretas: qué sabemos, qué nos preocupa, qué falta confirmar y cuál es el siguiente dato/acción de mayor valor.
-
-Cuando el usuario pregunte qué equipo requiere atención, compara señales observadas, estado fuera de servicio, preventivos vencidos, OT abiertas y evidencia de cierre. No conviertas un ranking operacional en riesgo probabilístico.`;
+    const instructions = `Eres el Asistente Senior de Mantenimiento de MOTIL para una operación minera chilena. Respondes como copiloto técnico de un jefe de mantenimiento, planificador o supervisor.\n\nREGLAS DE AUTORIDAD Y SEGURIDAD:\n1. Usa únicamente el CONTEXTO CANÓNICO entregado. Si falta evidencia, dilo explícitamente.\n2. Distingue siempre DATO CANÓNICO, INTERPRETACIÓN PROFESIONAL, HIPÓTESIS A REVISAR y RECOMENDACIÓN/PRÓXIMA ACCIÓN cuando corresponda.\n3. Un porcentaje de reportes fuera de servicio u observados describe frecuencia histórica observada; jamás lo llames probabilidad de falla.\n4. Separa causas mecánicas de restricciones externas como falta de agua, corte de energía o falta de dotación.\n5. No uses UAT, simulaciones o pruebas como evidencia de confiabilidad real.\n6. No declares causa raíz si no está validada. No declares MTBF/MTTR predictivo si no existe evidencia suficiente.\n7. No inventes repuestos, costos, horas, manuales, tolerancias ni procedimientos OEM.\n8. No crees, cierres, priorices de forma irreversible ni autorices una OT. Puedes recomendar qué revisar y por qué; la decisión final es humana.\n9. Si existe evidencia contradictoria, muéstrala. Si una máquina tuvo reportes degradados y también muchos reportes operativos normales, incluye ambos.\n10. Prioriza respuestas operacionales y concretas: qué sabemos, qué nos preocupa, qué falta confirmar y cuál es el siguiente dato/acción de mayor valor.\n\nCuando el usuario pregunte qué equipo requiere atención, compara señales observadas, estado fuera de servicio, preventivos vencidos, OT abiertas y evidencia de cierre. No conviertas un ranking operacional en riesgo probabilístico.`;
 
     const result = await callOpenAI(instructions, `CONTEXTO CANÓNICO MOTIL:\n${JSON.stringify(canonicalContext)}\n\nPREGUNTA DEL USUARIO:\n${message}`);
     return NextResponse.json({
