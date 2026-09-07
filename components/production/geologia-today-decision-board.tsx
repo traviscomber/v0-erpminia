@@ -17,7 +17,16 @@ type Summary = {
   samplesReview:number;
   unresolvedLocations:number;
 };
-type PendingRow = { hole_code:string; resolution_state:string|null; review_priority:number|null; recommended_action:string|null; proposed_mine_name:string|null; proposed_sector_name:string|null; };
+type PendingRow = {
+  hole_code:string;
+  resolution_state:string|null;
+  review_priority:number|null;
+  recommended_action:string|null;
+  proposed_mine_name:string|null;
+  proposed_sector_name:string|null;
+  operational_bucket?:string|null;
+  operational_priority?:number|null;
+};
 type CurrentHole = { id:string; start_at:string|null; mine_source_id:string|null; mine_sector_id:string|null; drilled_depth_m:number|null; };
 type SupplementalData = { holes:CurrentHole[] };
 type Props = { summary:Summary; pending:PendingRow[]; chemistryLinkedToHole:number; onOpenHoles:()=>void; onOpenResults:()=>void; onOpenPending:()=>void; };
@@ -39,7 +48,10 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,chemistryLinkedToH
   const locatedPct=pct(s.locatedHoles,s.holes);
   const orientedPct=pct(s.orientedHoles,s.holes);
   const purposePct=pct(s.purposeHoles,s.holes);
-  const topPending=[...pending].sort((a,b)=>(b.review_priority||0)-(a.review_priority||0)).slice(0,3);
+  const unresolvedPending=pending.filter((row)=>!['resolved','verified','matched'].includes(String(row.resolution_state||'').toLowerCase()));
+  const operationalPending=unresolvedPending.filter((row)=>String(row.operational_bucket||'').toLowerCase()!=='historico');
+  const historicalPending=unresolvedPending.filter((row)=>String(row.operational_bucket||'').toLowerCase()==='historico');
+  const topPending=[...operationalPending].sort((a,b)=>(a.operational_priority??999)-(b.operational_priority??999)||(b.review_priority||0)-(a.review_priority||0)).slice(0,3);
   const locationIsActionableException=s.holes>0&&locatedPct>=10&&locatedPct<100;
 
   const decisions=[
@@ -62,13 +74,13 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,chemistryLinkedToH
       active:s.samplesReview>0,
     },
     {
-      title:'Resolver reconciliaciones pendientes',
-      detail:`${s.unresolvedLocations} registros mantienen ubicación o reconciliación abierta.`,
-      impact:'Estas sí son excepciones sobre evidencia existente: resolver mina, sector y pozo mejora trazabilidad sin pedir una fuente nueva.',
+      title:'Resolver reconciliaciones operacionales',
+      detail:`${operationalPending.length} casos vigentes requieren atención; ${historicalPending.length} permanecen como backlog histórico separado.`,
+      impact:'Estas sí son excepciones sobre evidencia existente y vigente: resolver mina, sector y pozo mejora trazabilidad sin pedir una fuente nueva.',
       action:'Abrir pendientes',
       onClick:onOpenPending,
       icon:AlertTriangle,
-      active:s.unresolvedLocations>0,
+      active:operationalPending.length>0,
     },
   ].sort((a,b)=>Number(b.active)-Number(a.active));
 
@@ -92,7 +104,7 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,chemistryLinkedToH
     </section>
 
     <section className="rounded-lg border bg-card p-5">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Mesa de decisiones · Hoy</p><h2 className="mt-2 text-xl font-semibold tracking-tight">Qué necesita atención geológica ahora</h2><p className="mt-1 max-w-3xl text-sm text-muted-foreground">Sólo aparecen acciones sobre evidencia existente o excepciones dentro de dimensiones con cobertura suficiente. La ausencia estructural de la fuente se informa, pero no se convierte en tarea.</p></div><ShieldCheck className="h-5 w-5 text-muted-foreground"/></div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div><p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Mesa de decisiones · Hoy</p><h2 className="mt-2 text-xl font-semibold tracking-tight">Qué necesita atención geológica ahora</h2><p className="mt-1 max-w-3xl text-sm text-muted-foreground">Sólo aparecen acciones sobre evidencia existente o excepciones dentro de dimensiones con cobertura suficiente. La ausencia estructural de la fuente y el backlog histórico se informan, pero no compiten con la operación actual.</p></div><ShieldCheck className="h-5 w-5 text-muted-foreground"/></div>
       <div className="mt-5 grid gap-3 lg:grid-cols-3">{decisions.map((item)=>{const Icon=item.icon;return <button key={item.title} type="button" onClick={item.onClick} className="rounded-lg border bg-background p-4 text-left transition-colors hover:bg-muted/20"><div className="flex items-start justify-between gap-3"><Icon className={`h-5 w-5 ${item.active?'text-amber-700 dark:text-amber-400':'text-emerald-700 dark:text-emerald-400'}`}/><ArrowRight className="h-4 w-4 text-muted-foreground"/></div><p className="mt-4 font-medium">{item.title}</p><p className="mt-1 text-sm text-muted-foreground">{item.detail}</p><p className="mt-3 text-xs leading-5 text-muted-foreground">{item.impact}</p><p className="mt-4 text-xs font-medium">{item.action}</p></button>})}</div>
     </section>
 
@@ -114,9 +126,10 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,chemistryLinkedToH
       </section>
 
       <section className="rounded-lg border bg-card p-5">
-        <div className="flex items-center justify-between gap-3"><div><p className="font-medium">Pendientes prioritarios</p><p className="mt-1 text-sm text-muted-foreground">Sólo reconciliaciones sobre evidencia existente.</p></div><AlertTriangle className="h-4 w-4 text-muted-foreground"/></div>
-        {topPending.length?<div className="mt-4 space-y-3">{topPending.map((row,index)=><div key={`${row.hole_code}-${index}`} className="border-t pt-3 first:border-t-0 first:pt-0"><div className="flex items-center justify-between gap-3"><p className="font-medium">{row.hole_code}</p><span className="text-xs text-muted-foreground">P{row.review_priority??'—'}</span></div><p className="mt-1 text-xs text-muted-foreground">{[row.proposed_mine_name,row.proposed_sector_name].filter(Boolean).join(' · ')||'Sin ubicación propuesta'}</p><p className="mt-2 text-sm">{row.recommended_action||'Revisar y reconciliar evidencia.'}</p></div>)}</div>:<div className="mt-5 rounded-lg border border-dashed p-5 text-center text-sm text-muted-foreground">No hay pendientes priorizados abiertos.</div>}
-        {topPending.length?<button type="button" onClick={onOpenPending} className="mt-4 inline-flex items-center gap-1 text-sm font-medium">Ver todos los pendientes <ArrowRight className="h-4 w-4"/></button>:null}
+        <div className="flex items-center justify-between gap-3"><div><p className="font-medium">Pendientes prioritarios</p><p className="mt-1 text-sm text-muted-foreground">Sólo reconciliaciones operacionales sobre evidencia existente.</p></div><AlertTriangle className="h-4 w-4 text-muted-foreground"/></div>
+        {topPending.length?<div className="mt-4 space-y-3">{topPending.map((row,index)=><div key={`${row.hole_code}-${index}`} className="border-t pt-3 first:border-t-0 first:pt-0"><div className="flex items-center justify-between gap-3"><p className="font-medium">{row.hole_code}</p><span className="text-xs text-muted-foreground">P{row.review_priority??'—'}</span></div><p className="mt-1 text-xs text-muted-foreground">{[row.proposed_mine_name,row.proposed_sector_name].filter(Boolean).join(' · ')||'Sin ubicación propuesta'}</p><p className="mt-2 text-sm">{row.recommended_action||'Revisar y reconciliar evidencia.'}</p></div>)}</div>:<div className="mt-5 rounded-lg border border-dashed p-5 text-center text-sm text-muted-foreground">No hay pendientes operacionales priorizados abiertos.</div>}
+        {topPending.length?<button type="button" onClick={onOpenPending} className="mt-4 inline-flex items-center gap-1 text-sm font-medium">Ver cola operacional <ArrowRight className="h-4 w-4"/></button>:null}
+        {historicalPending.length>0?<p className="mt-4 border-t pt-3 text-xs leading-5 text-muted-foreground">{historicalPending.length.toLocaleString('es-CL')} casos históricos permanecen registrados para recuperación de evidencia y no alteran la prioridad diaria.</p>:null}
       </section>
     </div>
   </div>;
