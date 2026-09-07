@@ -6,6 +6,7 @@ const contextNavUrl = new URL('../components/layout/daily-management-context-nav
 const shellUrl = new URL('../components/layout/dashboard-shell.tsx', import.meta.url);
 const calendarUrl = new URL('../app/dashboard/tareas/page.tsx', import.meta.url);
 const actionsUrl = new URL('../app/dashboard/acciones/page.tsx', import.meta.url);
+const headerUrl = new URL('../components/layout/header.tsx', import.meta.url);
 
 test('Gestión diaria exposes three distinct unnumbered contexts', async () => {
   const source = await readFile(contextNavUrl, 'utf8');
@@ -29,4 +30,13 @@ test('calendar and cargo inbox remain semantically distinct', async () => {
   assert.match(calendar, /\/api\/calendar\/operational/);
   assert.match(actions, /<h1[^>]*>Mis acciones<\/h1>/);
   assert.match(actions, /\/api\/actions\/inbox/);
+});
+
+test('global header uses the canonical context language', async () => {
+  const header = await readFile(headerUrl, 'utf8');
+  assert.match(header, /tareas: 'Calendario operacional'/);
+  assert.match(header, /andon: 'Problemas operacionales'/);
+  assert.match(header, /bodega: 'Bodega'/);
+  assert.match(header, /aria-label="Ver calendario operacional"/);
+  assert.doesNotMatch(header, /aria-label="Ver acciones pendientes"/);
 });
