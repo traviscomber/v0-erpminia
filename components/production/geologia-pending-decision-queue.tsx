@@ -87,7 +87,7 @@ export function GeologiaPendingDecisionQueue(props:Props){
   const unresolved=props.pending.filter((row)=>!isResolved(row.resolution_state));
   const activePending=unresolved
     .filter((row)=>String(row.operational_bucket||'').toLowerCase()!=='historico')
-    .sort((a,b)=>(a.operational_priority??999)-(b.operational_priority??999)||(b.review_priority||0)-(a.review_priority||0)||a.hole_code.localeCompare(b.hole_code,'es',{numeric:true}));
+    .sort((a,b)=>(b.operational_priority??-1)-(a.operational_priority??-1)||(b.review_priority||0)-(a.review_priority||0)||a.hole_code.localeCompare(b.hole_code,'es',{numeric:true}));
   const historicalPending=unresolved.filter((row)=>String(row.operational_bucket||'').toLowerCase()==='historico');
   const criticalCount=activePending.filter((row)=>row.operational_bucket==='critico').length;
   const augustCount=activePending.filter((row)=>row.operational_bucket==='activo_agosto').length;
