@@ -93,7 +93,8 @@ export default function TareasPage() {
     });
   }, [data?.data, query, view]);
 
-  const summary = data?.summary || { overdue: 0, today: 0, next_7_days: 0, total: 0 };
+  const summary = data?.summary ?? null;
+  const summaryValue = (key: keyof TasksResponse['summary']) => isLoading || error || !summary ? '—' : summary[key].toLocaleString('es-CL');
 
   return (
     <div className="space-y-6">
@@ -116,10 +117,10 @@ export default function TareasPage() {
 
       <div className="grid divide-y rounded-lg border border-border bg-card sm:grid-cols-4 sm:divide-x sm:divide-y-0">
         {[
-          ['Abiertas', summary.total],
-          ['Vencidas', summary.overdue],
-          ['Para hoy', summary.today],
-          ['Próximos 7 días', summary.next_7_days],
+          ['Abiertas', summaryValue('total')],
+          ['Vencidas', summaryValue('overdue')],
+          ['Para hoy', summaryValue('today')],
+          ['Próximos 7 días', summaryValue('next_7_days')],
         ].map(([label, value]) => (
           <div key={String(label)} className="px-5 py-4">
             <p className="text-xs text-muted-foreground">{label}</p>
@@ -148,7 +149,7 @@ export default function TareasPage() {
       </FilterToolbar>
 
       {isLoading ? <StatePanel tone="loading" title="Cargando compromisos" description="Consultando las fuentes operacionales." /> : null}
-      {error ? <StatePanel tone="error" title="No fue posible cargar los compromisos" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} /> : null}
+      {error ? <StatePanel tone="error" title="No fue posible cargar los compromisos" description={`${error.message}. Los conteos permanecen sin dato hasta recuperar la fuente.`} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} /> : null}
       {!isLoading && !error && tasks.length === 0 ? <StatePanel tone="neutral" icon={CheckCircle2} title="No hay compromisos para este filtro" description="La vista no contiene compromisos abiertos con los criterios seleccionados." /> : null}
 
       {!isLoading && !error && tasks.length > 0 ? (
