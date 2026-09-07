@@ -5,6 +5,7 @@ import test from 'node:test';
 const inventoryLegacy = new URL('../app/dashboard/inventario/page.tsx', import.meta.url);
 const peopleLegacy = new URL('../app/dashboard/personas/page.tsx', import.meta.url);
 const rolesLegacy = new URL('../app/dashboard/roles/page.tsx', import.meta.url);
+const operationalAiLegacy = new URL('../app/dashboard/ia-operacional/page.tsx', import.meta.url);
 const rrhhLayout = new URL('../app/dashboard/rrhh/layout.tsx', import.meta.url);
 const rrhhOperational = new URL('../app/dashboard/rrhh/operacion/page.tsx', import.meta.url);
 const sidebar = new URL('../components/layout/sidebar.tsx', import.meta.url);
@@ -29,6 +30,12 @@ test('legacy roles matrix resolves into canonical protected role administration'
   const source = await readFile(rolesLegacy, 'utf8');
   assert.match(source, /redirect\('\/dashboard\/admin\/roles'\)/);
   assert.doesNotMatch(source, /ROLE_PERMISSIONS/);
+});
+
+test('legacy operational AI executive page resolves into the canonical decision center', async () => {
+  const source = await readFile(operationalAiLegacy, 'utf8');
+  assert.match(source, /redirect\('\/dashboard\/decisiones'\)/);
+  assert.doesNotMatch(source, /api\/dashboard\/ia-operacional/);
 });
 
 test('RRHH separates canonical people identity from operational capacity without inventing a workflow', async () => {
