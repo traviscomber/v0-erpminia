@@ -5,6 +5,7 @@ import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { DailyManagementContextNav } from '@/components/layout/daily-management-context-nav';
 import { DocumentationContextNav } from '@/components/layout/documentation-context-nav';
+import { OperationalAttentionContextNav } from '@/components/layout/operational-attention-context-nav';
 import { cn } from '@/lib/utils';
 import { DashboardPeriodProvider } from '@/components/dashboard/dashboard-period-provider';
 
@@ -43,6 +44,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
         <Header sidebarCollapsed={collapsed} onToggleSidebar={toggleSidebar} />
         <DailyManagementContextNav />
         <DocumentationContextNav />
+        <OperationalAttentionContextNav />
         <DashboardPeriodProvider>
           <main className="flex-1 overflow-x-hidden bg-muted/20 px-4 py-5 md:px-6 md:py-6 xl:px-8 xl:py-7">
             <div className="motil-page">{children}</div>
