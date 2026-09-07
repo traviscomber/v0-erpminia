@@ -7,6 +7,9 @@ const peopleLegacy = new URL('../app/dashboard/personas/page.tsx', import.meta.u
 const rolesLegacy = new URL('../app/dashboard/roles/page.tsx', import.meta.url);
 const operationalAiLegacy = new URL('../app/dashboard/ia-operacional/page.tsx', import.meta.url);
 const kpiDashboardLegacy = new URL('../app/dashboard/kpi-dashboard/page.tsx', import.meta.url);
+const resourcePlanningLegacy = new URL('../app/dashboard/planificacion-recursos/page.tsx', import.meta.url);
+const maintenancePlanningLayout = new URL('../app/dashboard/mantenimiento/planificacion/layout.tsx', import.meta.url);
+const maintenanceResourcePlanning = new URL('../app/dashboard/mantenimiento/planificacion/recursos/page.tsx', import.meta.url);
 const rrhhLayout = new URL('../app/dashboard/rrhh/layout.tsx', import.meta.url);
 const rrhhOperational = new URL('../app/dashboard/rrhh/operacion/page.tsx', import.meta.url);
 const sidebar = new URL('../components/layout/sidebar.tsx', import.meta.url);
@@ -45,6 +48,19 @@ test('legacy hard-coded KPI dashboard resolves into traceable operational perfor
   assert.doesNotMatch(source, /trend:/);
   assert.doesNotMatch(source, /change:/);
   assert.doesNotMatch(source, /api\/dashboard\/kpi-dashboard/);
+});
+
+test('resource planning lives inside the canonical Maintenance planning flow', async () => {
+  const legacy = await readFile(resourcePlanningLegacy, 'utf8');
+  const layout = await readFile(maintenancePlanningLayout, 'utf8');
+  const canonical = await readFile(maintenanceResourcePlanning, 'utf8');
+
+  assert.match(legacy, /redirect\('\/dashboard\/mantenimiento\/planificacion\/recursos'\)/);
+  assert.match(layout, /Planes preventivos/);
+  assert.match(layout, /Recursos y capacidad/);
+  assert.match(canonical, /\/api\/planning\/maintenance/);
+  assert.match(canonical, /Planificación de recursos/);
+  assert.match(canonical, /Mantenimiento · Planificar/);
 });
 
 test('RRHH separates canonical people identity from operational capacity without inventing a workflow', async () => {
