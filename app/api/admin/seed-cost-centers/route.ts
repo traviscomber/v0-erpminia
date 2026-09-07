@@ -140,31 +140,42 @@ export async function POST(request: NextRequest) {
         };
       });
 
-    const { error: deleteError } = await supabase
+    const codes = payload.map((row) => row.code);
+    const { data: existingRows, error: existingError } = await supabase
       .from('cost_centers')
-      .delete()
-      .eq('organization_id', auth.organizationId);
+      .select('id, code, created_at')
+      .eq('organization_id', auth.organizationId)
+      .in('code', codes);
 
-    if (deleteError) {
-      throw deleteError;
-    }
+    if (existingError) throw existingError;
 
-    const { error } = await supabase.from('cost_centers').insert(payload);
-    if (error) {
-      throw error;
-    }
+    const existingByCode = new Map((existingRows || []).map((row) => [row.code, row]));
+    const syncPayload = payload.map((row) => ({
+      ...row,
+      created_at: existingByCode.get(row.code)?.created_at || row.created_at,
+    }));
+
+    const { error } = await supabase
+      .from('cost_centers')
+      .upsert(syncPayload, { onConflict: 'organization_id,code' });
+
+    if (error) throw error;
+
+    const updated = syncPayload.filter((row) => existingByCode.has(row.code)).length;
+    const imported = syncPayload.length - updated;
 
     return NextResponse.json({
       success: true,
-      imported: payload.length,
-      message: `Se cargaron ${payload.length} centros de costo desde la base de referencia`,
+      imported,
+      updated,
+      preservedExistingIds: updated,
+      message: `Se sincronizaron ${syncPayload.length} centros de costo sin borrar registros existentes`,
     });
   } catch (error) {
     console.error('[v0] Seed cost centers error:', error);
     return NextResponse.json(
-      { error: 'No se pudo cargar la base de centros de costo', details: String(error) },
+      { error: 'No se pudo sincronizar la base de centros de costo', details: String(error) },
       { status: 500 }
     );
   }
 }
-
