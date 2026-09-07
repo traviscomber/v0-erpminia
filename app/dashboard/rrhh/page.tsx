@@ -44,8 +44,8 @@ export default function RrhhPage() {
         if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar RRHH');
         return payload;
       })
-      .then((payload) => setPeople(payload.people || []))
-      .catch((err) => setError(err instanceof Error ? err.message : 'No se pudo cargar RRHH'))
+      .then((payload) => { setPeople(payload.people || []); setError(null); })
+      .catch((err) => { setPeople([]); setError(err instanceof Error ? err.message : 'No se pudo cargar RRHH'); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -58,6 +58,7 @@ export default function RrhhPage() {
   const active = people.filter((person) => person.employment_status === 'active').length;
   const withoutProfile = people.filter((person) => !person.profile_id).length;
   const openCases = people.reduce((sum, person) => sum + person.evidence.openCaseCount, 0);
+  const countsUnavailable = loading || Boolean(error);
 
   return (
     <div className="space-y-5">
@@ -80,7 +81,7 @@ export default function RrhhPage() {
         ].map(([label, value]) => (
           <div key={label} className="bg-card px-4 py-3">
             <p className="text-xs text-muted-foreground">{label}</p>
-            <p className="mt-1 text-xl font-semibold">{value}</p>
+            <p className="mt-1 text-xl font-semibold">{countsUnavailable ? '—' : value}</p>
           </div>
         ))}
       </div>
@@ -91,7 +92,7 @@ export default function RrhhPage() {
       </div>
 
       {loading ? <StatePanel tone="loading" title="Cargando personas" description="Reuniendo identidad laboral y evidencia disponible." /> : null}
-      {error ? <StatePanel tone="error" title="No se pudo cargar RRHH" description={error} /> : null}
+      {error ? <StatePanel tone="error" title="No se pudo cargar RRHH" description={`${error}. Los conteos permanecen sin dato hasta recuperar la fuente.`} /> : null}
       {!loading && !error && filtered.length === 0 ? <StatePanel tone="neutral" title="Sin personas" description="No hay personas canónicas que coincidan con la búsqueda." /> : null}
 
       {!loading && !error && filtered.length > 0 ? (
@@ -118,7 +119,7 @@ export default function RrhhPage() {
         </div>
       ) : null}
 
-      <StatePanel tone="neutral" title="Conciliación pendiente" description="Sólo se muestran personas existentes en la entidad canónica people. Los perfiles de acceso que aún no estén vinculados no se incorporan automáticamente para evitar duplicar identidades o atribuir evidencia a la persona equivocada." />
+      {!loading && !error && withoutProfile > 0 ? <StatePanel tone="neutral" title="Conciliación pendiente" description={`${withoutProfile} persona(s) canónica(s) aún no tienen usuario de acceso vinculado. Los perfiles no se incorporan automáticamente para evitar duplicar identidades o atribuir evidencia a la persona equivocada.`} /> : null}
     </div>
   );
 }
