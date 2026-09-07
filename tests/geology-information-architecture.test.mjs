@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
 const shellUrl = new URL('../components/production/geologia-workspace-shell.tsx', import.meta.url);
+const canonicalStatusUrl = new URL('../components/production/geologia-canonical-status.tsx', import.meta.url);
 const productionLayoutUrl = new URL('../app/dashboard/produccion/layout.tsx', import.meta.url);
 const drillingHomeUrl = new URL('../app/dashboard/produccion/sondaje/page.tsx', import.meta.url);
 
@@ -30,12 +31,21 @@ test('geology keeps decision views as local controls inside Production instead o
 });
 
 test('canonical State is traceability while actionable work has one home in Today Tasks', async () => {
-  const shell = await readFile(shellUrl, 'utf8');
+  const [shell, canonicalStatus] = await Promise.all([
+    readFile(shellUrl, 'utf8'),
+    readFile(canonicalStatusUrl, 'utf8'),
+  ]);
 
   assert.match(shell, /Estado = control y trazabilidad canónica/);
   assert.match(shell, /Toda acción operativa se atiende en Hoy → Tareas/);
   assert.match(shell, /Abrir Hoy → Tareas/);
   assert.match(shell, /selectTab\('pending'\)/);
+  assert.match(canonicalStatus, /Estado por sondaje/);
+  assert.match(canonicalStatus, /Las acciones operativas se atienden exclusivamente en Hoy → Tareas/);
+  assert.match(canonicalStatus, /Condición \/ límite/);
+  assert.doesNotMatch(canonicalStatus, /Tareas inmediatas para Geología/);
+  assert.doesNotMatch(canonicalStatus, /Cola del geólogo/);
+  assert.doesNotMatch(canonicalStatus, /Requiere atención/);
 });
 
 test('geology removes the redundant global summary and lets each context carry its own evidence', async () => {
