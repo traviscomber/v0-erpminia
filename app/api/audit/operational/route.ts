@@ -152,8 +152,10 @@ export async function PATCH(request: NextRequest) {
   const body = await request.json().catch(() => null);
   const id = typeof body?.id === 'string' ? body.id : '';
   const resolutionNote = typeof body?.resolutionNote === 'string' ? body.resolutionNote.trim() : '';
-  const evidenceReference = typeof body?.evidenceReference === 'string' && body.evidenceReference.trim() ? body.evidenceReference.trim() : null;
-  if (!id || !resolutionNote) return NextResponse.json({ error: 'Describe cómo se resolvió el hallazgo.' }, { status: 400 });
+  const evidenceReference = typeof body?.evidenceReference === 'string' ? body.evidenceReference.trim() : '';
+  if (!id || !resolutionNote || !evidenceReference) {
+    return NextResponse.json({ error: 'Describe la resolución e indica una referencia de evidencia verificable.' }, { status: 400 });
+  }
 
   const { data: finding } = await context.supabase
     .from('operational_audit_findings')
