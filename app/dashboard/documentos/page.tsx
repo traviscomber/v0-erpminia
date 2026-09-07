@@ -8,6 +8,7 @@ import { AlertCircle, ArrowRight, CheckCircle, Clock, FileText, Plus } from 'luc
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { StatePanel } from '@/components/ui/state-panel';
 import { DocumentUploadModal } from '@/components/documents/document-upload-modal';
 import { DocumentViewer, type DocumentViewerDocument } from '@/components/documents/document-viewer';
 import { DocumentList, type Document } from '@/components/documents/document-list';
@@ -29,13 +30,13 @@ interface PendingApproval {
   };
 }
 
-const fetcher = async (url: string) => {
-  const response = await fetch(url);
-  if (!response.ok) {
-    return null;
-  }
+type DocumentStats = { total: number; approved: number; pending: number; expired: number };
 
-  return response.json();
+const fetcher = async (url: string) => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar la fuente documental');
+  return payload;
 };
 
 export default function DocumentosDashboard() {
@@ -52,28 +53,25 @@ export default function DocumentosDashboard() {
   } else if (statusFilter) {
     documentsParams.set('status', statusFilter);
   }
-  if (searchQuery.trim()) {
-    documentsParams.set('search', searchQuery.trim());
-  }
+  if (searchQuery.trim()) documentsParams.set('search', searchQuery.trim());
 
   const documentsEndpoint = documentsParams.toString()
-    ? `/api/documents${documentsParams.toString()}`
+    ? `/api/documents?${documentsParams.toString()}`
     : '/api/documents';
 
   const {
     data: documentsData,
+    error: documentsError,
     isLoading: docsLoading,
     mutate: mutateDocuments,
   } = useSWR(documentsEndpoint, fetcher);
-  const { data: approvalsData, mutate: mutateApprovals } = useSWR(
-    '/api/documents/pending',
-    fetcher
-  );
-  const { data: statsData, mutate: mutateStats } = useSWR('/api/documents/stats', fetcher);
+  const { data: approvalsData, error: approvalsError, mutate: mutateApprovals } = useSWR('/api/documents/pending', fetcher);
+  const { data: statsData, error: statsError, isLoading: statsLoading, mutate: mutateStats } = useSWR('/api/documents/stats', fetcher);
 
   const documents = Array.isArray(documentsData?.documents) ? documentsData.documents : [];
   const pendingApprovals = Array.isArray(approvalsData?.approvals) ? approvalsData.approvals : [];
-  const stats = statsData || { total: 0, approved: 0, pending: 0, expired: 0 };
+  const stats = statsData && typeof statsData === 'object' ? statsData as DocumentStats : null;
+  const anySourceError = documentsError || approvalsError || statsError;
 
   const refreshAll = async () => {
     await Promise.all([mutateDocuments(), mutateApprovals(), mutateStats()]);
@@ -96,12 +94,11 @@ export default function DocumentosDashboard() {
       status: doc.status || 'draft',
       fileUrl: String(doc.file_url || doc.fileUrl || ''),
       fileSize: Number(doc.file_size_bytes || doc.fileSize || 0),
-      createdAt: doc.createdAt || doc.uploaded_at || new Date().toISOString(),
+      createdAt: doc.createdAt || doc.uploaded_at || null,
     });
 
     if (typeof document === 'string') {
-      // Si es solo un ID, buscar el documento en la lista
-      const doc = documents.find((d: Document) => String(d.id) === document);
+      const doc = documents.find((item: Document) => String(item.id) === document);
       if (doc) setSelectedDocument(toViewerDocument(doc));
     } else {
       setSelectedDocument(toViewerDocument(document));
@@ -118,14 +115,13 @@ export default function DocumentosDashboard() {
     const response = await fetch(`/api/documents/${documentId}/approve`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ approvalId, comments }),
     });
-
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'No se pudo aprobar el documento');
     }
-
     await refreshAll();
   };
 
@@ -133,195 +129,74 @@ export default function DocumentosDashboard() {
     const response = await fetch(`/api/documents/${documentId}/reject`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({ approvalId, reason }),
     });
-
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'No se pudo rechazar el documento');
     }
-
     await refreshAll();
   };
 
+  const statValue = (key: keyof DocumentStats) => statsLoading || !stats ? '—' : stats[key].toLocaleString('es-CL');
+  const documentList = documentsError
+    ? <StatePanel tone="error" title="Biblioteca no disponible" description="La falla de la fuente no se interpreta como una biblioteca vacía." />
+    : <DocumentList documents={documents} isLoading={docsLoading} onView={handleViewDocument} />;
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-start">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Gestión de Documentos</h1>
-          <p className="text-muted-foreground">
-            Administra documentos y aprobaciones con compliance SERNAGEOMIN
-          </p>
+          <p className="text-muted-foreground">Administra documentos y aprobaciones con trazabilidad de fuente.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button asChild>
-            <Link href="/dashboard/documentos/importar">
-              <ArrowRight className="w-4 h-4 mr-2" />
-              Importar documentos
-            </Link>
-          </Button>
-          <Button
-            className="bg-primary hover:bg-primary/90"
-            onClick={() => setUploadModalOpen(true)}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Subir Documento
-          </Button>
+          <Button asChild variant="outline"><Link href="/dashboard/documentos/importar"><ArrowRight className="mr-2 h-4 w-4" />Importar documentos</Link></Button>
+          <Button onClick={() => setUploadModalOpen(true)}><Plus className="mr-2 h-4 w-4" />Subir documento</Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <FileText className="w-4 h-4" />
-              Total
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-foreground">{stats.total}</p>
-          </CardContent>
-        </Card>
+      {anySourceError ? <StatePanel tone="error" title="Parte de Documentación no pudo actualizarse" description="Las listas o cifras afectadas permanecen sin dato; no se sustituyen por cero." actions={<Button variant="outline" onClick={() => void refreshAll()}>Reintentar</Button>} className="min-h-0" /> : null}
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <CheckCircle className="w-4 h-4" />
-              Aprobados
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-secondary">{stats.approved}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              Pendientes
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-primary">{stats.pending}</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" />
-              Vencidos
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-destructive">{stats.expired}</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        {[
+          ['Total', statValue('total'), FileText],
+          ['Aprobados', statValue('approved'), CheckCircle],
+          ['Pendientes', statValue('pending'), Clock],
+          ['Vencidos', statValue('expired'), AlertCircle],
+        ].map(([label, value, Icon]) => <Card key={String(label)}><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><Icon className="h-4 w-4" />{label}</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-foreground">{value}</p></CardContent></Card>)}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList>
-          <TabsTrigger value="all">Todos los Documentos</TabsTrigger>
-          <TabsTrigger value="pending">Pendientes ({stats.pending})</TabsTrigger>
-          <TabsTrigger value="approved">Aprobados ({stats.approved})</TabsTrigger>
-          <TabsTrigger value="search">Busqueda avanzada</TabsTrigger>
-          {pendingApprovals.length > 0 && (
-            <TabsTrigger value="my-approvals" className="relative">
-              Mis Aprobaciones
-              <span className="ml-2 px-2 py-0.5 text-xs bg-primary text-primary-foreground rounded-full">
-                {pendingApprovals.length}
-              </span>
-            </TabsTrigger>
-          )}
+          <TabsTrigger value="all">Todos</TabsTrigger>
+          <TabsTrigger value="pending">Pendientes ({stats ? stats.pending : '—'})</TabsTrigger>
+          <TabsTrigger value="approved">Aprobados ({stats ? stats.approved : '—'})</TabsTrigger>
+          <TabsTrigger value="search">Búsqueda avanzada</TabsTrigger>
+          {pendingApprovals.length > 0 ? <TabsTrigger value="my-approvals">Mis aprobaciones <span className="ml-2 rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground">{pendingApprovals.length}</span></TabsTrigger> : null}
         </TabsList>
 
-        <TabsContent value="all" className="space-y-4">
-          <DocumentList
-            documents={documents}
-            isLoading={docsLoading}
-            onView={handleViewDocument}
-          />
-        </TabsContent>
+        <TabsContent value="all" className="space-y-4">{documentList}</TabsContent>
+        <TabsContent value="pending" className="space-y-4">{documentList}</TabsContent>
+        <TabsContent value="approved" className="space-y-4">{documentList}</TabsContent>
+        <TabsContent value="search" className="space-y-4"><AdvancedDocumentSearch /></TabsContent>
 
-        <TabsContent value="pending" className="space-y-4">
-          <DocumentList documents={documents} isLoading={docsLoading} onView={handleViewDocument} />
-        </TabsContent>
-
-        <TabsContent value="approved" className="space-y-4">
-          <DocumentList documents={documents} isLoading={docsLoading} onView={handleViewDocument} />
-        </TabsContent>
-
-        <TabsContent value="search" className="space-y-4">
-          <AdvancedDocumentSearch />
-        </TabsContent>
-
-        {pendingApprovals.length > 0 && (
-          <TabsContent value="my-approvals" className="space-y-6">
-            <div className="grid gap-4">
-              {pendingApprovals.map((approval: PendingApproval) => (
-                <Card key={approval.id}>
-                  <CardHeader>
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <CardTitle>{approval.document.title}</CardTitle>
-                      </div>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          setSelectedDocument({
-                            id: approval.document.id,
-                            title: approval.document.title,
-                            documentNumber: approval.document.documentNumber,
-                            documentType: approval.document.documentType,
-                            category: approval.document.category,
-                            status: 'pending',
-                            createdAt: approval.document.createdAt,
-                            createdByUser: approval.document.createdByUser,
-                          } as unknown as Document);
-                          setViewerOpen(true);
-                        }}
-                      >
-                        Ver Documento
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ApprovalWorkflowCard
-                      documentId={approval.document.id}
-                      steps={approval.steps}
-                      currentUserCanApprove={true}
-                      onApprove={(stepId, comments) =>
-                        handleApprove(approval.document.id, stepId, comments)
-                      }
-                      onReject={(stepId, reason) =>
-                        handleReject(approval.document.id, stepId, reason)
-                      }
-                    />
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </TabsContent>
-        )}
+        {pendingApprovals.length > 0 ? <TabsContent value="my-approvals" className="space-y-6">
+          <div className="grid gap-4">
+            {pendingApprovals.map((approval: PendingApproval) => <Card key={approval.id}>
+              <CardHeader><div className="flex items-start justify-between gap-4"><CardTitle>{approval.document.title}</CardTitle><Button size="sm" variant="outline" onClick={() => { setSelectedDocument({ id: approval.document.id, title: approval.document.title, documentNumber: approval.document.documentNumber, documentType: approval.document.documentType, category: approval.document.category, status: 'pending', createdAt: approval.document.createdAt || null, createdByUser: approval.document.createdByUser }); setViewerOpen(true); }}>Ver documento</Button></div></CardHeader>
+              <CardContent><ApprovalWorkflowCard documentId={approval.document.id} steps={approval.steps} currentUserCanApprove={true} onApprove={(stepId, comments) => handleApprove(approval.document.id, stepId, comments)} onReject={(stepId, reason) => handleReject(approval.document.id, stepId, reason)} /></CardContent>
+            </Card>)}
+          </div>
+        </TabsContent> : null}
       </Tabs>
 
-      <DocumentUploadModal
-        open={uploadModalOpen}
-        onOpenChange={setUploadModalOpen}
-        organizationId=""
-        onSuccess={handleUploadSuccess}
-      />
+      {approvalsError ? <StatePanel tone="warning" title="Aprobaciones no disponibles" description="No se muestra una bandeja vacía mientras falla la fuente personal de aprobaciones." className="min-h-0" /> : null}
 
-      {selectedDocument && (
-        <DocumentViewer
-          open={viewerOpen}
-          onOpenChange={setViewerOpen}
-          document={selectedDocument}
-        />
-      )}
+      <DocumentUploadModal open={uploadModalOpen} onOpenChange={setUploadModalOpen} organizationId="" onSuccess={handleUploadSuccess} />
+
+      {selectedDocument ? <DocumentViewer open={viewerOpen} onOpenChange={setViewerOpen} document={selectedDocument} /> : null}
     </div>
   );
 }
-
