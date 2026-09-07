@@ -126,6 +126,7 @@ export default function AccionesPage() {
   const [preferencesLoaded, setPreferencesLoaded] = useState(false);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [stateWriteError, setStateWriteError] = useState<string | null>(null);
   const profileName = inbox.data?.profile?.name;
   const cargoName = inbox.data?.profile?.cargoName;
 
@@ -165,23 +166,32 @@ export default function AccionesPage() {
   const visibleTasks = filteredTasks.filter((task) => matchesSearch(task, searchQuery));
 
   async function setState(sourceKey: string, status: 'pending' | 'read' | 'snoozed') {
-    await fetch('/api/actions/state', {
+    setStateWriteError(null);
+    const response = await fetch('/api/actions/state', {
       method: 'POST',
       credentials: 'include',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ sourceKey, status }),
     });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) {
+      setStateWriteError(payload?.error || 'No se pudo guardar el estado de la acción.');
+      return;
+    }
     await states.mutate();
   }
 
   const lanes = ['Operación actual', 'Vencidas', 'Apoyos', 'Escalaciones'] as const;
   const summary = inbox.data?.summary;
+  const summaryUnavailable = inbox.isLoading || Boolean(inbox.error) || !summary;
+  const summaryValue = (key: 'owners' | 'critical' | 'overdue' | 'escalations') => summaryUnavailable ? '—' : summary[key];
   const filterCounts = {
     all: tasks.length,
     critical: tasks.filter((task) => task.severity === 'critical').length,
     overdue: tasks.filter((task) => task.urgency_state === 'overdue' || task.urgency_state === 'escalated').length,
     owner: tasks.filter((task) => task.responsibility === 'owner').length,
   };
+  const filterCount = (value: TaskFilter) => summaryUnavailable ? '—' : filterCounts[value];
   const hasSearch = normalizeSearch(searchQuery).length > 0;
 
   return <div className="space-y-6">
@@ -191,15 +201,17 @@ export default function AccionesPage() {
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">Mis acciones</h1>
         <p className="mt-2 max-w-3xl text-sm text-muted-foreground">Sólo decisiones y tareas que corresponden a tu cargo, agrupadas por familia operacional. Busca por equipo, OT, incidente o evidencia y combina la búsqueda con los filtros rápidos.</p>
       </div>
-      <Button variant="outline" onClick={() => { void inbox.mutate(); void states.mutate(); }}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
+      <Button variant="outline" onClick={() => { setStateWriteError(null); void inbox.mutate(); void states.mutate(); }}><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
     </section>
 
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Acciones propias</p><p className="mt-1 text-2xl font-semibold">{summary?.owners ?? 0}</p></CardContent></Card>
-      <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Críticas</p><p className="mt-1 text-2xl font-semibold">{summary?.critical ?? 0}</p></CardContent></Card>
-      <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Vencidas</p><p className="mt-1 text-2xl font-semibold">{summary?.overdue ?? 0}</p></CardContent></Card>
-      <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Escalaciones</p><p className="mt-1 text-2xl font-semibold">{summary?.escalations ?? 0}</p></CardContent></Card>
+      <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Acciones propias</p><p className="mt-1 text-2xl font-semibold">{summaryValue('owners')}</p></CardContent></Card>
+      <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Críticas</p><p className="mt-1 text-2xl font-semibold">{summaryValue('critical')}</p></CardContent></Card>
+      <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Vencidas</p><p className="mt-1 text-2xl font-semibold">{summaryValue('overdue')}</p></CardContent></Card>
+      <Card className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">Escalaciones</p><p className="mt-1 text-2xl font-semibold">{summaryValue('escalations')}</p></CardContent></Card>
     </div>
+
+    {stateWriteError ? <Card className="border-destructive/30 shadow-none"><CardContent className="p-4 text-sm text-destructive">{stateWriteError}</CardContent></Card> : null}
 
     <div className="space-y-3">
       <div className="relative max-w-2xl">
@@ -216,12 +228,12 @@ export default function AccionesPage() {
 
       <div className="flex flex-wrap items-center gap-2" aria-label="Filtros de acciones">
         {([
-          ['all', 'Todas', filterCounts.all],
-          ['critical', 'Críticas', filterCounts.critical],
-          ['overdue', 'Vencidas', filterCounts.overdue],
-          ['owner', 'Sólo propias', filterCounts.owner],
-        ] as const).map(([value, label, count]) => <Button key={value} size="sm" variant={taskFilter === value ? 'default' : 'outline'} onClick={() => setTaskFilter(value)}>{label}<Badge variant="secondary" className="ml-2">{count}</Badge></Button>)}
-        {(taskFilter !== 'all' || hasSearch) ? <span className="text-xs text-muted-foreground">Mostrando {visibleTasks.length} de {tasks.length} acciones visibles.</span> : null}
+          ['all', 'Todas'],
+          ['critical', 'Críticas'],
+          ['overdue', 'Vencidas'],
+          ['owner', 'Sólo propias'],
+        ] as const).map(([value, label]) => <Button key={value} size="sm" variant={taskFilter === value ? 'default' : 'outline'} onClick={() => setTaskFilter(value)} disabled={summaryUnavailable}>{label}<Badge variant="secondary" className="ml-2">{filterCount(value)}</Badge></Button>)}
+        {(taskFilter !== 'all' || hasSearch) && !summaryUnavailable ? <span className="text-xs text-muted-foreground">Mostrando {visibleTasks.length} de {tasks.length} acciones visibles.</span> : null}
       </div>
     </div>
 
@@ -272,7 +284,7 @@ export default function AccionesPage() {
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <Button size="sm" variant="ghost" onClick={() => void setState(task.task_key, state?.status === 'read' ? 'pending' : 'read')}>{state?.status === 'read' ? 'Marcar pendiente' : 'Vista'}</Button>
-                        <Button size="sm" variant="ghost" onClick={() => void setState(task.task_key, 'snoozed')}><Clock3 className="mr-2 h-4 w-4" />Mañana</Button>
+                        {task.severity !== 'critical' ? <Button size="sm" variant="ghost" onClick={() => void setState(task.task_key, 'snoozed')}><Clock3 className="mr-2 h-4 w-4" />Mañana</Button> : null}
                         <Button asChild size="sm" variant={isOwner ? 'default' : 'outline'}><Link href={task.module_route}>{isOwner ? 'Resolver' : task.responsibility === 'support' ? 'Apoyar' : 'Revisar'}<ArrowRight className="ml-2 h-4 w-4" /></Link></Button>
                       </div>
                     </div>;
