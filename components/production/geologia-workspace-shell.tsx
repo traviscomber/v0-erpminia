@@ -22,7 +22,7 @@ const tabs = [
   ['matrix', 'Matriz'],
   ['results', 'Resultados'],
   ['completeness', 'Cobertura'],
-  ['canonical', 'Fuentes'],
+  ['canonical', 'Estado'],
   ['history', 'Histórico'],
 ] as const;
 
@@ -68,11 +68,11 @@ const navigationGroups: NavigationGroup[] = [
   {
     key: 'evidence',
     label: 'Evidencia',
-    description: 'Resultados, cobertura y procedencia.',
+    description: 'Resultados, cobertura y estado canónico.',
     tabs: [
       ['results', 'Resultados'],
       ['completeness', 'Cobertura'],
-      ['canonical', 'Fuentes'],
+      ['canonical', 'Estado'],
     ],
   },
   {
