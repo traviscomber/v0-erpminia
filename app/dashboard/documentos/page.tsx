@@ -140,6 +140,12 @@ export default function DocumentosDashboard() {
   };
 
   const statValue = (key: keyof DocumentStats) => statsLoading || !stats ? '—' : stats[key].toLocaleString('es-CL');
+  const summaryCards = [
+    { label: 'Total', value: statValue('total'), icon: <FileText className="h-4 w-4" /> },
+    { label: 'Aprobados', value: statValue('approved'), icon: <CheckCircle className="h-4 w-4" /> },
+    { label: 'Pendientes', value: statValue('pending'), icon: <Clock className="h-4 w-4" /> },
+    { label: 'Vencidos', value: statValue('expired'), icon: <AlertCircle className="h-4 w-4" /> },
+  ];
   const documentList = documentsError
     ? <StatePanel tone="error" title="Biblioteca no disponible" description="La falla de la fuente no se interpreta como una biblioteca vacía." />
     : <DocumentList documents={documents} isLoading={docsLoading} onView={handleViewDocument} />;
@@ -160,12 +166,7 @@ export default function DocumentosDashboard() {
       {anySourceError ? <StatePanel tone="error" title="Parte de Documentación no pudo actualizarse" description="Las listas o cifras afectadas permanecen sin dato; no se sustituyen por cero." actions={<Button variant="outline" onClick={() => void refreshAll()}>Reintentar</Button>} className="min-h-0" /> : null}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {[
-          ['Total', statValue('total'), FileText],
-          ['Aprobados', statValue('approved'), CheckCircle],
-          ['Pendientes', statValue('pending'), Clock],
-          ['Vencidos', statValue('expired'), AlertCircle],
-        ].map(([label, value, Icon]) => <Card key={String(label)}><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground"><Icon className="h-4 w-4" />{label}</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-foreground">{value}</p></CardContent></Card>)}
+        {summaryCards.map(({ label, value, icon }) => <Card key={label}><CardHeader className="pb-2"><CardTitle className="flex items-center gap-2 text-sm font-medium text-muted-foreground">{icon}{label}</CardTitle></CardHeader><CardContent><p className="text-2xl font-bold text-foreground">{value}</p></CardContent></Card>)}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
