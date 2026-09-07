@@ -13,7 +13,7 @@ type ReportSummary = {
 };
 
 export default function ReportesPage() {
-  const [summary, setSummary] = useState<ReportSummary>({ total: 0, pending: 0, status: 'Sin sincronizar' });
+  const [summary, setSummary] = useState<ReportSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
@@ -26,12 +26,14 @@ export default function ReportesPage() {
       if (!response.ok || !payload) throw new Error('No fue posible cargar el resumen documental');
 
       const pending = Number(payload.pending || 0);
+      const total = Number(payload.totalDocuments || 0);
       setSummary({
-        total: Number(payload.totalDocuments || 0),
+        total,
         pending,
-        status: pending > 0 ? 'Con pendientes' : 'Operativo',
+        status: total === 0 ? 'Sin documentos' : pending > 0 ? 'Con pendientes' : 'Operativo',
       });
     } catch {
+      setSummary(null);
       setError(true);
     } finally {
       setIsLoading(false);
@@ -41,6 +43,8 @@ export default function ReportesPage() {
   useEffect(() => {
     void loadSummary();
   }, []);
+
+  const summaryValue = (field: 'total' | 'pending') => isLoading || !summary ? '—' : summary[field].toLocaleString('es-CL');
 
   return (
     <div className="space-y-6">
@@ -63,7 +67,7 @@ export default function ReportesPage() {
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" />
               <div>
                 <p className="font-medium">No fue posible cargar el resumen documental.</p>
-                <p className="text-muted-foreground">El generador de reportes sigue disponible.</p>
+                <p className="text-muted-foreground">El generador de reportes sigue disponible. Los conteos permanecen sin dato hasta recuperar la fuente.</p>
               </div>
             </div>
             <Button variant="outline" onClick={() => void loadSummary()}>Reintentar</Button>
@@ -80,7 +84,7 @@ export default function ReportesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-semibold">{isLoading ? '—' : summary.total}</div>
+            <div className="text-3xl font-semibold">{summaryValue('total')}</div>
             <p className="mt-1 text-xs text-muted-foreground">Fuente documental conectada</p>
           </CardContent>
         </Card>
@@ -90,7 +94,7 @@ export default function ReportesPage() {
             <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-semibold text-primary">{isLoading ? '—' : summary.pending}</div>
+            <div className="text-3xl font-semibold text-primary">{summaryValue('pending')}</div>
             <p className="mt-1 text-xs text-muted-foreground">Revisiones antes de exportar</p>
           </CardContent>
         </Card>
@@ -103,8 +107,8 @@ export default function ReportesPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-semibold">{isLoading ? 'Sincronizando' : summary.status}</div>
-            <p className="mt-1 text-xs text-muted-foreground">Calculado desde datos reales</p>
+            <div className="text-2xl font-semibold">{isLoading ? 'Sincronizando' : summary?.status || 'No disponible'}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Calculado sólo cuando el resumen documental responde</p>
           </CardContent>
         </Card>
       </div>
