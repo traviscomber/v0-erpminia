@@ -98,7 +98,7 @@ export async function GET(request: NextRequest) {
       .from('production_drill_hole_location_review_queue_v5')
       .select('drill_hole_id,hole_code,evidence_count,verified_evidence_count,verified_target_count,proposed_mine_name,proposed_sector_name,resolution_state,report_count,last_report_date,source_site,candidate_evidence_count,candidate_mine_name,review_lane,review_priority,recommended_action,operational_bucket,operational_priority')
       .eq('organization_id', context.organizationId)
-      .order('operational_priority', { ascending: true }),
+      .order('operational_priority', { ascending: false }),
   ]);
 
   const error =
