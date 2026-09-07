@@ -51,7 +51,7 @@ type OperationalAlert = {
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar las alertas operacionales');
+  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar los problemas operacionales');
   return payload;
 };
 
@@ -75,7 +75,7 @@ function sourceLabel(source: string) {
   return ({
     documento: 'Documentos',
     mantenimiento: 'Mantenimiento',
-    inventario: 'Inventario',
+    inventario: 'Bodega',
     sostenibilidad: 'Seguridad',
     contrato: 'Contratos',
     produccion: 'Producción',
@@ -164,10 +164,10 @@ export default function AndonPage() {
     <div className="space-y-6">
       <PageHeader>
         <PageHeaderContent>
-          <PageHeaderEyebrow>Control y mejora</PageHeaderEyebrow>
-          <PageHeaderTitle>Alertas operacionales</PageHeaderTitle>
+          <PageHeaderEyebrow>Atención operacional</PageHeaderEyebrow>
+          <PageHeaderTitle>Problemas operacionales</PageHeaderTitle>
           <PageHeaderDescription>
-            Problemas que requieren responsable, control, causa principal y una acción para evitar que se repitan.
+            Problemas que requieren responsable, control, causa principal y una acción para evitar que se repitan. Las alertas son señales; aquí sólo se gestiona su seguimiento operacional.
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
@@ -180,9 +180,9 @@ export default function AndonPage() {
 
       <section className="grid divide-y rounded-lg border bg-card sm:grid-cols-4 sm:divide-x sm:divide-y-0">
         {[
-          ['Alertas abiertas', openCount],
-          ['Críticas', criticalCount],
-          ['Nuevas', newCount],
+          ['Problemas abiertos', openCount],
+          ['Críticos', criticalCount],
+          ['Nuevos', newCount],
           ['Tiempo medio de respuesta', `${avgResponse} min`],
         ].map(([label, value]) => (
           <div key={String(label)} className="px-5 py-4">
@@ -194,19 +194,19 @@ export default function AndonPage() {
 
       <Tabs value={view} onValueChange={setView}>
         <TabsList>
-          <TabsTrigger value="activas">Abiertas</TabsTrigger>
-          <TabsTrigger value="abierta">Nuevas</TabsTrigger>
+          <TabsTrigger value="activas">Abiertos</TabsTrigger>
+          <TabsTrigger value="abierta">Nuevos</TabsTrigger>
           <TabsTrigger value="en_contencion">En control</TabsTrigger>
-          <TabsTrigger value="resuelta">Resueltas</TabsTrigger>
-          <TabsTrigger value="todas">Todas</TabsTrigger>
+          <TabsTrigger value="resuelta">Resueltos</TabsTrigger>
+          <TabsTrigger value="todas">Todos</TabsTrigger>
         </TabsList>
       </Tabs>
 
       {actionError ? <StatePanel tone="error" title="No fue posible guardar" description={actionError} className="min-h-0 py-5" /> : null}
-      {isLoading ? <StatePanel tone="loading" title="Cargando alertas" description="Revisando los problemas que requieren atención." /> : null}
-      {error ? <StatePanel tone="error" title="No fue posible cargar las alertas" description={error.message} /> : null}
+      {isLoading ? <StatePanel tone="loading" title="Cargando problemas" description="Revisando los casos que requieren seguimiento operacional." /> : null}
+      {error ? <StatePanel tone="error" title="No fue posible cargar los problemas" description={error.message} /> : null}
       {!isLoading && !error && events.length === 0 ? (
-        <StatePanel tone="success" icon={ShieldCheck} title="Sin alertas en esta vista" description="No hay problemas que coincidan con el filtro seleccionado." />
+        <StatePanel tone="success" icon={ShieldCheck} title="Sin problemas en esta vista" description="No hay casos que coincidan con el filtro seleccionado." />
       ) : null}
 
       {!isLoading && !error && events.length > 0 ? (
@@ -292,7 +292,7 @@ export default function AndonPage() {
                   countermeasure: preventiveAction,
                 })}
               >
-                <AlertTriangle className="h-4 w-4" />Marcar como resuelta
+                <AlertTriangle className="h-4 w-4" />Marcar como resuelto
               </Button>
             ) : null}
             {selected.status === 'resuelta' ? (
