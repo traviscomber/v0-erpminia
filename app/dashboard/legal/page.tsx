@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { AlertCircle, CheckCircle2, Download, Eye, FileText, Scale, Search } from 'lucide-react';
+import { CheckCircle2, Download, Eye, FileText, Scale, Search } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -36,8 +36,8 @@ type LegalContract = {
   id: string;
   title: string;
   contractor_name: string;
-  start_date: string;
-  end_date: string;
+  start_date: string | null;
+  end_date: string | null;
   status: string;
   contract_value: number;
   currency: string;
@@ -125,25 +125,29 @@ export default function LegalPage() {
   const compliance = (complianceData || {}) as CompliancePayload;
   const summary = compliance.summary;
 
-  const compliancePercent = useMemo(() => {
-    if (!summary) return 0;
-    const checks = [
-      summary.total_contracts ? summary.active_contracts / summary.total_contracts : 1,
-      summary.total_contracts ? (summary.total_contracts - summary.contracts_missing_file) / summary.total_contracts : 1,
-      summary.legal_documents ? summary.approved_documents / summary.legal_documents : 1,
-      summary.legal_documents ? (summary.legal_documents - summary.expiring_documents) / summary.legal_documents : 1,
-    ];
+  const compliancePercent = useMemo<number | null>(() => {
+    if (!summary) return null;
+    const checks: number[] = [];
+    if (summary.total_contracts > 0) {
+      checks.push(summary.active_contracts / summary.total_contracts);
+      checks.push((summary.total_contracts - summary.contracts_missing_file) / summary.total_contracts);
+    }
+    if (summary.legal_documents > 0) {
+      checks.push(summary.approved_documents / summary.legal_documents);
+      checks.push((summary.legal_documents - summary.expiring_documents) / summary.legal_documents);
+    }
+    if (checks.length === 0) return null;
     return Math.round((checks.reduce((total, item) => total + Math.max(0, Math.min(1, item)), 0) / checks.length) * 100);
   }, [summary]);
 
-  const complianceItems = useMemo(() => {
+  const complianceItems = useMemo<Array<[string, number | null]>>(() => {
     if (!summary) return [];
     return [
-      ['Contratos vigentes', summary.total_contracts ? Math.round((summary.active_contracts / summary.total_contracts) * 100) : 100],
-      ['Contratos con respaldo', summary.total_contracts ? Math.round(((summary.total_contracts - summary.contracts_missing_file) / summary.total_contracts) * 100) : 100],
-      ['Documentos aprobados', summary.legal_documents ? Math.round((summary.approved_documents / summary.legal_documents) * 100) : 100],
-      ['Documentos sin vencimiento inmediato', summary.legal_documents ? Math.round(((summary.legal_documents - summary.expiring_documents) / summary.legal_documents) * 100) : 100],
-    ] as Array<[string, number]>;
+      ['Contratos vigentes', summary.total_contracts > 0 ? Math.round((summary.active_contracts / summary.total_contracts) * 100) : null],
+      ['Contratos con respaldo', summary.total_contracts > 0 ? Math.round(((summary.total_contracts - summary.contracts_missing_file) / summary.total_contracts) * 100) : null],
+      ['Documentos aprobados', summary.legal_documents > 0 ? Math.round((summary.approved_documents / summary.legal_documents) * 100) : null],
+      ['Documentos sin vencimiento inmediato', summary.legal_documents > 0 ? Math.round(((summary.legal_documents - summary.expiring_documents) / summary.legal_documents) * 100) : null],
+    ];
   }, [summary]);
 
   const trackerContracts = useMemo(
@@ -151,8 +155,8 @@ export default function LegalPage() {
       id: contract.id,
       title: contract.title,
       provider: contract.contractor_name || 'Sin contratista',
-      startDate: contract.start_date || new Date().toISOString(),
-      endDate: contract.end_date || new Date().toISOString(),
+      startDate: contract.start_date || null,
+      endDate: contract.end_date || null,
       status: mapContractStatus(contract.status),
       value: formatContractValue(contract.contract_value, contract.currency),
       approvalStatus: mapApprovalStatus(contract.compliance_status),
@@ -241,11 +245,11 @@ export default function LegalPage() {
   };
 
   const hasError = documentsError || contractsError || complianceError;
-  const metrics = [
-    ['Contratos vigentes', summary?.active_contracts ?? 0],
-    ['Por vencer', summary?.expiring_contracts ?? 0],
-    ['Pendientes de revisión', summary?.contracts_pending_review ?? 0],
-    ['Cumplimiento', `${compliancePercent}%`],
+  const metrics: Array<[string, string | number]> = [
+    ['Contratos vigentes', summary ? summary.active_contracts : '—'],
+    ['Por vencer', summary ? summary.expiring_contracts : '—'],
+    ['Pendientes de revisión', summary ? summary.contracts_pending_review : '—'],
+    ['Cumplimiento', compliancePercent === null ? '—' : `${compliancePercent}%`],
   ];
 
   return (
@@ -266,6 +270,7 @@ export default function LegalPage() {
         <StatePanel
           tone="error"
           title="Parte del módulo legal no pudo actualizarse"
+          description="Las cifras o listas cuya fuente falló permanecen sin dato; no se sustituyen por cero ni por fechas generadas."
           actions={<Button variant="outline" size="sm" onClick={() => { void mutateDocuments(); void mutateContracts(); void mutateCompliance(); }}>Reintentar</Button>}
           className="min-h-0"
         />
@@ -303,7 +308,9 @@ export default function LegalPage() {
           </div>
 
           <div className="divide-y overflow-hidden rounded-md border">
-            {legalDocs.length === 0 ? (
+            {documentsError ? (
+              <StatePanel tone="error" title="Documentos no disponibles" description="No se interpreta el fallo de la fuente como biblioteca vacía." className="border-0" />
+            ) : legalDocs.length === 0 ? (
               <StatePanel tone="neutral" title="No hay documentos legales" description="Agrega el primer documento cuando exista respaldo real que registrar." className="border-0" />
             ) : legalDocs.map((doc) => (
               <div key={doc.id} className="flex items-center justify-between gap-4 px-4 py-3 hover:bg-muted/30">
@@ -331,7 +338,7 @@ export default function LegalPage() {
             </div>
             <AddContractModal onSubmit={handleAddContract} />
           </div>
-          <ContractsTracker contracts={trackerContracts} />
+          {contractsError ? <StatePanel tone="error" title="Contratos no disponibles" description="La fuente no se reemplaza por una matriz vacía." className="min-h-0" /> : <ContractsTracker contracts={trackerContracts} />}
         </TabsContent>
 
         <TabsContent value="compliance" className="mt-4 space-y-5">
@@ -340,13 +347,15 @@ export default function LegalPage() {
             <p className="text-sm text-muted-foreground">Respaldo contractual, aprobaciones y vencimientos.</p>
           </div>
 
+          {complianceError ? <StatePanel tone="error" title="Cumplimiento no disponible" description="No se calcula 0% ni 100% cuando la fuente no responde." className="min-h-0" /> : null}
+
           <div className="divide-y rounded-md border">
-            {complianceItems.map(([requirement, percentage]) => (
+            {complianceItems.length ? complianceItems.map(([requirement, percentage]) => (
               <div key={requirement} className="flex items-center justify-between gap-4 px-4 py-3">
                 <span className="text-sm font-medium">{requirement}</span>
-                <span className="text-sm font-semibold tabular-nums">{percentage}%</span>
+                <span className="text-sm font-semibold tabular-nums">{percentage === null ? '—' : `${percentage}%`}</span>
               </div>
-            ))}
+            )) : <p className="px-4 py-3 text-sm text-muted-foreground">Sin base suficiente para calcular porcentajes de cumplimiento.</p>}
           </div>
 
           <div className="grid gap-5 md:grid-cols-2">
@@ -354,14 +363,14 @@ export default function LegalPage() {
               <p className="mb-2 text-sm font-semibold">Contratos por revisar</p>
               <div className="divide-y rounded-md border">
                 {(compliance.contracts_pending_review || []).slice(0, 5).map((item) => <p key={item.id} className="px-4 py-3 text-sm">{item.title}</p>)}
-                {(compliance.contracts_pending_review || []).length === 0 ? <p className="px-4 py-3 text-sm text-muted-foreground">Sin contratos pendientes.</p> : null}
+                {(compliance.contracts_pending_review || []).length === 0 ? <p className="px-4 py-3 text-sm text-muted-foreground">{complianceError ? 'Fuente no disponible.' : 'Sin contratos pendientes.'}</p> : null}
               </div>
             </div>
             <div>
               <p className="mb-2 text-sm font-semibold">Documentos por vencer</p>
               <div className="divide-y rounded-md border">
                 {(compliance.expiring_documents || []).slice(0, 5).map((item) => <p key={item.id} className="px-4 py-3 text-sm">{item.title}{item.expiry_date ? ` · ${new Date(item.expiry_date).toLocaleDateString('es-CL')}` : ''}</p>)}
-                {(compliance.expiring_documents || []).length === 0 ? <p className="px-4 py-3 text-sm text-muted-foreground">Sin vencimientos próximos.</p> : null}
+                {(compliance.expiring_documents || []).length === 0 ? <p className="px-4 py-3 text-sm text-muted-foreground">{complianceError ? 'Fuente no disponible.' : 'Sin vencimientos próximos.'}</p> : null}
               </div>
             </div>
           </div>
