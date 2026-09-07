@@ -184,6 +184,7 @@ export function GeologiaWorkspaceShell() {
           .geologia-holes-focus section[aria-label="Resumen geológico"] { display: none !important; }
           .geologia-holes-focus table th:nth-child(4),
           .geologia-holes-focus table td:nth-child(4) { display: none !important; }
+          .geologia-holes-focus aside > section:first-child { display: none !important; }
         `}</style>
         <GeologiaDashboard />
       </div>
