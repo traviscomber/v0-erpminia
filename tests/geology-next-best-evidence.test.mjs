@@ -49,14 +49,17 @@ test('next best evidence API remains tenant and geology access scoped', async ()
   assert.match(route, /getOrganizationContext/);
 });
 
-test('workspace is canonical first and does not ask for sparse data', async () => {
+test('evidence exceptions stay canonical first and outside the operational task queue', async () => {
   const workspace = await readFile(workspaceUrl, 'utf8');
   const shell = await readFile(shellUrl, 'utf8');
-  assert.match(workspace, /Trabajar con lo que sí tenemos/);
-  assert.match(workspace, /Sin deuda de datos accionable/);
+  assert.match(workspace, /Excepciones de evidencia/);
+  assert.match(workspace, /Sólo faltantes que vale la pena revisar/);
+  assert.match(workspace, /Esta vista no es una cola de trabajo/);
+  assert.match(workspace, /Sin excepciones de evidencia/);
   assert.match(workspace, /Límites conocidos de la fuente/);
   assert.match(workspace, /no como lista de datos que haya que conseguir/i);
-  assert.match(shell, /\['priorities', 'Prioridades'\]/);
+  assert.match(shell, /\['priorities', 'Excepciones'\]/);
+  assert.match(shell, /key: 'evidence'[\s\S]*\['priorities', 'Excepciones'\]/);
   assert.match(shell, /GeologiaNextBestEvidence/);
   assert.doesNotMatch(shell, /GeologiaEvidenceRecoveryCampaign|GeologiaEvidenceRecoverySources|GeologiaEvidenceRecoveryWorklist/);
 });
