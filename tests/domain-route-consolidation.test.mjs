@@ -6,10 +6,17 @@ const inventoryLegacy = new URL('../app/dashboard/inventario/page.tsx', import.m
 const peopleLegacy = new URL('../app/dashboard/personas/page.tsx', import.meta.url);
 const rrhhLayout = new URL('../app/dashboard/rrhh/layout.tsx', import.meta.url);
 const rrhhOperational = new URL('../app/dashboard/rrhh/operacion/page.tsx', import.meta.url);
+const sidebar = new URL('../components/layout/sidebar.tsx', import.meta.url);
 
 test('legacy inventory route resolves into the canonical Bodega domain', async () => {
   const source = await readFile(inventoryLegacy, 'utf8');
   assert.match(source, /redirect\('\/dashboard\/bodega'\)/);
+});
+
+test('global navigation names Bodega as the canonical inventory area', async () => {
+  const source = await readFile(sidebar, 'utf8');
+  assert.match(source, /label:'Bodega',href:'\/dashboard\/bodega'/);
+  assert.doesNotMatch(source, /label:'Inventario',href:'\/dashboard\/bodega'/);
 });
 
 test('legacy Personas route resolves into RRHH operational evidence', async () => {
