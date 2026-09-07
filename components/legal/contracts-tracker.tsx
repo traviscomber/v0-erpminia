@@ -9,8 +9,8 @@ interface Contract {
   id: string;
   title: string;
   provider: string;
-  startDate: string;
-  endDate: string;
+  startDate: string | null;
+  endDate: string | null;
   status: 'active' | 'expiring' | 'expired';
   value: string;
   approvalStatus: 'pending' | 'approved' | 'rejected';
@@ -22,9 +22,11 @@ interface ContractsTrackerProps {
 }
 
 export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
-  const daysUntilExpiry = (endDate: string): number => {
-    const today = new Date();
+  const daysUntilExpiry = (endDate: string | null): number | null => {
+    if (!endDate) return null;
     const expiry = new Date(endDate);
+    if (Number.isNaN(expiry.getTime())) return null;
+    const today = new Date();
     const diff = expiry.getTime() - today.getTime();
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   };
@@ -32,6 +34,9 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
   const sortedContracts = [...contracts].sort((left, right) => {
     const leftDays = daysUntilExpiry(left.endDate);
     const rightDays = daysUntilExpiry(right.endDate);
+    if (leftDays === null && rightDays === null) return 0;
+    if (leftDays === null) return 1;
+    if (rightDays === null) return -1;
     return leftDays - rightDays;
   });
 
@@ -66,7 +71,7 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
       <Card className="border-border/70 bg-card/80">
         <CardHeader className="pb-3">
           <CardTitle>Matriz de contratos</CardTitle>
-          <CardDescription>Ordenada por vencimiento para ver primero lo que necesita revisión.</CardDescription>
+          <CardDescription>Ordenada por vencimiento cuando existe fecha acreditada; contratos sin fecha quedan al final.</CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-3">
           <div className="rounded-lg border border-border p-3">
@@ -94,9 +99,14 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
         <>
           {sortedContracts.map((contract) => {
             const daysLeft = daysUntilExpiry(contract.endDate);
-            const isExpiring = daysLeft <= 60 && daysLeft > 0;
-            const expiryLabel =
-              daysLeft > 0 ? `Vence en ${daysLeft} dias` : daysLeft === 0 ? 'Vence hoy' : `Vencio hace ${Math.abs(daysLeft)} dias`;
+            const isExpiring = daysLeft !== null && daysLeft <= 60 && daysLeft > 0;
+            const expiryLabel = daysLeft === null
+              ? 'Fecha de término no informada'
+              : daysLeft > 0
+                ? `Vence en ${daysLeft} dias`
+                : daysLeft === 0
+                  ? 'Vence hoy'
+                  : `Vencio hace ${Math.abs(daysLeft)} dias`;
 
             return (
               <div
@@ -117,9 +127,7 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
                   <p className="text-xs text-muted-foreground">Proveedor: {contract.provider}</p>
                   <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
                     <Calendar className="h-3 w-3" />
-                    <span>
-                      {new Date(contract.endDate).toLocaleDateString('es-CL')} ({expiryLabel})
-                    </span>
+                    <span>{contract.endDate ? `${new Date(contract.endDate).toLocaleDateString('es-CL')} (${expiryLabel})` : expiryLabel}</span>
                   </div>
                 </div>
 
@@ -156,4 +164,3 @@ export function ContractsTracker({ contracts = [] }: ContractsTrackerProps) {
     </div>
   );
 }
-
