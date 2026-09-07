@@ -3,52 +3,85 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Boxes, FileText, Gauge, PackageSearch, ShieldAlert, Upload } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const items = [
-  { href: '/dashboard/bodega', label: 'Inventario', icon: Boxes },
-  { href: '/dashboard/bodega/inteligencia', label: 'Inteligencia', icon: Gauge },
-  { href: '/dashboard/bodega/productos-360', label: 'Producto 360°', icon: PackageSearch },
-  { href: '/dashboard/bodega/repuestos-criticos', label: 'Repuestos críticos', icon: ShieldAlert },
-  { href: '/dashboard/bodega/importar-datos', label: 'Importar inventario', icon: Upload },
-  { href: '/dashboard/bodega/documentos', label: 'Documentos', icon: FileText },
+const operationItems = [
+  { href: '/dashboard/bodega', label: 'Inventario' },
+  { href: '/dashboard/bodega/repuestos-criticos', label: 'Repuestos críticos' },
 ];
+
+const supportItems = [
+  { href: '/dashboard/bodega/productos-360', label: 'Producto 360°' },
+  { href: '/dashboard/bodega/inteligencia', label: 'Inteligencia' },
+  { href: '/dashboard/bodega/documentos', label: 'Documentos' },
+  { href: '/dashboard/bodega/importar-datos', label: 'Importar' },
+];
+
+function isActive(pathname: string, href: string) {
+  return href === '/dashboard/bodega'
+    ? pathname === href
+    : pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export default function WarehouseLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
     <div className="space-y-5">
-      <section className="border-b border-border pb-4">
-        <div className="mb-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Abastecimiento · Bodega</p>
-          <p className="mt-1 text-sm text-muted-foreground">Inventario, reposición, valorización y respaldo documental.</p>
-        </div>
-        <nav className="flex gap-2 overflow-x-auto pb-1" aria-label="Navegación de bodega">
-          {items.map((item) => {
-            const Icon = item.icon;
-            const active = item.href === '/dashboard/bodega'
-              ? pathname === item.href
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+      <section className="border-b border-border" aria-label="Área de Bodega">
+        <div className="flex min-h-12 items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex shrink-0 items-stretch">
+            <span className="flex items-center px-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/55">
+              Operación
+            </span>
+            <nav className="flex items-stretch" aria-label="Operación de Bodega">
+              {operationItems.map((item) => {
+                const active = isActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'relative inline-flex min-h-12 shrink-0 items-center px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                      active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <span className="whitespace-nowrap">{item.label}</span>
+                    {active ? <span className="absolute inset-x-2.5 bottom-0 h-0.5 bg-primary" aria-hidden="true" /> : null}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  active
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+          <div className="mx-2 my-3 w-px shrink-0 bg-border" aria-hidden="true" />
+
+          <div className="flex shrink-0 items-stretch">
+            <span className="flex items-center px-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/55">
+              Herramientas
+            </span>
+            <nav className="flex items-stretch" aria-label="Herramientas de Bodega">
+              {supportItems.map((item) => {
+                const active = isActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'relative inline-flex min-h-12 shrink-0 items-center px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                      active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <span className="whitespace-nowrap">{item.label}</span>
+                    {active ? <span className="absolute inset-x-2.5 bottom-0 h-0.5 bg-primary" aria-hidden="true" /> : null}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
       </section>
       {children}
     </div>
