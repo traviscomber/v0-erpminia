@@ -3,18 +3,21 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { BarChart3, Calendar, CircleDollarSign, ClipboardList, Gauge, Settings, Users, Wrench } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const items = [
-  { href: '/dashboard/mantenimiento', label: 'Resumen', icon: Wrench },
-  { href: '/dashboard/mantenimiento/ordenes-trabajo', label: 'Órdenes', icon: ClipboardList },
-  { href: '/dashboard/mantenimiento/ordenes-trabajo/imputacion', label: 'Imputación', icon: CircleDollarSign },
-  { href: '/dashboard/mantenimiento/planificacion', label: 'Planificar', icon: Calendar },
-  { href: '/dashboard/mantenimiento/equipos', label: 'Activos', icon: Settings },
-  { href: '/dashboard/mantenimiento/maestranza', label: 'Maestranza', icon: Gauge },
-  { href: '/dashboard/mantenimiento/personal', label: 'Personal', icon: Users },
-  { href: '/dashboard/mantenimiento/indicadores', label: 'Indicadores', icon: BarChart3 },
+const flowItems = [
+  { href: '/dashboard/mantenimiento/planificacion', label: 'Planificar', step: 1 },
+  { href: '/dashboard/mantenimiento/ordenes-trabajo', label: 'Órdenes', step: 2 },
+  { href: '/dashboard/mantenimiento/ordenes-trabajo/imputacion', label: 'Imputación', step: 3 },
+];
+
+const supportItems = [
+  { href: '/dashboard/mantenimiento', label: 'Resumen' },
+  { href: '/dashboard/mantenimiento/equipos', label: 'Activos' },
+  { href: '/dashboard/mantenimiento/maestranza', label: 'Maestranza' },
+  { href: '/dashboard/mantenimiento/personal', label: 'Personal' },
+  { href: '/dashboard/mantenimiento/indicadores', label: 'Indicadores' },
 ];
 
 const assetViewPrefixes = [
@@ -43,41 +46,83 @@ const planningPrefixes = [
   '/dashboard/mantenimiento/estrategia',
 ];
 
+function isFlowActive(pathname: string, href: string) {
+  if (href === '/dashboard/mantenimiento/planificacion') {
+    return pathname === href || pathname.startsWith(`${href}/`) || planningPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  }
+  if (href === '/dashboard/mantenimiento/ordenes-trabajo') {
+    return (pathname === href || pathname.startsWith(`${href}/`)) && !pathname.startsWith('/dashboard/mantenimiento/ordenes-trabajo/imputacion');
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function isSupportActive(pathname: string, href: string) {
+  if (href === '/dashboard/mantenimiento') return pathname === href;
+  if (href === '/dashboard/mantenimiento/equipos') {
+    return pathname === href || pathname.startsWith(`${href}/`) || assetViewPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  }
+  return pathname === href || pathname.startsWith(`${href}/`);
+}
+
 export default function MaintenanceLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
     <div className="space-y-5">
-      <section className="border-b border-border pb-3">
-        <div className="mb-3">
-          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Mantenimiento</p>
-          <p className="mt-1 text-sm text-muted-foreground">Resolver trabajo, cuidar activos y aprender del historial.</p>
-        </div>
-        <nav className="flex gap-1 overflow-x-auto pb-1" aria-label="Navegación de mantenimiento">
-          {items.map((item) => {
-            const Icon = item.icon;
-            const isAssetContext = item.href === '/dashboard/mantenimiento/equipos' && assetViewPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-            const isPlanningContext = item.href === '/dashboard/mantenimiento/planificacion' && planningPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
-            const active = item.href === '/dashboard/mantenimiento'
-              ? pathname === item.href
-              : isAssetContext || isPlanningContext || pathname === item.href || pathname.startsWith(`${item.href}/`);
+      <section className="border-b border-border" aria-label="Flujo de Mantenimiento">
+        <div className="flex min-h-12 items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <nav className="flex shrink-0 items-stretch" aria-label="Flujo operacional de Mantenimiento">
+            {flowItems.map((item, index) => {
+              const active = isFlowActive(pathname, item.href);
+              return (
+                <div key={item.href} className="flex shrink-0 items-center">
+                  <Link
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'relative inline-flex min-h-12 shrink-0 items-center gap-1.5 px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                      active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <span className={cn('text-[9px] font-semibold tracking-[0.12em]', active ? 'text-primary' : 'text-muted-foreground/60')}>
+                      {String(item.step).padStart(2, '0')}
+                    </span>
+                    <span className="whitespace-nowrap">{item.label}</span>
+                    {active ? <span className="absolute inset-x-2.5 bottom-0 h-0.5 bg-primary" aria-hidden="true" /> : null}
+                  </Link>
+                  {index < flowItems.length - 1 ? <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground/35" aria-hidden="true" /> : null}
+                </div>
+              );
+            })}
+          </nav>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                aria-current={active ? 'page' : undefined}
-                className={cn(
-                  'inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+          <div className="mx-2 my-3 w-px shrink-0 bg-border" aria-hidden="true" />
+
+          <div className="flex shrink-0 items-stretch">
+            <span className="flex items-center px-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/55">
+              Soporte
+            </span>
+            <nav className="flex items-stretch" aria-label="Soporte de Mantenimiento">
+              {supportItems.map((item) => {
+                const active = isSupportActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'relative inline-flex min-h-12 shrink-0 items-center px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                      active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <span className="whitespace-nowrap">{item.label}</span>
+                    {active ? <span className="absolute inset-x-2.5 bottom-0 h-0.5 bg-primary" aria-hidden="true" /> : null}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
       </section>
       {children}
     </div>
