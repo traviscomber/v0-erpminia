@@ -72,14 +72,14 @@ export default function LeanControlCenterPage() {
   const commitmentSummary = commitments.data?.summary || { overdue: 0, today: 0, next_7_days: 0, total: 0 };
 
   const metrics = [
-    { label: 'Alertas abiertas', value: activeAlerts.length, detail: `${unassignedAlerts} sin responsable`, href: '/dashboard/andon', icon: AlertTriangle },
+    { label: 'Problemas abiertos', value: activeAlerts.length, detail: `${unassignedAlerts} sin responsable`, href: '/dashboard/andon', icon: AlertTriangle },
     { label: 'Trabajo en curso', value: workSummary.active, detail: `${workSummary.blocked} bloqueados`, href: '/dashboard/kanban', icon: Columns3 },
     { label: 'Compromisos vencidos', value: commitmentSummary.overdue, detail: `${commitmentSummary.today} para hoy`, href: '/dashboard/tareas', icon: Clock3 },
     { label: 'Mejoras activas', value: improvementSummary.active, detail: `${improvementSummary.verifying} en comprobación`, href: '/dashboard/kaizen', icon: Lightbulb },
   ];
 
   const flow = [
-    { step: '1', title: 'Detectar', description: 'Revisar problemas abiertos y tomar a cargo los más urgentes.', href: '/dashboard/andon', action: 'Abrir alertas' },
+    { step: '1', title: 'Detectar', description: 'Revisar problemas abiertos y tomar a cargo los más urgentes.', href: '/dashboard/andon', action: 'Abrir problemas' },
     { step: '2', title: 'Priorizar', description: 'Limitar el trabajo en curso y resolver los bloqueos.', href: '/dashboard/kanban', action: 'Abrir trabajo' },
     { step: '3', title: 'Cumplir', description: 'Resolver vencidos y compromisos programados para hoy.', href: '/dashboard/tareas', action: 'Ver pendientes' },
     { step: '4', title: 'Mejorar', description: 'Convertir problemas repetidos en acciones comprobadas.', href: '/dashboard/kaizen', action: 'Abrir mejoras' },
@@ -159,18 +159,18 @@ export default function LeanControlCenterPage() {
           <CardHeader className="flex flex-row items-start justify-between gap-4">
             <div>
               <CardTitle>Problemas prioritarios</CardTitle>
-              <CardDescription>Alertas abiertas ordenadas por antigüedad.</CardDescription>
+              <CardDescription>Problemas abiertos ordenados por antigüedad.</CardDescription>
             </div>
             <Button asChild variant="ghost" size="sm"><Link href="/dashboard/andon">Ver todos</Link></Button>
           </CardHeader>
           <CardContent>
             {loading ? (
-              <StatePanel tone="loading" title="Cargando alertas" className="min-h-52 border-0 bg-transparent" />
+              <StatePanel tone="loading" title="Cargando problemas" className="min-h-52 border-0 bg-transparent" />
             ) : activeAlerts.length === 0 ? (
               <StatePanel
                 tone="success"
                 icon={CheckCircle2}
-                title="Sin alertas abiertas"
+                title="Sin problemas abiertos"
                 description="No hay problemas abiertos que requieran seguimiento."
                 className="min-h-52 border-0 bg-transparent"
               />
