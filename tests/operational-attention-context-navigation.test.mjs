@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import test from 'node:test';
+
+const navUrl = new URL('../components/layout/operational-attention-context-nav.tsx', import.meta.url);
+const shellUrl = new URL('../components/layout/dashboard-shell.tsx', import.meta.url);
+const alertsUrl = new URL('../app/dashboard/alertas/page.tsx', import.meta.url);
+const problemsUrl = new URL('../app/dashboard/andon/page.tsx', import.meta.url);
+
+test('Atención operacional separates alert signals from managed problems', async () => {
+  const source = await readFile(navUrl, 'utf8');
+  assert.match(source, /label: 'Alertas'/);
+  assert.match(source, /label: 'Problemas'/);
+  assert.doesNotMatch(source, /step:/);
+});
+
+test('shared operational attention context is mounted once in the dashboard shell', async () => {
+  const source = await readFile(shellUrl, 'utf8');
+  assert.match(source, /<OperationalAttentionContextNav \/>/);
+});
+
+test('alerts remain signals while Andon owns the operational problem lifecycle', async () => {
+  const alerts = await readFile(alertsUrl, 'utf8');
+  const problems = await readFile(problemsUrl, 'utf8');
+
+  assert.match(alerts, /Centro de alertas/);
+  assert.match(alerts, /\/api\/alertas/);
+  assert.match(problems, /Problemas operacionales/);
+  assert.match(problems, /Las alertas son señales/);
+  assert.match(problems, /\/api\/lean\/andon/);
+  assert.match(problems, /inventario: 'Bodega'/);
+  assert.doesNotMatch(problems, /<PageHeaderTitle>Alertas operacionales<\/PageHeaderTitle>/);
+});
