@@ -7,7 +7,9 @@ type HealthStatus = 'healthy' | 'watch' | 'critical' | 'unknown';
 
 function daysOld(value?: string | null) {
   if (!value) return null;
-  const ms = Date.now() - new Date(`${value}T00:00:00Z`).getTime();
+  const parsed = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime())) return null;
+  const ms = Date.now() - parsed.getTime();
   return Math.max(0, Math.floor(ms / 86400000));
 }
 
@@ -63,81 +65,145 @@ export async function GET(request: NextRequest) {
     const prodChecks = productionChecks.data || [];
     const productionFailed = prodChecks.filter((row: any) => !['PASS', 'pass'].includes(String(row.status))).length;
     const productionFreshness = [transportDate, metallurgyDate, drillingDate].map(daysOld);
-    const productionWorstAge = Math.max(...productionFreshness.filter((value): value is number => value !== null), 0);
-    const productionStatus: HealthStatus = productionFailed > 0 ? 'critical' : freshnessStatus(productionWorstAge);
+    const productionAges = productionFreshness.filter((value): value is number => value !== null);
+    const productionWorstAge = productionAges.length ? Math.max(...productionAges) : null;
+    const productionMissingFreshness = productionFreshness.some((value) => value === null);
+    const productionHasEvidence = prodChecks.length > 0 && !productionMissingFreshness;
+    const productionStatus: HealthStatus = productionFailed > 0
+      ? 'critical'
+      : !productionHasEvidence
+        ? 'unknown'
+        : freshnessStatus(productionWorstAge);
 
     const inventory = inventoryOverview.data as any;
-    const negativeStock = Number(inventory?.negative_stock_products || 0);
+    const inventoryHasOverview = Boolean(inventory);
+    const negativeStock = inventoryHasOverview ? Number(inventory?.negative_stock_products || 0) : 0;
     const inventoryAge = daysOld(inventoryDate);
-    const inventoryStatus: HealthStatus = negativeStock > 0 ? 'critical' : freshnessStatus(inventoryAge);
+    const inventoryStatus: HealthStatus = negativeStock > 0
+      ? 'critical'
+      : !inventoryHasOverview || inventoryAge === null
+        ? 'unknown'
+        : freshnessStatus(inventoryAge);
 
     const closedStatuses = new Set(['completed', 'closed', 'cancelled', 'canceled']);
     const allWorkOrders = workOrders.data || [];
     const openWorkOrders = allWorkOrders.filter((row: any) => !closedStatuses.has(String(row.status || '').toLowerCase()));
     const openMissingAsset = openWorkOrders.filter((row: any) => !row.canonical_asset_id).length;
     const historicalMissingAsset = allWorkOrders.filter((row: any) => !row.canonical_asset_id).length;
-    const maintenanceStatus: HealthStatus = openMissingAsset > 0 ? 'critical' : 'healthy';
+    const maintenanceStatus: HealthStatus = openMissingAsset > 0
+      ? 'critical'
+      : allWorkOrders.length === 0
+        ? 'unknown'
+        : 'healthy';
 
     const poRows = poQuality.data || [];
     const poWarnings = poRows.filter((row: any) => String(row.quality_status).toLowerCase() !== 'valid').length;
     const openProcurementExceptions = (procurementExceptions.data || []).filter((row: any) => !['resolved', 'closed', 'ignored'].includes(String(row.status || '').toLowerCase())).length;
-    const procurementStatus: HealthStatus = openProcurementExceptions > 0 ? 'critical' : poWarnings > 0 ? 'watch' : 'healthy';
+    const procurementStatus: HealthStatus = openProcurementExceptions > 0
+      ? 'critical'
+      : poWarnings > 0
+        ? 'watch'
+        : poRows.length === 0
+          ? 'unknown'
+          : 'healthy';
 
     const domains = [
       {
         key: 'production',
         label: 'Producción',
         status: productionStatus,
-        headline: productionFailed > 0 ? `${productionFailed} check(s) canónicos fuera de PASS` : `${prodChecks.length}/${prodChecks.length} checks canónicos PASS`,
+        headline: productionFailed > 0
+          ? `${productionFailed} check(s) canónicos fuera de PASS`
+          : prodChecks.length === 0
+            ? 'Sin checks canónicos evaluables'
+            : productionMissingFreshness
+              ? 'Cobertura temporal incompleta en fuentes de Producción'
+              : `${prodChecks.length}/${prodChecks.length} checks canónicos PASS`,
         metrics: [
           { label: 'Transporte · último dato', value: transportDate, ageDays: daysOld(transportDate) },
           { label: 'Planta · último dato', value: metallurgyDate, ageDays: daysOld(metallurgyDate) },
           { label: 'Sondaje · último dato', value: drillingDate, ageDays: daysOld(drillingDate) },
-          { label: 'Ubicaciones Sondaje pendientes', value: drillingQueue.count || 0 },
+          { label: 'Ubicaciones Sondaje pendientes', value: drillingQueue.count ?? 0 },
         ],
-        action: productionFailed > 0 ? 'Revisar checks canónicos antes de usar indicadores.' : productionWorstAge > 7 ? 'Actualizar las fuentes operacionales atrasadas.' : 'Sin acción de calidad prioritaria.',
+        action: productionFailed > 0
+          ? 'Revisar checks canónicos antes de usar indicadores.'
+          : !productionHasEvidence
+            ? 'Recuperar la evidencia faltante antes de declarar la fuente confiable.'
+            : productionWorstAge !== null && productionWorstAge > 7
+              ? 'Actualizar las fuentes operacionales atrasadas.'
+              : 'Sin acción de calidad prioritaria.',
         href: '/dashboard/produccion/inteligencia',
       },
       {
         key: 'maintenance',
         label: 'Mantención',
         status: maintenanceStatus,
-        headline: openMissingAsset > 0 ? `${openMissingAsset} OT activa(s) sin activo canónico` : 'OT activas con identidad de equipo consistente',
+        headline: openMissingAsset > 0
+          ? `${openMissingAsset} OT activa(s) sin activo canónico`
+          : allWorkOrders.length === 0
+            ? 'Sin OT evaluables para acreditar identidad de activos'
+            : 'OT activas con identidad de equipo consistente',
         metrics: [
-          { label: 'OT abiertas', value: openWorkOrders.length },
-          { label: 'OT activas sin equipo', value: openMissingAsset },
-          { label: 'Deuda histórica sin equipo', value: historicalMissingAsset },
-          { label: 'Excepciones operacionales Mantención', value: Number((exceptionCenter.data as any)?.maintenance_items || 0) },
+          { label: 'OT abiertas', value: allWorkOrders.length === 0 ? null : openWorkOrders.length },
+          { label: 'OT activas sin equipo', value: allWorkOrders.length === 0 ? null : openMissingAsset },
+          { label: 'Deuda histórica sin equipo', value: allWorkOrders.length === 0 ? null : historicalMissingAsset },
+          { label: 'Excepciones operacionales Mantención', value: exceptionCenter.data ? Number((exceptionCenter.data as any).maintenance_items || 0) : null },
         ],
-        action: openMissingAsset > 0 ? 'Resolver identidad del equipo en las OT activas.' : 'Mantener conciliación de activos en nuevas OT.',
+        action: openMissingAsset > 0
+          ? 'Resolver identidad del equipo en las OT activas.'
+          : allWorkOrders.length === 0
+            ? 'Recuperar evidencia de OT antes de declarar la identidad de activos confiable.'
+            : 'Mantener conciliación de activos en nuevas OT.',
         href: '/dashboard/mantenimiento/inteligencia',
       },
       {
         key: 'inventory',
         label: 'Inventario',
         status: inventoryStatus,
-        headline: negativeStock > 0 ? `${negativeStock} producto(s) con stock negativo` : 'Sin stock negativo detectado',
+        headline: negativeStock > 0
+          ? `${negativeStock} producto(s) con stock negativo`
+          : !inventoryHasOverview || inventoryAge === null
+            ? 'Sin evidencia suficiente para acreditar la salud del inventario'
+            : 'Sin stock negativo detectado',
         metrics: [
           { label: 'Snapshot más reciente', value: inventoryDate, ageDays: inventoryAge },
-          { label: 'Productos con stock', value: Number(inventory?.products_with_stock || 0) },
-          { label: 'Sin stock', value: Number(inventory?.out_of_stock_products || 0) },
-          { label: 'Bajo punto de reposición', value: Number(inventory?.reorder_products || 0) },
+          { label: 'Productos con stock', value: inventoryHasOverview ? Number(inventory?.products_with_stock || 0) : null },
+          { label: 'Sin stock', value: inventoryHasOverview ? Number(inventory?.out_of_stock_products || 0) : null },
+          { label: 'Bajo punto de reposición', value: inventoryHasOverview ? Number(inventory?.reorder_products || 0) : null },
         ],
-        action: negativeStock > 0 ? 'Conciliar movimientos y saldos negativos antes de decisiones de abastecimiento.' : inventoryAge !== null && inventoryAge > 7 ? 'Actualizar snapshot de inventario.' : 'Sin acción de calidad prioritaria.',
+        action: negativeStock > 0
+          ? 'Conciliar movimientos y saldos negativos antes de decisiones de abastecimiento.'
+          : !inventoryHasOverview || inventoryAge === null
+            ? 'Recuperar overview y snapshot antes de declarar el inventario confiable.'
+            : inventoryAge > 7
+              ? 'Actualizar snapshot de inventario.'
+              : 'Sin acción de calidad prioritaria.',
         href: '/dashboard/bodega',
       },
       {
         key: 'procurement',
         label: 'Compras',
         status: procurementStatus,
-        headline: openProcurementExceptions > 0 ? `${openProcurementExceptions} excepción(es) de matching abiertas` : `${poWarnings} OC con warning de calidad`,
+        headline: openProcurementExceptions > 0
+          ? `${openProcurementExceptions} excepción(es) de matching abiertas`
+          : poWarnings > 0
+            ? `${poWarnings} OC con warning de calidad`
+            : poRows.length === 0
+              ? 'Sin OC evaluables para acreditar calidad de Compras'
+              : 'OC evaluadas sin warnings de calidad abiertos',
         metrics: [
-          { label: 'OC evaluadas', value: poRows.length },
-          { label: 'OC válidas', value: poRows.length - poWarnings },
-          { label: 'OC con warning', value: poWarnings },
+          { label: 'OC evaluadas', value: poRows.length === 0 ? null : poRows.length },
+          { label: 'OC válidas', value: poRows.length === 0 ? null : poRows.length - poWarnings },
+          { label: 'OC con warning', value: poRows.length === 0 ? null : poWarnings },
           { label: 'Excepciones de matching abiertas', value: openProcurementExceptions },
         ],
-        action: openProcurementExceptions > 0 ? 'Resolver excepciones de matching antes del cierre de compra.' : poWarnings > 0 ? 'Revisar las OC con warning; no implican bloqueo automático.' : 'Sin acción de calidad prioritaria.',
+        action: openProcurementExceptions > 0
+          ? 'Resolver excepciones de matching antes del cierre de compra.'
+          : poWarnings > 0
+            ? 'Revisar las OC con warning; no implican bloqueo automático.'
+            : poRows.length === 0
+              ? 'Recuperar evidencia de OC antes de declarar Compras confiable.'
+              : 'Sin acción de calidad prioritaria.',
         href: '/dashboard/compras',
       },
     ];
