@@ -14,7 +14,7 @@ test('chemistry separates current process assays from historical mine chemistry'
   assert.match(dashboard, />Proceso</);
   assert.match(dashboard, />Mina histórica</);
   assert.match(dashboard, /Dos contextos analíticos separados/);
-  assert.match(dashboard, /Ensayos de Planta\/Metalurgia/);
+  assert.match(dashboard, /ensayos operacionales de Planta\/Metalurgia/i);
   assert.match(dashboard, /Muestras especiales 2016–2017 · contexto histórico/);
   assert.match(dashboard, /no son ensayes de sondaje ni ley representativa del plan 2026/i);
   assert.match(dashboard, /No son ensayes de sondaje, no representan la ley del plan 2026/i);
