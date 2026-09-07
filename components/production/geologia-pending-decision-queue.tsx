@@ -3,6 +3,7 @@
 import { AlertTriangle, ArrowRight, Beaker, MapPinned } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { GeologiaImmediateTaskQueue } from '@/components/production/geologia-immediate-task-queue';
 
 type PendingRow = {
   drill_hole_id:string;
@@ -74,10 +75,12 @@ export function GeologiaPendingDecisionQueue(props:Props){
     .sort((a,b)=>dateValue(b.operation_date)-dateValue(a.operation_date)||String(a.hole_code_raw||'').localeCompare(String(b.hole_code_raw||''),'es',{numeric:true}));
 
   return <div className="space-y-5">
+    <GeologiaImmediateTaskQueue />
+
     <section className="rounded-lg border bg-card p-5">
-      <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Tareas · revisión humana</p>
-      <h2 className="mt-2 text-xl font-semibold tracking-tight">Sólo decisiones que realmente requieren intervención</h2>
-      <p className="mt-1 max-w-3xl text-sm text-muted-foreground">La cola operacional contiene conflictos, reconciliaciones o validaciones explícitas. La ausencia general de una fuente no se convierte automáticamente en cientos de tareas.</p>
+      <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Otras revisiones humanas</p>
+      <h2 className="mt-2 text-xl font-semibold tracking-tight">Conflictos, reconciliaciones y validaciones abiertas</h2>
+      <p className="mt-1 max-w-3xl text-sm text-muted-foreground">Esta segunda cola contiene sólo excepciones explícitas. La ausencia general de una fuente no se convierte automáticamente en cientos de tareas.</p>
       <div className="mt-5 grid gap-3 lg:grid-cols-3">
         <Metric label="Revisiones de ubicación" value={pending.length} detail="Casos explícitos en cola de revisión"/>
         <Metric label="Reportes por reconciliar" value={unresolvedDrilling.length} detail="Evidencia reciente con vínculo canónico incompleto"/>
