@@ -23,3 +23,11 @@ test('hole dossier shows known facts first and keeps source gaps separate from q
   assert.doesNotMatch(source, /readiness/);
   assert.doesNotMatch(source, />Pendiente</);
 });
+
+test('hole map is hidden only while the current source has no georeferenced collars', async () => {
+  const workspace = await readFile(workspaceUrl, 'utf8');
+
+  assert.match(workspace, /section:first-child:has\(\.border-dashed\)/);
+  assert.match(workspace, /geologia-holes-focus/);
+  assert.doesNotMatch(workspace, /Mapa de sondajes[^]*display:\s*none/i);
+});
