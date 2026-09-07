@@ -29,6 +29,45 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Acción inválida' }, { status: 400 });
   }
 
+  // Executive decision state is a personal UI preference. Critical executive
+  // decisions are never filtered by snooze in the decision center itself.
+  const isExecutiveState = sourceKey.startsWith('executive:');
+
+  if (!isExecutiveState) {
+    const { data: profile, error: profileError } = await context.supabase
+      .from('profiles')
+      .select('cargo_id')
+      .eq('id', context.userId)
+      .eq('organization_id', context.organizationId)
+      .maybeSingle();
+
+    if (profileError) {
+      return NextResponse.json({ error: 'No se pudo resolver tu cargo' }, { status: 500 });
+    }
+    if (!profile?.cargo_id) {
+      return NextResponse.json({ error: 'Tu perfil no tiene un cargo operacional activo' }, { status: 403 });
+    }
+
+    const { data: task, error: taskError } = await context.supabase
+      .from('role_task_worklist_v1')
+      .select('task_key, severity')
+      .eq('organization_id', context.organizationId)
+      .eq('cargo_id', profile.cargo_id)
+      .eq('task_key', sourceKey)
+      .limit(1)
+      .maybeSingle();
+
+    if (taskError) {
+      return NextResponse.json({ error: 'No se pudo validar la acción contra tu bandeja actual' }, { status: 500 });
+    }
+    if (!task) {
+      return NextResponse.json({ error: 'La acción ya no está disponible para tu cargo' }, { status: 409 });
+    }
+    if (status === 'snoozed' && String(task.severity || '').toLowerCase() === 'critical') {
+      return NextResponse.json({ error: 'Una acción crítica no puede posponerse' }, { status: 409 });
+    }
+  }
+
   const snoozedUntil = status === 'snoozed'
     ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
     : null;
