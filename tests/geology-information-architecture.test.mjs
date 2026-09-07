@@ -38,6 +38,14 @@ test('canonical State is traceability while actionable work has one home in Toda
   assert.match(shell, /selectTab\('pending'\)/);
 });
 
+test('geology removes the redundant global summary and lets each context carry its own evidence', async () => {
+  const shell = await readFile(shellUrl, 'utf8');
+
+  assert.match(shell, /geologia-dashboard-simplified/);
+  assert.match(shell, /geologia-dashboard-simplified section\[aria-label="Resumen geológico"\]/);
+  assert.doesNotMatch(shell, /geologia-holes-focus section\[aria-label="Resumen geológico"\]/);
+});
+
 test('production uses one operational flow rail while keeping technical disciplines non-sequential', async () => {
   const [layout, drillingHome] = await Promise.all([
     readFile(productionLayoutUrl, 'utf8'),
