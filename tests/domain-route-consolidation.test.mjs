@@ -6,6 +6,7 @@ const inventoryLegacy = new URL('../app/dashboard/inventario/page.tsx', import.m
 const peopleLegacy = new URL('../app/dashboard/personas/page.tsx', import.meta.url);
 const rolesLegacy = new URL('../app/dashboard/roles/page.tsx', import.meta.url);
 const operationalAiLegacy = new URL('../app/dashboard/ia-operacional/page.tsx', import.meta.url);
+const kpiDashboardLegacy = new URL('../app/dashboard/kpi-dashboard/page.tsx', import.meta.url);
 const rrhhLayout = new URL('../app/dashboard/rrhh/layout.tsx', import.meta.url);
 const rrhhOperational = new URL('../app/dashboard/rrhh/operacion/page.tsx', import.meta.url);
 const sidebar = new URL('../components/layout/sidebar.tsx', import.meta.url);
@@ -36,6 +37,14 @@ test('legacy operational AI executive page resolves into the canonical decision 
   const source = await readFile(operationalAiLegacy, 'utf8');
   assert.match(source, /redirect\('\/dashboard\/decisiones'\)/);
   assert.doesNotMatch(source, /api\/dashboard\/ia-operacional/);
+});
+
+test('legacy hard-coded KPI dashboard resolves into traceable operational performance', async () => {
+  const source = await readFile(kpiDashboardLegacy, 'utf8');
+  assert.match(source, /redirect\('\/dashboard\/desempeno'\)/);
+  assert.doesNotMatch(source, /trend:/);
+  assert.doesNotMatch(source, /change:/);
+  assert.doesNotMatch(source, /api\/dashboard\/kpi-dashboard/);
 });
 
 test('RRHH separates canonical people identity from operational capacity without inventing a workflow', async () => {
