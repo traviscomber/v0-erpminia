@@ -178,6 +178,16 @@ export function GeologiaWorkspaceShell() {
         ) : null}
       </section>
 
+      {tab === 'canonical' ? (
+        <section className="flex flex-col gap-3 rounded-lg border bg-muted/20 px-4 py-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Rol del Estado canónico">
+          <div>
+            <p className="text-sm font-medium">Estado = control y trazabilidad canónica</p>
+            <p className="mt-1 text-xs text-muted-foreground">Aquí se revisan reconciliación, bloqueos y procedencia. Toda acción operativa se atiende en Hoy → Tareas para mantener una sola cola de trabajo.</p>
+          </div>
+          <Button size="sm" variant="outline" onClick={() => selectTab('pending')}>Abrir Hoy → Tareas</Button>
+        </section>
+      ) : null}
+
       <div ref={dashboardRef} className={dashboardClassName}>
         <style>{`
           nav[aria-label="Vistas de Geología"] { display: none !important; }
