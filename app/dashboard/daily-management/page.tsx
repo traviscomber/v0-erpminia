@@ -51,30 +51,23 @@ type OperationalResponse = {
 };
 
 type AlertResponse = {
-  stats?: { total: number; unread: number; critical: number; actionRequired: number };
+  stats?: { total: number; critical: number; actionRequired: number };
+  sourceStatus?: { available: number; total: number; complete: boolean; unavailable: string[] };
 };
 
 type ProductionResponse = {
   kpis?: Array<{
     date: string;
-    production_tons: number;
-    equipment_uptime: number;
-    safety_incidents: number;
-    environmental_compliance: number;
+    production_tons: number | null;
+    equipment_uptime: number | null;
+    safety_incidents: number | null;
+    environmental_compliance: number | null;
   }>;
 };
 
-type MaintenanceResponse = {
-  ordenes?: Array<{ id: string; status: string; priority: string }>;
-};
-
-type InventoryResponse = {
-  categories?: Array<{ low_stock: number }>;
-};
-
-type OverviewResponse = {
-  overview?: { compliance_score: number; open_ncs: number; overdue_cas: number };
-};
+type MaintenanceResponse = { ordenes?: Array<{ id: string; status: string; priority: string }> };
+type InventoryResponse = { categories?: Array<{ low_stock: number }> };
+type OverviewResponse = { overview?: { compliance_score: number | null; open_ncs: number; overdue_cas: number } };
 
 const fetcher = async <T,>(url: string): Promise<T> => {
   const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
@@ -100,12 +93,13 @@ export default function DailyManagementPage() {
 
   const sources = [operational, alerts, production, maintenance, inventory, overview];
   const loading = sources.some((source) => source.isLoading);
-  const partial = sources.some((source) => Boolean(source.error));
+  const alertCoveragePartial = alerts.data?.sourceStatus?.complete === false;
+  const partial = sources.some((source) => Boolean(source.error)) || alertCoveragePartial;
   const refresh = () => sources.forEach((source) => void source.mutate());
 
   const commitments = operational.data?.data || [];
-  const summary = operational.data?.summary || { overdue: 0, today: 0, next_7_days: 0, total: 0 };
-  const latestProduction = production.data?.kpis?.[0];
+  const summary = operational.data?.summary || null;
+  const latestProduction = production.data?.kpis?.[0] || null;
   const orders = maintenance.data?.ordenes || [];
   const criticalOrders = orders.filter((order) => {
     const status = String(order.status || '').toLowerCase();
@@ -114,50 +108,75 @@ export default function DailyManagementPage() {
       && ['critical', 'critica', 'high', 'alta', 'urgente'].includes(priority);
   }).length;
   const lowStock = (inventory.data?.categories || []).reduce((sum, category) => sum + Number(category.low_stock || 0), 0);
-  const alertStats = alerts.data?.stats || { total: 0, unread: 0, critical: 0, actionRequired: 0 };
-  const safety = overview.data?.overview || { compliance_score: 0, open_ncs: 0, overdue_cas: 0 };
+  const alertStats = alerts.data?.stats || null;
+  const safety = overview.data?.overview || null;
   const todayItems = commitments.filter((item) => item.days_until === 0 || item.overdue).slice(0, 8);
+
+  const operationalUnavailable = Boolean(operational.error) || (!operational.isLoading && !operational.data);
+  const alertsUnavailable = Boolean(alerts.error) || (!alerts.isLoading && (!alertStats || alertCoveragePartial));
+  const productionUnavailable = Boolean(production.error) || (!production.isLoading && !production.data);
+  const maintenanceUnavailable = Boolean(maintenance.error) || (!maintenance.isLoading && !maintenance.data);
+  const inventoryUnavailable = Boolean(inventory.error) || (!inventory.isLoading && !inventory.data);
+  const safetyUnavailable = Boolean(overview.error) || (!overview.isLoading && !overview.data);
 
   const indicators = [
     {
       label: 'Producción',
-      value: latestProduction ? `${Math.round(latestProduction.production_tons || 0)} ton` : 'Sin registro',
-      detail: latestProduction ? `${Number(latestProduction.equipment_uptime || 0).toFixed(1)}% de disponibilidad` : 'Sin información',
+      value: production.isLoading || productionUnavailable
+        ? '—'
+        : latestProduction?.production_tons == null
+          ? 'Sin registro'
+          : `${Math.round(latestProduction.production_tons)} ton`,
+      detail: productionUnavailable
+        ? 'Fuente no disponible'
+        : latestProduction?.equipment_uptime == null
+          ? 'Disponibilidad sin dato'
+          : `${latestProduction.equipment_uptime.toFixed(1)}% de disponibilidad`,
       icon: Factory,
       href: '/dashboard/produccion',
     },
     {
       label: 'Órdenes críticas',
-      value: criticalOrders,
-      detail: 'Abiertas con prioridad alta',
+      value: maintenance.isLoading || maintenanceUnavailable ? '—' : criticalOrders,
+      detail: maintenanceUnavailable ? 'Fuente no disponible' : 'Abiertas con prioridad alta',
       icon: Wrench,
       href: '/dashboard/mantenimiento/ordenes-trabajo',
     },
     {
       label: 'Alertas críticas',
-      value: alertStats.critical,
-      detail: `${alertStats.actionRequired} requieren acción`,
+      value: alerts.isLoading || alertsUnavailable ? '—' : alertStats?.critical ?? '—',
+      detail: alertsUnavailable
+        ? alertCoveragePartial ? 'Cobertura parcial de señales' : 'Fuente no disponible'
+        : `${alertStats?.actionRequired ?? 0} requieren acción`,
       icon: AlertTriangle,
       href: '/dashboard/alertas',
     },
     {
       label: 'Stock crítico',
-      value: lowStock,
-      detail: 'Artículos bajo el mínimo',
+      value: inventory.isLoading || inventoryUnavailable ? '—' : lowStock,
+      detail: inventoryUnavailable ? 'Fuente no disponible' : 'Artículos bajo el mínimo',
       icon: Boxes,
       href: '/dashboard/bodega',
     },
     {
       label: 'Compromisos vencidos',
-      value: summary.overdue,
-      detail: `${summary.today} comprometidos para hoy`,
+      value: operational.isLoading || operationalUnavailable || !summary ? '—' : summary.overdue,
+      detail: operationalUnavailable || !summary ? 'Calendario operacional no disponible' : `${summary.today} comprometidos para hoy`,
       icon: Clock3,
       href: '/dashboard/tareas',
     },
     {
       label: 'Cumplimiento de seguridad',
-      value: `${Number(safety.compliance_score || 0).toFixed(0)}%`,
-      detail: `${safety.open_ncs} hallazgos abiertos · ${safety.overdue_cas} acciones vencidas`,
+      value: overview.isLoading || safetyUnavailable
+        ? '—'
+        : safety?.compliance_score == null
+          ? 'Sin registro'
+          : `${safety.compliance_score.toFixed(0)}%`,
+      detail: safetyUnavailable
+        ? 'Fuente no disponible'
+        : safety
+          ? `${safety.open_ncs} hallazgos abiertos · ${safety.overdue_cas} acciones vencidas`
+          : 'Sin evidencia HSE disponible',
       icon: ShieldAlert,
       href: '/dashboard/sostenibilidad',
     },
@@ -188,7 +207,7 @@ export default function DailyManagementPage() {
         <StatePanel
           tone="warning"
           title="Parte de la información no está disponible"
-          description="Se mantiene visible todo lo que pudo comprobarse. No se completaron valores mediante estimaciones."
+          description="Cada indicador afectado queda sin dato. Las fuentes disponibles permanecen visibles sin completar fallas con cero."
           className="min-h-0 py-5"
         />
       ) : null}
@@ -199,7 +218,7 @@ export default function DailyManagementPage() {
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
-                <p className="mt-4 text-3xl font-semibold tracking-[-0.04em]">{loading ? '—' : value}</p>
+                <p className="mt-4 text-3xl font-semibold tracking-[-0.04em]">{value}</p>
                 <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
               </div>
               <Icon className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
@@ -218,14 +237,16 @@ export default function DailyManagementPage() {
             <Button asChild variant="ghost" size="sm"><Link href="/dashboard/tareas">Ver todos</Link></Button>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {operational.isLoading ? (
               <StatePanel tone="loading" title="Cargando compromisos" className="min-h-52 border-0 bg-transparent" />
+            ) : operationalUnavailable ? (
+              <StatePanel tone="warning" title="Compromisos no disponibles" description="No se interpreta una falla del calendario como ausencia de pendientes." className="min-h-52 border-0 bg-transparent" />
             ) : todayItems.length === 0 ? (
               <StatePanel
                 tone="success"
                 icon={CheckCircle2}
                 title="Sin compromisos vencidos o para hoy"
-                description="La operación no registra pendientes inmediatos."
+                description="La fuente operacional respondió y no registra pendientes inmediatos."
                 className="min-h-52 border-0 bg-transparent"
               />
             ) : (
