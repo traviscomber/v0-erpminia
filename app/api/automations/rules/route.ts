@@ -26,7 +26,10 @@ export async function GET(request: NextRequest) {
   ]);
 
   if (rulesError || runsError) return NextResponse.json({ error: 'No se pudieron cargar las reglas automáticas' }, { status: 500 });
-  return NextResponse.json({ rules: rules || [], runs: runs || [] });
+  return NextResponse.json({
+    rules: (rules || []).map((rule) => ({ ...rule, can_edit: rule.created_by === context.userId })),
+    runs: runs || [],
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -57,7 +60,7 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (error) return NextResponse.json({ error: 'No se pudo crear la regla' }, { status: 500 });
-  return NextResponse.json({ rule: data }, { status: 201 });
+  return NextResponse.json({ rule: { ...data, can_edit: true } }, { status: 201 });
 }
 
 export async function PATCH(request: NextRequest) {
@@ -77,6 +80,7 @@ export async function PATCH(request: NextRequest) {
     .select('id, enabled')
     .maybeSingle();
 
-  if (error || !data) return NextResponse.json({ error: 'No se pudo actualizar la regla' }, { status: 500 });
-  return NextResponse.json({ rule: data });
+  if (error) return NextResponse.json({ error: 'No se pudo actualizar la regla' }, { status: 500 });
+  if (!data) return NextResponse.json({ error: 'La regla no pertenece al usuario actual o ya no existe' }, { status: 403 });
+  return NextResponse.json({ rule: { ...data, can_edit: true } });
 }
