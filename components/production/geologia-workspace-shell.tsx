@@ -14,7 +14,6 @@ import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floa
 
 const tabs = [
   ['today', 'Resumen'],
-  ['priorities', 'Prioridades'],
   ['pending', 'Tareas'],
   ['holes', 'Ficha'],
   ['corevision', 'CoreVision'],
@@ -22,6 +21,7 @@ const tabs = [
   ['matrix', 'Matriz'],
   ['results', 'Resultados'],
   ['completeness', 'Cobertura'],
+  ['priorities', 'Excepciones'],
   ['canonical', 'Estado'],
   ['history', 'Histórico'],
 ] as const;
@@ -43,7 +43,6 @@ const navigationGroups: NavigationGroup[] = [
     description: 'Atención y decisiones actuales.',
     tabs: [
       ['today', 'Resumen'],
-      ['priorities', 'Prioridades'],
       ['pending', 'Tareas'],
     ],
   },
@@ -68,10 +67,11 @@ const navigationGroups: NavigationGroup[] = [
   {
     key: 'evidence',
     label: 'Evidencia',
-    description: 'Resultados, cobertura y estado canónico.',
+    description: 'Resultados, cobertura, excepciones de evidencia y estado canónico.',
     tabs: [
       ['results', 'Resultados'],
       ['completeness', 'Cobertura'],
+      ['priorities', 'Excepciones'],
       ['canonical', 'Estado'],
     ],
   },
