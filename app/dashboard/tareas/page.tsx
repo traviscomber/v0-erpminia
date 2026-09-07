@@ -47,7 +47,7 @@ type TasksResponse = {
 const fetcher = async (url: string): Promise<TasksResponse> => {
   const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
   const payload = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar los pendientes');
+  if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar los compromisos');
   return payload;
 };
 
@@ -99,10 +99,10 @@ export default function TareasPage() {
     <div className="space-y-6">
       <PageHeader>
         <PageHeaderContent>
-          <PageHeaderEyebrow>Gestión transversal</PageHeaderEyebrow>
-          <PageHeaderTitle>Acciones pendientes</PageHeaderTitle>
+          <PageHeaderEyebrow>Gestión diaria · compromisos con fecha</PageHeaderEyebrow>
+          <PageHeaderTitle>Calendario operacional</PageHeaderTitle>
           <PageHeaderDescription>
-            Compromisos abiertos de mantenimiento, cumplimiento y abastecimiento reunidos desde sus fuentes canónicas.
+            Compromisos abiertos con fecha de mantenimiento, cumplimiento y abastecimiento. Para decisiones asignadas directamente a tu cargo usa Acciones del cargo.
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
@@ -132,7 +132,7 @@ export default function TareasPage() {
         <FilterToolbarGroup>
           <div className="relative min-w-0 flex-1 sm:max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar pendiente, responsable o referencia" className="pl-9" />
+            <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Buscar compromiso, responsable o referencia" className="pl-9" />
           </div>
         </FilterToolbarGroup>
         <FilterToolbarActions>
@@ -147,9 +147,9 @@ export default function TareasPage() {
         </FilterToolbarActions>
       </FilterToolbar>
 
-      {isLoading ? <StatePanel tone="loading" title="Cargando pendientes" description="Consultando las fuentes operacionales." /> : null}
-      {error ? <StatePanel tone="error" title="No fue posible cargar los pendientes" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} /> : null}
-      {!isLoading && !error && tasks.length === 0 ? <StatePanel tone="neutral" icon={CheckCircle2} title="No hay pendientes para este filtro" description="La vista no contiene acciones abiertas con los criterios seleccionados." /> : null}
+      {isLoading ? <StatePanel tone="loading" title="Cargando compromisos" description="Consultando las fuentes operacionales." /> : null}
+      {error ? <StatePanel tone="error" title="No fue posible cargar los compromisos" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} /> : null}
+      {!isLoading && !error && tasks.length === 0 ? <StatePanel tone="neutral" icon={CheckCircle2} title="No hay compromisos para este filtro" description="La vista no contiene compromisos abiertos con los criterios seleccionados." /> : null}
 
       {!isLoading && !error && tasks.length > 0 ? (
         <div className="overflow-hidden rounded-lg border border-border bg-card">
