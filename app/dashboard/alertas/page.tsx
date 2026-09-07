@@ -26,12 +26,15 @@ type Alert = {
   description: string;
   severity: AlertSeverity;
   type: AlertType;
-  timestamp: string;
-  read: boolean;
+  timestamp: string | null;
   actionRequired: boolean;
   actionUrl: string;
 };
-type AlertResponse = { alerts?: Alert[] };
+type AlertResponse = {
+  alerts?: Alert[];
+  stats?: { total: number; critical: number; actionRequired: number };
+  sourceStatus?: { available: number; total: number; complete: boolean; unavailable: string[] };
+};
 
 const fetcher = async (url: string): Promise<AlertResponse> => {
   const response = await fetch(url, { credentials: 'include' });
@@ -59,23 +62,25 @@ function typeLabel(type: AlertType) {
   return labels[type];
 }
 
-function formatTime(timestamp: string) {
+function formatTime(timestamp: string | null) {
+  if (!timestamp) return 'Fecha fuente no disponible';
   const date = new Date(timestamp);
   return Number.isNaN(date.getTime())
-    ? 'Sin fecha'
+    ? 'Fecha fuente no disponible'
     : date.toLocaleString('es-CL', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 export default function AlertasPage() {
-  const [filter, setFilter] = useState<'todos' | 'no-leidas' | 'criticas' | 'accion'>('todos');
+  const [filter, setFilter] = useState<'todos' | 'criticas' | 'accion'>('todos');
   const { data, error, isLoading, isValidating, mutate } = useSWR<AlertResponse>('/api/alertas', fetcher, {
     revalidateOnFocus: false,
   });
 
   const alerts = data?.alerts ?? [];
+  const sourceStatus = data?.sourceStatus;
+  const complete = sourceStatus?.complete === true;
   const filteredAlerts = useMemo(
     () => alerts.filter((alert) => {
-      if (filter === 'no-leidas') return !alert.read;
       if (filter === 'criticas') return alert.severity === 'critica';
       if (filter === 'accion') return alert.actionRequired;
       return true;
@@ -83,18 +88,20 @@ export default function AlertasPage() {
     [alerts, filter],
   );
 
-  const unreadCount = alerts.filter((alert) => !alert.read).length;
   const criticalCount = alerts.filter((alert) => alert.severity === 'critica').length;
   const actionCount = alerts.filter((alert) => alert.actionRequired).length;
+  const aggregateUnavailable = isLoading || Boolean(error) || !sourceStatus || !complete;
+  const aggregateValue = (value: number) => aggregateUnavailable ? '—' : value;
+  const sourceValue = sourceStatus ? `${sourceStatus.available}/${sourceStatus.total}` : '—';
 
   return (
     <div className="space-y-6">
       <PageHeader>
         <PageHeaderContent>
-          <PageHeaderEyebrow>Control transversal</PageHeaderEyebrow>
+          <PageHeaderEyebrow>Control transversal · señales</PageHeaderEyebrow>
           <PageHeaderTitle>Centro de alertas</PageHeaderTitle>
           <PageHeaderDescription>
-            Prioridades reales detectadas en mantenimiento, abastecimiento, sostenibilidad, documentos y contratos.
+            Señales detectadas en mantenimiento, abastecimiento, sostenibilidad, documentos y contratos. Una señal no reemplaza el ciclo de gestión de un problema en Andon.
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
@@ -107,9 +114,9 @@ export default function AlertasPage() {
 
       <div className="grid divide-y rounded-lg border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {[
-          ['No leídas', unreadCount, 'Pendientes de revisión'],
-          ['Críticas', criticalCount, 'Atención inmediata'],
-          ['Con acción', actionCount, 'Seguimiento pendiente'],
+          ['Fuentes disponibles', sourceValue, complete ? 'Cobertura completa' : 'Revisar cobertura'],
+          ['Críticas', aggregateValue(criticalCount), aggregateUnavailable ? 'Agregado no concluyente' : 'Atención inmediata'],
+          ['Con acción', aggregateValue(actionCount), aggregateUnavailable ? 'Agregado no concluyente' : 'Seguimiento pendiente'],
         ].map(([label, value, detail]) => (
           <div key={String(label)} className="px-5 py-4">
             <p className="text-xs text-muted-foreground">{label}</p>
@@ -119,15 +126,24 @@ export default function AlertasPage() {
         ))}
       </div>
 
+      {sourceStatus && !sourceStatus.complete ? (
+        <StatePanel
+          tone="warning"
+          title="Vista parcial de señales"
+          description={`No respondieron: ${sourceStatus.unavailable.join(', ')}. Las señales disponibles se mantienen visibles, pero los totales no se presentan como completos.`}
+          actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>}
+          className="min-h-0"
+        />
+      ) : null}
+
       <FilterToolbar>
         <FilterToolbarGroup>
-          <p className="text-sm text-muted-foreground">{filteredAlerts.length} alertas visibles</p>
+          <p className="text-sm text-muted-foreground">{filteredAlerts.length} señales visibles{complete ? '' : ' entre las fuentes disponibles'}</p>
         </FilterToolbarGroup>
         <FilterToolbarActions>
           <Tabs value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
             <TabsList>
               <TabsTrigger value="todos">Todas</TabsTrigger>
-              <TabsTrigger value="no-leidas">No leídas</TabsTrigger>
               <TabsTrigger value="criticas">Críticas</TabsTrigger>
               <TabsTrigger value="accion">Con acción</TabsTrigger>
             </TabsList>
@@ -135,17 +151,21 @@ export default function AlertasPage() {
         </FilterToolbarActions>
       </FilterToolbar>
 
-      {isLoading ? <StatePanel tone="loading" title="Cargando alertas" description="Consultando las fuentes operacionales." /> : null}
+      {isLoading ? <StatePanel tone="loading" title="Cargando señales" description="Consultando las fuentes operacionales." /> : null}
       {error ? (
         <StatePanel
           tone="error"
-          title="No fue posible cargar las alertas"
+          title="No fue posible cargar las señales"
           description={error.message}
           actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>}
         />
       ) : null}
       {!isLoading && !error && filteredAlerts.length === 0 ? (
-        <StatePanel tone="neutral" title="No hay alertas para este filtro" description="No existen registros que coincidan con la vista seleccionada." />
+        <StatePanel
+          tone="neutral"
+          title={complete ? 'No hay señales para este filtro' : 'No hay señales entre las fuentes disponibles'}
+          description={complete ? 'No existen registros que coincidan con la vista seleccionada.' : 'La cobertura está incompleta; este estado no equivale a ausencia global de señales.'}
+        />
       ) : null}
 
       {!isLoading && !error && filteredAlerts.length > 0 ? (
@@ -155,7 +175,7 @@ export default function AlertasPage() {
               const config = severityConfig[alert.severity];
               const Icon = config.icon;
               return (
-                <article key={alert.id} className={`grid gap-4 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:px-5 ${alert.read ? '' : 'bg-muted/20'}`}>
+                <article key={alert.id} className="grid gap-4 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center lg:px-5">
                   <div className="flex min-w-0 gap-3">
                     <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
                       <Icon className={`h-4 w-4 ${alert.severity === 'critica' ? 'text-destructive' : 'text-muted-foreground'}`} />
@@ -165,7 +185,6 @@ export default function AlertasPage() {
                         <h2 className="text-sm font-semibold leading-6">{alert.title}</h2>
                         <Badge variant={config.variant}>{config.label}</Badge>
                         <Badge variant="outline">{typeLabel(alert.type)}</Badge>
-                        {!alert.read ? <Badge variant="secondary">Nueva</Badge> : null}
                       </div>
                       <p className="mt-1 text-sm leading-6 text-muted-foreground">{alert.description}</p>
                       <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
