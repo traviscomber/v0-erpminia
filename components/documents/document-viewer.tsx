@@ -91,7 +91,7 @@ export interface DocumentViewerDocument {
   file_url?: string;
   fileSize?: number;
   file_size_bytes?: number;
-  createdAt: string;
+  createdAt: string | null;
   createdByUser: { name: string; email?: string };
 }
 
@@ -110,6 +110,8 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
   const fileUrl = document.fileUrl || document.file_url || '';
   const fileSize = document.fileSize ?? document.file_size_bytes ?? 0;
   const createdByEmail = document.createdByUser.email || '';
+  const createdAt = document.createdAt ? new Date(document.createdAt) : null;
+  const hasCreationDate = Boolean(createdAt && !Number.isNaN(createdAt.getTime()));
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -166,9 +168,11 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
               {createdByEmail ? <p className="text-xs text-muted-foreground">{createdByEmail}</p> : null}
             </div>
             <div className="space-y-1">
-              <p className="text-xs text-muted-foreground">Fecha de creacion</p>
-              <p className="text-sm font-medium">{new Date(document.createdAt).toLocaleDateString('es-CL')}</p>
-              <p className="text-xs text-muted-foreground">{new Date(document.createdAt).toLocaleTimeString('es-CL')}</p>
+              <p className="text-xs text-muted-foreground">Fecha de creación</p>
+              {hasCreationDate && createdAt ? <>
+                <p className="text-sm font-medium">{createdAt.toLocaleDateString('es-CL')}</p>
+                <p className="text-xs text-muted-foreground">{createdAt.toLocaleTimeString('es-CL')}</p>
+              </> : <p className="text-sm font-medium text-muted-foreground">No informada</p>}
             </div>
           </div>
 
@@ -178,7 +182,7 @@ export function DocumentViewer({ open, onOpenChange, document }: DocumentViewerP
               <div className="text-center">
                 <p className="font-medium text-foreground">Archivo: {document.title}</p>
                 <p className="text-sm text-muted-foreground">
-                  {fileSize ? `${(fileSize / 1024 / 1024).toFixed(2)} MB` : 'Tamano desconocido'}
+                  {fileSize ? `${(fileSize / 1024 / 1024).toFixed(2)} MB` : 'Tamaño desconocido'}
                 </p>
               </div>
 
