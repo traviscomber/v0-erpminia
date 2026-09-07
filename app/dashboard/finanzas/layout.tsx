@@ -3,46 +3,84 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FileSearch, Landmark, ReceiptText, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-const items = [
-  { href: '/dashboard/finanzas', label: 'Resumen', icon: Landmark },
-  { href: '/dashboard/finanzas/centros', label: 'Centros', icon: Landmark },
-  { href: '/dashboard/finanzas/proveedores', label: 'Proveedores', icon: Users },
-  { href: '/dashboard/finanzas/pagos', label: 'Pagos', icon: ReceiptText },
-  { href: '/dashboard/finanzas/trazabilidad', label: 'Trazabilidad', icon: FileSearch },
+const operationItems = [
+  { href: '/dashboard/finanzas', label: 'Resumen' },
+  { href: '/dashboard/finanzas/pagos', label: 'Pagos' },
 ];
+
+const controlItems = [
+  { href: '/dashboard/finanzas/centros', label: 'Centros' },
+  { href: '/dashboard/finanzas/proveedores', label: 'Proveedores' },
+  { href: '/dashboard/finanzas/trazabilidad', label: 'Trazabilidad' },
+];
+
+function isActive(pathname: string, href: string) {
+  return href === '/dashboard/finanzas'
+    ? pathname === href
+    : pathname === href || pathname.startsWith(`${href}/`);
+}
 
 export default function FinanceLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
 
   return (
     <div className="space-y-5">
-      <section className="border-b border-border pb-4">
-        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Finanzas</p>
-        <nav className="mt-3 flex gap-2 overflow-x-auto pb-1" aria-label="Navegación de finanzas">
-          {items.map((item) => {
-            const Icon = item.icon;
-            const active = item.href === '/dashboard/finanzas'
-              ? pathname === item.href
-              : pathname === item.href || pathname.startsWith(`${item.href}/`);
+      <section className="border-b border-border" aria-label="Área de Finanzas">
+        <div className="flex min-h-12 items-stretch overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex shrink-0 items-stretch">
+            <span className="flex items-center px-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/55">
+              Operación
+            </span>
+            <nav className="flex items-stretch" aria-label="Operación financiera">
+              {operationItems.map((item) => {
+                const active = isActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'relative inline-flex min-h-12 shrink-0 items-center px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                      active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <span className="whitespace-nowrap">{item.label}</span>
+                    {active ? <span className="absolute inset-x-2.5 bottom-0 h-0.5 bg-primary" aria-hidden="true" /> : null}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  'inline-flex min-h-9 shrink-0 items-center gap-2 rounded-md border px-3 py-2 text-sm font-medium transition-colors',
-                  active ? 'border-primary bg-primary text-primary-foreground' : 'border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+          <div className="mx-2 my-3 w-px shrink-0 bg-border" aria-hidden="true" />
+
+          <div className="flex shrink-0 items-stretch">
+            <span className="flex items-center px-2 text-[9px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/55">
+              Control
+            </span>
+            <nav className="flex items-stretch" aria-label="Control financiero">
+              {controlItems.map((item) => {
+                const active = isActive(pathname, item.href);
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    aria-current={active ? 'page' : undefined}
+                    className={cn(
+                      'relative inline-flex min-h-12 shrink-0 items-center px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                      active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+                    )}
+                  >
+                    <span className="whitespace-nowrap">{item.label}</span>
+                    {active ? <span className="absolute inset-x-2.5 bottom-0 h-0.5 bg-primary" aria-hidden="true" /> : null}
+                  </Link>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
       </section>
       {children}
     </div>
