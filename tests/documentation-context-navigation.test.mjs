@@ -23,7 +23,7 @@ test('library and control retain distinct responsibilities', async () => {
   const library = await readFile(libraryUrl, 'utf8');
   const control = await readFile(controlUrl, 'utf8');
 
-  assert.match(library, /Subir Documento/);
+  assert.match(library, /Subir documento/i);
   assert.match(library, /\/api\/documents/);
   assert.match(control, /Controla aprobaciones, vencimientos y categorías documentales/);
   assert.match(control, /\/api\/dashboard\/documentos-gestion/);
