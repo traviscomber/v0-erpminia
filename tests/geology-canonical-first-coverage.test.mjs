@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 const coverageUrl = new URL('../components/production/geologia-data-completeness.tsx', import.meta.url);
 const todayUrl = new URL('../components/production/geologia-today-decision-board.tsx', import.meta.url);
 const overviewUrl = new URL('../components/production/geologia-mine-evidence-overview.tsx', import.meta.url);
-const prioritiesUrl = new URL('../components/production/geologia-next-best-evidence.tsx', import.meta.url);
+const exceptionsUrl = new URL('../components/production/geologia-next-best-evidence.tsx', import.meta.url);
 const promptUrl = new URL('../lib/geology-ai/prompt.ts', import.meta.url);
 
 test('geology coverage describes canonical availability instead of creating missing-data work', async () => {
@@ -36,11 +36,12 @@ test('mine coverage is descriptive rather than a recovery ranking', async () => 
   assert.doesNotMatch(overview, /Dónde cerrar evidencia primero/);
 });
 
-test('priorities and senior assistant share the canonical-first sparse-data rule', async () => {
-  const [priorities, prompt] = await Promise.all([readFile(prioritiesUrl, 'utf8'), readFile(promptUrl, 'utf8')]);
-  assert.match(priorities, /Trabajar con lo que sí tenemos/);
-  assert.match(priorities, /Sin deuda de datos accionable/);
-  assert.match(priorities, /Límites conocidos de la fuente/);
+test('evidence exceptions and senior assistant share the canonical-first sparse-data rule', async () => {
+  const [exceptions, prompt] = await Promise.all([readFile(exceptionsUrl, 'utf8'), readFile(promptUrl, 'utf8')]);
+  assert.match(exceptions, /Excepciones de evidencia/);
+  assert.match(exceptions, /Esta vista no es una cola de trabajo/);
+  assert.match(exceptions, /Sin excepciones de evidencia/);
+  assert.match(exceptions, /Límites conocidos de la fuente/);
   assert.match(prompt, /LÍMITE CONOCIDO DE LA FUENTE/);
   assert.match(prompt, /No pidas al usuario datos ausentes por defecto/);
 });
