@@ -11,13 +11,16 @@ test('dashboard home exposes role-specific operational shortcuts', async () => {
     ['Planta y metalurgia', '/dashboard/produccion/planta-metalurgia'],
     ['Órdenes de trabajo', '/dashboard/mantenimiento/ordenes-trabajo'],
     ['Disponibilidad', '/dashboard/mantenimiento/disponibilidad'],
-    ['Sondaje', '/dashboard/produccion/sondaje'],
+    ['Perforación', '/dashboard/produccion/sondaje'],
+    ['Bodega', '/dashboard/bodega'],
     ['Mis acciones', '/dashboard/acciones'],
     ['Producción', '/dashboard/produccion'],
   ]) {
     assert.match(dashboard, new RegExp(`label: '${label}'.*href: '${href.replaceAll('/', '\\/')}'`));
   }
 
+  assert.match(dashboard, /title: 'Mi Perforación'/);
+  assert.doesNotMatch(dashboard, /title: 'Mi Sondaje'/);
   assert.match(dashboard, /resolveMode\(/);
   assert.match(dashboard, /mode === 'plant'/);
   assert.match(dashboard, /mode === 'maintenance'/);
