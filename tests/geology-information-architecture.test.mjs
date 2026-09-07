@@ -4,6 +4,7 @@ import test from 'node:test';
 
 const shellUrl = new URL('../components/production/geologia-workspace-shell.tsx', import.meta.url);
 const canonicalStatusUrl = new URL('../components/production/geologia-canonical-status.tsx', import.meta.url);
+const evidenceExceptionsUrl = new URL('../components/production/geologia-next-best-evidence.tsx', import.meta.url);
 const productionLayoutUrl = new URL('../app/dashboard/produccion/layout.tsx', import.meta.url);
 const drillingHomeUrl = new URL('../app/dashboard/produccion/sondaje/page.tsx', import.meta.url);
 
@@ -18,16 +19,31 @@ test('geology keeps decision views as local controls inside Production instead o
   assert.match(shell, /role="tablist"/);
   assert.doesNotMatch(shell, /sticky top-0/);
   assert.doesNotMatch(shell, /Vistas principales de Geología/);
-  assert.match(shell, /\['priorities', 'Prioridades'\]/);
   assert.match(shell, /\['pending', 'Tareas'\]/);
   assert.match(shell, /\['corevision', 'CoreVision'\]/);
   assert.match(shell, /\['matrix', 'Matriz'\]/);
   assert.match(shell, /\['results', 'Resultados'\]/);
   assert.match(shell, /\['completeness', 'Cobertura'\]/);
+  assert.match(shell, /\['priorities', 'Excepciones'\]/);
   assert.match(shell, /\['canonical', 'Estado'\]/);
-  assert.match(shell, /Resultados, cobertura y estado canónico/);
+  assert.match(shell, /Resultados, cobertura, excepciones de evidencia y estado canónico/);
+  assert.doesNotMatch(shell, /\['priorities', 'Prioridades'\]/);
   assert.doesNotMatch(shell, /\['canonical', 'Fuentes'\]/);
   assert.match(shell, /mismo sondaje canónico de Producción → Perforación/);
+});
+
+test('Today contains operational work while evidence exceptions live under Evidence', async () => {
+  const [shell, evidenceExceptions] = await Promise.all([
+    readFile(shellUrl, 'utf8'),
+    readFile(evidenceExceptionsUrl, 'utf8'),
+  ]);
+
+  assert.match(shell, /key: 'today'[\s\S]*\['today', 'Resumen'\][\s\S]*\['pending', 'Tareas'\]/);
+  assert.doesNotMatch(shell, /key: 'today'[\s\S]*\['priorities', 'Excepciones'\][\s\S]*key: 'holes'/);
+  assert.match(shell, /key: 'evidence'[\s\S]*\['priorities', 'Excepciones'\]/);
+  assert.match(evidenceExceptions, /Esta vista no es una cola de trabajo/);
+  assert.match(evidenceExceptions, /Excepciones de evidencia/);
+  assert.match(evidenceExceptions, /Sólo faltantes que vale la pena revisar/);
 });
 
 test('canonical State is traceability while actionable work has one home in Today Tasks', async () => {
