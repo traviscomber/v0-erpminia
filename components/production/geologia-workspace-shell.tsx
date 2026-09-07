@@ -185,6 +185,7 @@ export function GeologiaWorkspaceShell() {
           .geologia-holes-focus table th:nth-child(4),
           .geologia-holes-focus table td:nth-child(4) { display: none !important; }
           .geologia-holes-focus aside > section:first-child { display: none !important; }
+          .geologia-holes-focus > div.space-y-6 > div.grid > div.space-y-5 > section:first-child:has(.border-dashed) { display: none !important; }
         `}</style>
         <GeologiaDashboard />
       </div>
