@@ -162,9 +162,9 @@ function configFor(
 
   if (mode === 'drilling') {
     return {
-      eyebrow: 'Sondaje · equipos y actividad',
-      title: 'Mi Sondaje',
-      description: 'Actividad de sondaje, cobertura de pozos y excepciones asignadas al cargo.',
+      eyebrow: 'Perforación · equipos y actividad',
+      title: 'Mi Perforación',
+      description: 'Ejecución de perforación, pozos, metros, equipos y excepciones asignadas al cargo.',
       metrics: [
         { label: 'Reportes', value: production?.counts?.drillingReports ?? '—', detail: 'Registros canónicos' },
         { label: 'Pozos', value: production?.counts?.drillingHoles ?? '—', detail: 'Pozos identificados' },
@@ -172,7 +172,7 @@ function configFor(
         { label: 'Acciones críticas', value: summary?.critical ?? 0, detail: `${summary?.overdue ?? 0} vencidas para tu cargo` },
       ],
       shortcuts: [
-        { label: 'Sondaje', href: '/dashboard/produccion/sondaje', detail: 'Pozos, metros, equipos y ubicación' },
+        { label: 'Perforación', href: '/dashboard/produccion/sondaje', detail: 'Pozos, metros, equipos y ubicación' },
         { label: 'Equipos', href: '/dashboard/mantenimiento/equipos', detail: 'Estado de activos asociados' },
         { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Sólo tareas asignadas a tu cargo' },
       ],
@@ -191,8 +191,8 @@ function configFor(
         { label: 'Backlog', value: summary?.backlog ?? 0, detail: 'Más de 30 días' },
       ],
       shortcuts: [
-        { label: 'Inteligencia Inventario', href: '/dashboard/bodega/inteligencia', detail: 'Stock, calidad y readiness predictivo' },
-        { label: 'Inventario', href: '/dashboard/bodega', detail: 'Existencias y productos canónicos' },
+        { label: 'Inteligencia Bodega', href: '/dashboard/bodega/inteligencia', detail: 'Stock, calidad y readiness predictivo' },
+        { label: 'Bodega', href: '/dashboard/bodega', detail: 'Existencias y productos canónicos' },
         { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Data Health y reposición asignada a Bodega' },
       ],
     };
@@ -269,7 +269,7 @@ function configFor(
       { label: 'Mis acciones', href: '/dashboard/acciones', detail: 'Tareas visibles para tu cargo' },
       { label: 'Producción', href: '/dashboard/produccion', detail: 'Operación y cobertura canónica' },
       { label: 'Mantención', href: '/dashboard/mantenimiento', detail: 'OT y activos' },
-      { label: 'Inventario', href: '/dashboard/bodega', detail: 'Stock y trazabilidad' },
+      { label: 'Bodega', href: '/dashboard/bodega', detail: 'Stock y trazabilidad' },
     ],
   };
 }
