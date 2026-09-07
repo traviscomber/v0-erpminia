@@ -10,7 +10,8 @@ const unifiedAlertSources = [
   '../app/api/warehouse/reorder/route.ts',
   '../lib/api/dashboard-snapshot.ts',
 ];
-const inventoryPageUrl = new URL('../app/dashboard/inventario/page.tsx', import.meta.url);
+const inventoryPageUrl = new URL('../app/dashboard/bodega/page.tsx', import.meta.url);
+const inventoryIntelligenceUrl = new URL('../app/api/inventory/intelligence/route.ts', import.meta.url);
 
 test('stock alerts require a configured positive minimum', async () => {
   const helper = await readFile(helperUrl, 'utf8');
@@ -47,7 +48,12 @@ test('primary inventory alert surfaces use the shared source', async () => {
   }
 });
 
-test('Inventario reads the canonical-first stock endpoint', async () => {
-  const source = await readFile(inventoryPageUrl, 'utf8');
-  assert.match(source, /useSWR\('\/api\/bodega\/stock'/);
+test('Bodega reads the canonical inventory intelligence endpoint', async () => {
+  const page = await readFile(inventoryPageUrl, 'utf8');
+  const route = await readFile(inventoryIntelligenceUrl, 'utf8');
+
+  assert.match(page, /\/api\/inventory\/intelligence/);
+  assert.match(route, /from\('inventory_intelligence_position_v1'\)/);
+  assert.match(route, /from\('inventory_intelligence_overview_v1'\)/);
+  assert.match(route, /canonical: true/);
 });
