@@ -29,14 +29,16 @@ test('production overview preserves the dashboard contract for data and no-data 
   assert.match(dataBranch, /intelligence,[\s\S]*semantics,[\s\S]*\}\);/);
 });
 
-test('production dashboard distinguishes operational, partial and missing-source areas', async () => {
+test('production dashboard distinguishes operational, partial and missing-source areas without making coverage the landing focus', async () => {
   const dashboard = await readFile(dashboardUrl, 'utf8');
 
   assert.match(dashboard, /label:'Operativo'/);
   assert.match(dashboard, /label:'Parcial'/);
   assert.match(dashboard, /label:'Sin fuente'/);
-  assert.match(dashboard, /Cobertura real por área/);
-  assert.match(dashboard, /Sin fuente nunca se representa como cero/i);
+  assert.match(dashboard, /Estado de fuentes/);
+  assert.match(dashboard, /Detalle secundario de cobertura/);
+  assert.match(dashboard, /sin fuente nunca se representa como cero/i);
+  assert.doesNotMatch(dashboard, /Cobertura real por área/);
   assert.doesNotMatch(dashboard, /Siguiente capa para evidencia analítica/);
 });
 
