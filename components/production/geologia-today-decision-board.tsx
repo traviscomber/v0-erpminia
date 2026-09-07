@@ -51,7 +51,7 @@ export function GeologiaTodayDecisionBoard({summary:s,pending,chemistryLinkedToH
   const unresolvedPending=pending.filter((row)=>!['resolved','verified','matched'].includes(String(row.resolution_state||'').toLowerCase()));
   const operationalPending=unresolvedPending.filter((row)=>String(row.operational_bucket||'').toLowerCase()!=='historico');
   const historicalPending=unresolvedPending.filter((row)=>String(row.operational_bucket||'').toLowerCase()==='historico');
-  const topPending=[...operationalPending].sort((a,b)=>(a.operational_priority??999)-(b.operational_priority??999)||(b.review_priority||0)-(a.review_priority||0)).slice(0,3);
+  const topPending=[...operationalPending].sort((a,b)=>(b.operational_priority??-1)-(a.operational_priority??-1)||(b.review_priority||0)-(a.review_priority||0)).slice(0,3);
   const locationIsActionableException=s.holes>0&&locatedPct>=10&&locatedPct<100;
 
   const decisions=[
