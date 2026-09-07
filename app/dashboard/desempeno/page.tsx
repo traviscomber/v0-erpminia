@@ -41,12 +41,15 @@ export default function DesempenoPage() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const controller = new AbortController(); setLoading(true);
+    const controller = new AbortController();
+    setLoading(true);
+    setError('');
+    setPayload(null);
     const query = selection === 'TODOS' ? '' : selection.startsWith('PROFILE:') ? `?profileId=${encodeURIComponent(selection.slice(8))}` : `?cargo=${encodeURIComponent(selection)}`;
-    fetch(`/api/desempeno/scorecards${query}`, { signal: controller.signal })
+    fetch(`/api/desempeno/scorecards${query}`, { signal: controller.signal, credentials: 'include' })
       .then(async (response) => { if (!response.ok) throw new Error((await response.json()).error || 'No fue posible cargar desempeño'); return response.json(); })
       .then((data) => { setPayload(data); setError(''); })
-      .catch((err) => { if (err.name !== 'AbortError') setError(err.message); })
+      .catch((err) => { if (err.name !== 'AbortError') { setPayload(null); setError(err.message); } })
       .finally(() => setLoading(false));
     return () => controller.abort();
   }, [selection]);
@@ -58,7 +61,7 @@ export default function DesempenoPage() {
   const withoutTargets = rows.filter((row) => row.target_value === null || row.target_value === undefined).length;
   const person = payload?.person || null;
   const initiatives = person?.initiatives || [];
-  const completedInitiatives = initiatives.filter((item) => ['completed', 'closed', 'verified', 'standardized'].includes((item.status || '').toLowerCase())).length;
+  const unavailable = Boolean(error) && !payload;
 
   return <div className="space-y-6">
     <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -66,7 +69,7 @@ export default function DesempenoPage() {
       <Select value={selection} onValueChange={setSelection}><SelectTrigger className="w-full md:w-[340px]"><SelectValue placeholder="Seleccionar cargo o persona" /></SelectTrigger><SelectContent><SelectItem value="TODOS">Todos los cargos medidos</SelectItem>{(payload?.profiles || []).map((profile) => <SelectItem key={profile.id} value={`PROFILE:${profile.id}`}>{profile.full_name || 'Sin nombre'} · {profile.cargo_name || profile.role || 'Sin cargo'}</SelectItem>)}<SelectItem value="GERENTE">GERENTE · ejecutivo</SelectItem><SelectItem value="SUBGERENTE OP.">SUBGERENTE OP. · ejecutivo</SelectItem><SelectItem value="PRESIDENTE">PRESIDENTE · ejecutivo</SelectItem>{(payload?.cargos || []).filter((item) => !['GERENTE','SUBGERENTE OP.','PRESIDENTE'].includes(item)).map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent></Select>
     </div>
 
-    {error ? <Card><CardContent className="pt-5 text-sm text-destructive">{error}</CardContent></Card> : null}
+    {error ? <Card><CardContent className="pt-5 text-sm text-destructive">{error}. Los KPI de la selección anterior no se conservan como si siguieran vigentes.</CardContent></Card> : null}
 
     {person ? <Card>
       <CardHeader className="gap-3">
@@ -74,7 +77,7 @@ export default function DesempenoPage() {
           <div><div className="flex items-center gap-2"><UserRound className="h-5 w-5 text-muted-foreground" /><CardTitle>{person.fullName}</CardTitle></div><CardDescription className="mt-2">{person.cargoName || person.role || 'Sin cargo definido'} · Vista ejecutiva global</CardDescription></div>
           <div className="flex flex-wrap gap-2"><Badge variant="outline">Todos los KPI</Badge><Badge variant="neutral">No evaluación personal</Badge></div>
         </div>
-        <p className="text-sm text-muted-foreground">Pedro Zegers ve todos los KPIs disponibles de todos los cargos y dominios. El cargo de origen se mantiene visible en cada indicador para conservar trazabilidad.</p>
+        <p className="text-sm text-muted-foreground">{person.fullName || 'La persona seleccionada'} ve los KPIs disponibles según su vista de gestión. El cargo de origen se mantiene visible en cada indicador para conservar trazabilidad.</p>
       </CardHeader>
       <CardContent className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div className="rounded-lg border p-4"><p className="text-xs uppercase tracking-wide text-muted-foreground">KPIs visibles</p><p className="mt-2 text-2xl font-semibold tabular-nums">{rows.length}</p></div>
@@ -85,13 +88,13 @@ export default function DesempenoPage() {
     </Card> : null}
 
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-      <Card><CardHeader><CardDescription>Indicadores visibles</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><Gauge className="h-5 w-5 text-muted-foreground" />{loading ? '—' : rows.length}</CardTitle></CardHeader></Card>
-      <Card><CardHeader><CardDescription>Con evidencia</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><Activity className="h-5 w-5 text-muted-foreground" />{loading ? '—' : withData}</CardTitle></CardHeader></Card>
-      <Card><CardHeader><CardDescription>Dominios</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><ShieldAlert className="h-5 w-5 text-muted-foreground" />{loading ? '—' : domains || '—'}</CardTitle></CardHeader></Card>
-      <Card><CardHeader><CardDescription>Sin meta aprobada</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><Target className="h-5 w-5 text-muted-foreground" />{loading ? '—' : withoutTargets}</CardTitle></CardHeader></Card>
+      <Card><CardHeader><CardDescription>Indicadores visibles</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><Gauge className="h-5 w-5 text-muted-foreground" />{loading || unavailable ? '—' : rows.length}</CardTitle></CardHeader></Card>
+      <Card><CardHeader><CardDescription>Con evidencia</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><Activity className="h-5 w-5 text-muted-foreground" />{loading || unavailable ? '—' : withData}</CardTitle></CardHeader></Card>
+      <Card><CardHeader><CardDescription>Dominios</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><ShieldAlert className="h-5 w-5 text-muted-foreground" />{loading || unavailable ? '—' : domains || '—'}</CardTitle></CardHeader></Card>
+      <Card><CardHeader><CardDescription>Sin meta aprobada</CardDescription><CardTitle className="flex items-center gap-2 text-2xl"><Target className="h-5 w-5 text-muted-foreground" />{loading || unavailable ? '—' : withoutTargets}</CardTitle></CardHeader></Card>
     </div>
 
-    <Card><CardHeader><div className="flex flex-wrap items-center gap-2"><CardTitle>{person ? 'KPIs globales' : 'Scorecard'}</CardTitle><Badge variant="outline">Baseline</Badge><Badge variant="neutral">No evaluación personal</Badge></div><CardDescription>{payload?.meta.note || 'Cargando evidencia operacional…'}</CardDescription></CardHeader><CardContent className="px-0 pb-0"><Table><TableHeader><TableRow><TableHead>Cargo / dominio</TableHead><TableHead>Indicador</TableHead><TableHead className="text-right">Valor</TableHead><TableHead>Dirección</TableHead><TableHead>Estado</TableHead></TableRow></TableHeader><TableBody>{loading ? <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">Cargando scorecard…</TableCell></TableRow> : rows.length === 0 ? <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">No existen indicadores medidos para esta selección.</TableCell></TableRow> : rows.map((row,index) => <TableRow key={`${row.cargo_name}-${row.domain || 'general'}-${row.kpi_key}-${index}`}><TableCell><div className="font-medium">{row.cargo_name}</div>{row.domain ? <div className="text-xs text-muted-foreground">{domainLabel[row.domain] || row.domain}</div> : null}</TableCell><TableCell>{row.label}</TableCell><TableCell className="text-right font-medium tabular-nums">{formatValue(row.measured_value,row.unit)}</TableCell><TableCell className="text-xs text-muted-foreground">{row.direction === 'higher_is_better' ? 'Mayor es mejor' : row.direction === 'lower_is_better' ? 'Menor es mejor' : 'Informativo'}</TableCell><TableCell><Badge variant="outline">{row.evaluation_state === 'baseline' ? 'Baseline' : row.evaluation_state}</Badge></TableCell></TableRow>)}</TableBody></Table></CardContent></Card>
+    <Card><CardHeader><div className="flex flex-wrap items-center gap-2"><CardTitle>{person ? 'KPIs globales' : 'Scorecard'}</CardTitle><Badge variant="outline">Baseline</Badge><Badge variant="neutral">No evaluación personal</Badge></div><CardDescription>{payload?.meta.note || (unavailable ? 'Fuente no disponible para la selección actual.' : 'Cargando evidencia operacional…')}</CardDescription></CardHeader><CardContent className="px-0 pb-0"><Table><TableHeader><TableRow><TableHead>Cargo / dominio</TableHead><TableHead>Indicador</TableHead><TableHead className="text-right">Valor</TableHead><TableHead>Dirección</TableHead><TableHead>Estado</TableHead></TableRow></TableHeader><TableBody>{loading ? <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">Cargando scorecard…</TableCell></TableRow> : unavailable ? <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">No hay una lectura válida para esta selección mientras la fuente esté en error.</TableCell></TableRow> : rows.length === 0 ? <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">No existen indicadores medidos para esta selección.</TableCell></TableRow> : rows.map((row,index) => <TableRow key={`${row.cargo_name}-${row.domain || 'general'}-${row.kpi_key}-${index}`}><TableCell><div className="font-medium">{row.cargo_name}</div>{row.domain ? <div className="text-xs text-muted-foreground">{domainLabel[row.domain] || row.domain}</div> : null}</TableCell><TableCell>{row.label}</TableCell><TableCell className="text-right font-medium tabular-nums">{formatValue(row.measured_value,row.unit)}</TableCell><TableCell className="text-xs text-muted-foreground">{row.direction === 'higher_is_better' ? 'Mayor es mejor' : row.direction === 'lower_is_better' ? 'Menor es mejor' : 'Informativo'}</TableCell><TableCell><Badge variant="outline">{row.evaluation_state === 'baseline' ? 'Baseline' : row.evaluation_state}</Badge></TableCell></TableRow>)}</TableBody></Table></CardContent></Card>
 
     {person ? <Card><CardHeader><div className="flex items-center gap-2"><Workflow className="h-5 w-5 text-muted-foreground" /><CardTitle>Proyectos y mejora continua</CardTitle></div><CardDescription>Esta sección sí muestra sólo iniciativas atribuidas directamente a {person.fullName}; los KPIs superiores permanecen globales.</CardDescription></CardHeader><CardContent className="px-0 pb-0"><Table><TableHeader><TableRow><TableHead>Iniciativa</TableHead><TableHead>PDCA</TableHead><TableHead>Estado</TableHead><TableHead>Fecha objetivo</TableHead><TableHead>Resultado</TableHead></TableRow></TableHeader><TableBody>{initiatives.length === 0 ? <TableRow><TableCell colSpan={5} className="py-10 text-center text-muted-foreground">Aún no existen iniciativas Kaizen atribuidas directamente a esta persona.</TableCell></TableRow> : initiatives.map((item) => <TableRow key={item.id}><TableCell><div className="font-medium">{item.title}</div><div className="text-xs text-muted-foreground">{item.kaizen_number || item.category || 'Kaizen'}</div></TableCell><TableCell>{item.pdca_stage || '—'}</TableCell><TableCell><Badge variant="outline">{item.status || 'Sin estado'}</Badge></TableCell><TableCell>{item.target_date || '—'}</TableCell><TableCell className="max-w-[420px] text-sm text-muted-foreground">{item.actual_result || item.expected_result || 'Sin resultado registrado'}</TableCell></TableRow>)}</TableBody></Table></CardContent></Card> : null}
 
