@@ -6,6 +6,7 @@ const navUrl = new URL('../components/layout/operational-attention-context-nav.t
 const shellUrl = new URL('../components/layout/dashboard-shell.tsx', import.meta.url);
 const alertsUrl = new URL('../app/dashboard/alertas/page.tsx', import.meta.url);
 const problemsUrl = new URL('../app/dashboard/andon/page.tsx', import.meta.url);
+const leanUrl = new URL('../app/dashboard/lean/page.tsx', import.meta.url);
 
 test('Atención operacional separates alert signals from managed problems', async () => {
   const source = await readFile(navUrl, 'utf8');
@@ -30,4 +31,15 @@ test('alerts remain signals while Andon owns the operational problem lifecycle',
   assert.match(problems, /\/api\/lean\/andon/);
   assert.match(problems, /inventario: 'Bodega'/);
   assert.doesNotMatch(problems, /<PageHeaderTitle>Alertas operacionales<\/PageHeaderTitle>/);
+});
+
+test('management center uses problem language for Andon data', async () => {
+  const source = await readFile(leanUrl, 'utf8');
+  assert.match(source, /label: 'Problemas abiertos'.*href: '\/dashboard\/andon'/);
+  assert.match(source, /action: 'Abrir problemas'/);
+  assert.match(source, /Problemas abiertos ordenados por antigüedad/);
+  assert.match(source, /title="Cargando problemas"/);
+  assert.match(source, /title="Sin problemas abiertos"/);
+  assert.doesNotMatch(source, /label: 'Alertas abiertas'/);
+  assert.doesNotMatch(source, /action: 'Abrir alertas'/);
 });
