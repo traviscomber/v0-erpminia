@@ -130,7 +130,15 @@ export async function GET(request: NextRequest) {
   const samplesValidated = sampleRows.filter((row) => String(row.validation_status || '').toLowerCase() === 'valid').length;
   const samplesReview = sampleRows.filter((row) => ['review', 'pending', 'invalid'].includes(String(row.validation_status || '').toLowerCase())).length;
   const assaysValidated = chemistryResultRows.filter((row) => String(row.validation_status || '').toLowerCase() === 'valid').length;
-  const unresolvedLocations = reviewRows.filter((row) => !['resolved', 'verified', 'matched'].includes(String(row.resolution_state || '').toLowerCase())).length;
+  const openLocationRows = reviewRows.filter((row) => !['resolved', 'verified', 'matched'].includes(String(row.resolution_state || '').toLowerCase()));
+  const operationalLocationRows = openLocationRows.filter((row) => String(row.operational_bucket || '').toLowerCase() !== 'historico');
+  const historicalLocationRows = openLocationRows.filter((row) => String(row.operational_bucket || '').toLowerCase() === 'historico');
+  const unresolvedLocations = operationalLocationRows.length;
+  const totalOpenLocationReviews = openLocationRows.length;
+  const historicalLocationReviews = historicalLocationRows.length;
+  const criticalLocationReviews = operationalLocationRows.filter((row) => row.operational_bucket === 'critico').length;
+  const activeAugustLocationReviews = operationalLocationRows.filter((row) => row.operational_bucket === 'activo_agosto').length;
+  const recentJulyLocationReviews = operationalLocationRows.filter((row) => row.operational_bucket === 'reciente_julio').length;
 
   const sampleById = new Map(sampleRows.map((sample) => [sample.id, sample]));
   const mineById = new Map(mineRows.map((mine) => [mine.id, mine]));
@@ -196,6 +204,11 @@ export async function GET(request: NextRequest) {
       assaysValidated,
       historicalAssays: historicalAssays.length,
       unresolvedLocations,
+      totalOpenLocationReviews,
+      historicalLocationReviews,
+      criticalLocationReviews,
+      activeAugustLocationReviews,
+      recentJulyLocationReviews,
     },
     drillingHistory: drillingHistory.data || null,
     mines: mineSummary,
