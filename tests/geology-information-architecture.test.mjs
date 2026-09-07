@@ -29,6 +29,15 @@ test('geology keeps decision views as local controls inside Production instead o
   assert.match(shell, /mismo sondaje canónico de Producción → Perforación/);
 });
 
+test('canonical State is traceability while actionable work has one home in Today Tasks', async () => {
+  const shell = await readFile(shellUrl, 'utf8');
+
+  assert.match(shell, /Estado = control y trazabilidad canónica/);
+  assert.match(shell, /Toda acción operativa se atiende en Hoy → Tareas/);
+  assert.match(shell, /Abrir Hoy → Tareas/);
+  assert.match(shell, /selectTab\('pending'\)/);
+});
+
 test('production uses one operational flow rail while keeping technical disciplines non-sequential', async () => {
   const [layout, drillingHome] = await Promise.all([
     readFile(productionLayoutUrl, 'utf8'),
