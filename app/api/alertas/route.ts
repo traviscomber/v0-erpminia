@@ -7,12 +7,7 @@ import { getLegalComplianceOverview } from '@/lib/api/contracts';
 import { listInventoryStockAlerts } from '@/lib/api/inventory-stock-alerts';
 
 type AlertSeverity = 'critica' | 'alta' | 'media' | 'baja' | 'info';
-type AlertType =
-  | 'documento'
-  | 'mantenimiento'
-  | 'inventario'
-  | 'sostenibilidad'
-  | 'contrato';
+type AlertType = 'documento' | 'mantenimiento' | 'inventario' | 'sostenibilidad' | 'contrato';
 
 type AlertItem = {
   id: string;
@@ -20,8 +15,7 @@ type AlertItem = {
   description: string;
   severity: AlertSeverity;
   type: AlertType;
-  timestamp: string;
-  read: boolean;
+  timestamp: string | null;
   actionRequired: boolean;
   actionUrl: string;
 };
@@ -65,9 +59,7 @@ type WorkOrderAlertRow = {
   status?: string | null;
   created_at?: string | null;
   scheduled_date?: string | null;
-  asset?: {
-    asset_name?: string | null;
-  } | null;
+  asset?: { asset_name?: string | null } | null;
 };
 
 type OverdueNCRow = {
@@ -86,33 +78,35 @@ type OverdueCARow = {
   scheduled_completion_date?: string | null;
   status?: string | null;
   nonconformance?:
-    | {
-        title?: string | null;
-        severity?: string | null;
-        organization_id?: string | null;
-      }
-    | Array<{
-        title?: string | null;
-        severity?: string | null;
-        organization_id?: string | null;
-      }>
+    | { title?: string | null; severity?: string | null; organization_id?: string | null }
+    | Array<{ title?: string | null; severity?: string | null; organization_id?: string | null }>
     | null;
 };
 
-function safeDate(value: string | null | undefined) {
-  if (!value) return new Date().toISOString();
+type SourceResult<T> = {
+  name: string;
+  available: boolean;
+  data: T;
+};
+
+function sourceDate(value: string | null | undefined) {
+  if (!value) return null;
   const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString();
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 function daysOverdue(value: string | null | undefined) {
-  if (!value) return 0;
+  if (!value) return null;
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return 0;
-  return Math.max(
-    0,
-    Math.ceil((Date.now() - parsed.getTime()) / (1000 * 60 * 60 * 24))
-  );
+  if (Number.isNaN(parsed.getTime())) return null;
+  return Math.max(0, Math.ceil((Date.now() - parsed.getTime()) / (1000 * 60 * 60 * 24)));
+}
+
+function daysUntil(value: string | null | undefined) {
+  if (!value) return null;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return Math.max(0, Math.ceil((parsed.getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
 }
 
 function severityFromPriority(priority: string | null | undefined): AlertSeverity {
@@ -124,18 +118,20 @@ function severityFromPriority(priority: string | null | undefined): AlertSeverit
   return 'info';
 }
 
-function severityFromDays(days: number, base: AlertSeverity = 'media'): AlertSeverity {
+function severityFromDays(days: number | null, base: AlertSeverity = 'media'): AlertSeverity {
+  if (days == null) return base;
   if (days > 14) return 'critica';
   if (days > 7) return 'alta';
   if (days > 3) return base === 'baja' ? 'media' : base;
   return base;
 }
 
-async function safeQuery<T>(fn: () => Promise<T>, fallback: T) {
+async function querySource<T>(name: string, fn: () => Promise<T>, fallback: T): Promise<SourceResult<T>> {
   try {
-    return await fn();
-  } catch {
-    return fallback;
+    return { name, available: true, data: await fn() };
+  } catch (error) {
+    console.error(`[alertas] Fuente no disponible: ${name}`, error);
+    return { name, available: false, data: fallback };
   }
 }
 
@@ -146,7 +142,6 @@ export async function GET(request: NextRequest) {
   const DEMO_ORG = '550e8400-e29b-41d4-a716-446655440000';
 
   try {
-    // Return mock alerts for demo organization - never mix with real data
     if (context.organizationId === DEMO_ORG) {
       const mockAlerts: AlertItem[] = [
         {
@@ -156,7 +151,6 @@ export async function GET(request: NextRequest) {
           severity: 'critica',
           type: 'mantenimiento',
           timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
-          read: false,
           actionRequired: true,
           actionUrl: '/dashboard/mantenimiento',
         },
@@ -167,7 +161,6 @@ export async function GET(request: NextRequest) {
           severity: 'alta',
           type: 'sostenibilidad',
           timestamp: new Date(Date.now() - 72 * 3600000).toISOString(),
-          read: false,
           actionRequired: true,
           actionUrl: '/dashboard/sostenibilidad',
         },
@@ -177,28 +170,28 @@ export async function GET(request: NextRequest) {
         alerts: mockAlerts,
         stats: {
           total: mockAlerts.length,
-          unread: mockAlerts.filter((alert) => !alert.read).length,
           critical: mockAlerts.filter((alert) => alert.severity === 'critica').length,
           actionRequired: mockAlerts.filter((alert) => alert.actionRequired).length,
         },
+        sourceStatus: { available: 6, total: 6, complete: true, unavailable: [] },
         generatedAt: new Date().toISOString(),
       });
     }
-    const [pendingApprovals, legalCompliance, workOrders, stockAlertResult, overdueNCs, overdueCAs] =
+
+    const [pendingApprovalsSource, legalSource, workOrdersSource, stockSource, overdueNCSource, overdueCASource] =
       await Promise.all([
-        safeQuery(
+        querySource(
+          'Aprobaciones documentales',
           () => listPendingApprovalsForUser(context.organizationId, context.userId) as Promise<PendingApprovalItem[]>,
-          [] as PendingApprovalItem[]
+          [] as PendingApprovalItem[],
         ),
-        safeQuery(
+        querySource(
+          'Legal y cumplimiento',
           () => getLegalComplianceOverview(context.organizationId) as Promise<LegalComplianceOverview>,
-          {
-            contracts_pending_review: [],
-            expiring_contracts: [],
-            expiring_documents: [],
-          } as LegalComplianceOverview
+          { contracts_pending_review: [], expiring_contracts: [], expiring_documents: [] } as LegalComplianceOverview,
         ),
-        safeQuery(
+        querySource(
+          'Órdenes de trabajo',
           async () => {
             const { data, error } = await context.supabase
               .from('maintenance_work_orders')
@@ -207,20 +200,18 @@ export async function GET(request: NextRequest) {
               .in('status', ['open', 'in_progress'])
               .order('created_at', { ascending: false })
               .limit(20);
-
             if (error) throw error;
             return (data || []) as WorkOrderAlertRow[];
           },
-          [] as WorkOrderAlertRow[]
+          [] as WorkOrderAlertRow[],
         ),
-        safeQuery(
-          () => listInventoryStockAlerts({
-            organizationId: context.organizationId,
-            supabase: context.supabase,
-          }),
-          { items: [], evaluatedItems: 0, dataSource: 'warehouse' as const }
+        querySource(
+          'Inventario',
+          () => listInventoryStockAlerts({ organizationId: context.organizationId, supabase: context.supabase }),
+          { items: [], evaluatedItems: 0, dataSource: 'warehouse' as const },
         ),
-        safeQuery(
+        querySource(
+          'No conformidades',
           async () => {
             const { data, error } = await context.supabase
               .from('sostenibilidad_nonconformances')
@@ -229,116 +220,106 @@ export async function GET(request: NextRequest) {
               .lt('target_closure_date', new Date().toLocaleDateString('en-CA'))
               .neq('status', 'cerrada')
               .limit(20);
-
             if (error) throw error;
             return (data || []) as OverdueNCRow[];
           },
-          [] as OverdueNCRow[]
+          [] as OverdueNCRow[],
         ),
-        safeQuery(
+        querySource(
+          'Acciones correctivas',
           async () => {
             const { data, error } = await context.supabase
               .from('sostenibilidad_corrective_actions')
-              .select(
-                'id, ca_number, action_description, scheduled_completion_date, status, nonconformance:sostenibilidad_nonconformances!inner(title, severity, organization_id)'
-              )
+              .select('id, ca_number, action_description, scheduled_completion_date, status, nonconformance:sostenibilidad_nonconformances!inner(title, severity, organization_id)')
               .lt('scheduled_completion_date', new Date().toLocaleDateString('en-CA'))
               .neq('status', 'verificada')
               .limit(20);
-
             if (error) throw error;
             return (data || []).filter((item: OverdueCARow) => {
-              const nc = Array.isArray(item.nonconformance)
-                ? item.nonconformance[0]
-                : item.nonconformance;
+              const nc = Array.isArray(item.nonconformance) ? item.nonconformance[0] : item.nonconformance;
               return nc?.organization_id === context.organizationId;
             }) as OverdueCARow[];
           },
-          [] as OverdueCARow[]
+          [] as OverdueCARow[],
         ),
       ]);
 
+    const sources = [pendingApprovalsSource, legalSource, workOrdersSource, stockSource, overdueNCSource, overdueCASource];
+    const unavailable = sources.filter((source) => !source.available).map((source) => source.name);
     const alerts: AlertItem[] = [];
-    const lowStockRows = stockAlertResult.items;
 
-    for (const approval of pendingApprovals) {
+    for (const approval of pendingApprovalsSource.data) {
       alerts.push({
         id: `approval-${approval.id}`,
         title: `Aprobación pendiente - ${approval.document.title}`,
         description: `Te corresponde revisar ${approval.levelName.toLowerCase()} del documento ${approval.document.documentNumber || approval.document.title}.`,
         severity: 'media',
         type: 'documento',
-        timestamp: safeDate(approval.document.createdAt),
-        read: false,
+        timestamp: sourceDate(approval.document.createdAt),
         actionRequired: true,
         actionUrl: '/dashboard/documentos',
       });
     }
 
-    for (const contract of legalCompliance.contracts_pending_review || []) {
+    for (const contract of legalSource.data.contracts_pending_review || []) {
       alerts.push({
         id: `contract-review-${contract.id}`,
         title: `Contrato en revisión - ${contract.title}`,
         description: 'Contrato pendiente de revisión legal o cumplimiento.',
         severity: 'alta',
         type: 'contrato',
-        timestamp: new Date().toISOString(),
-        read: false,
+        timestamp: null,
         actionRequired: true,
         actionUrl: '/dashboard/legal',
       });
     }
 
-    for (const contract of legalCompliance.expiring_contracts || []) {
-      const days = Number(contract.days_until_expiry || 0);
+    for (const contract of legalSource.data.expiring_contracts || []) {
+      const days = contract.days_until_expiry ?? daysUntil(contract.end_date);
+      const dayLabel = days == null ? 'con fecha de vencimiento por revisar' : `vence en ${days} día${days === 1 ? '' : 's'}`;
       alerts.push({
         id: `contract-expiring-${contract.id}`,
         title: `Contrato por vencer - ${contract.title}`,
-        description: `Vence en ${days} día${days === 1 ? '' : 's'}. Requiere seguimiento contractual.`,
-        severity: days <= 7 ? 'critica' : 'alta',
+        description: `Contrato ${dayLabel}. Requiere seguimiento contractual.`,
+        severity: days != null && days <= 7 ? 'critica' : 'alta',
         type: 'contrato',
-        timestamp: safeDate(contract.end_date),
-        read: false,
+        timestamp: sourceDate(contract.end_date),
         actionRequired: true,
         actionUrl: '/dashboard/legal',
       });
     }
 
-    for (const document of legalCompliance.expiring_documents || []) {
-      const expiryDate = document.expiry_date || null;
-      const days = Math.max(0, Math.ceil((new Date(expiryDate || Date.now()).getTime() - Date.now()) / (1000 * 60 * 60 * 24)));
+    for (const document of legalSource.data.expiring_documents || []) {
+      const days = daysUntil(document.expiry_date);
+      const dayLabel = days == null ? 'con fecha de vencimiento por revisar' : `con vencimiento en ${days} día${days === 1 ? '' : 's'}`;
       alerts.push({
         id: `document-expiring-${document.id}`,
         title: `Documento por vencer - ${document.title}`,
-        description: `Documento regulatorio con vencimiento en ${days} día${days === 1 ? '' : 's'}.`,
-        severity: days <= 7 ? 'alta' : 'media',
+        description: `Documento regulatorio ${dayLabel}.`,
+        severity: days != null && days <= 7 ? 'alta' : 'media',
         type: 'documento',
-        timestamp: safeDate(document.expiry_date),
-        read: false,
+        timestamp: sourceDate(document.expiry_date),
         actionRequired: true,
         actionUrl: '/dashboard/legal',
       });
     }
 
-    for (const workOrder of workOrders) {
+    for (const workOrder of workOrdersSource.data) {
       const severity = severityFromPriority(workOrder.priority);
       if (!['critica', 'alta', 'media'].includes(severity)) continue;
-
       alerts.push({
         id: `wo-${workOrder.id}`,
         title: `${severity === 'critica' ? 'Orden crítica' : 'Orden prioritaria'} - ${workOrder.title}`,
-        description:
-          workOrder.description ||
-          `OT ${workOrder.work_order_number || ''} asociada a ${workOrder.asset?.asset_name || 'equipo operativo'}.`,
+        description: workOrder.description || `OT ${workOrder.work_order_number || ''} asociada a ${workOrder.asset?.asset_name || 'equipo operativo'}.`,
         severity,
         type: 'mantenimiento',
-        timestamp: safeDate(workOrder.created_at || workOrder.scheduled_date),
-        read: false,
+        timestamp: sourceDate(workOrder.created_at || workOrder.scheduled_date),
         actionRequired: severity !== 'media' || workOrder.status === 'open',
         actionUrl: '/dashboard/mantenimiento/ordenes-trabajo',
       });
     }
 
+    const lowStockRows = stockSource.data.items;
     for (const stock of lowStockRows) {
       const current = Number(stock.quantity_on_hand || 0);
       const reorder = Number(stock.reorder_level || 0);
@@ -348,70 +329,69 @@ export async function GET(request: NextRequest) {
         description: `${stock.part_code || 'Item'} en ${stock.location_label} con ${current} unidad(es). Nivel de reorden: ${reorder}.`,
         severity: current === 0 ? 'critica' : 'alta',
         type: 'inventario',
-        timestamp: new Date().toISOString(),
-        read: false,
+        timestamp: null,
         actionRequired: true,
         actionUrl: '/dashboard/inventario',
       });
     }
 
-    for (const nc of overdueNCs) {
+    for (const nc of overdueNCSource.data) {
       const overdueDays = daysOverdue(nc.target_closure_date);
+      const overdueLabel = overdueDays == null ? 'con fecha objetivo no disponible' : `lleva ${overdueDays} día${overdueDays === 1 ? '' : 's'} vencida`;
       alerts.push({
         id: `nc-${nc.id}`,
         title: `No conformidad vencida - ${nc.nc_number || nc.title}`,
-        description: `${nc.title}. Lleva ${overdueDays} día${overdueDays === 1 ? '' : 's'} vencida.`,
+        description: `${nc.title}. ${overdueLabel}.`,
         severity: severityFromDays(overdueDays, severityFromPriority(nc.severity)),
         type: 'sostenibilidad',
-        timestamp: safeDate(nc.target_closure_date),
-        read: false,
+        timestamp: sourceDate(nc.target_closure_date),
         actionRequired: true,
         actionUrl: '/dashboard/sostenibilidad',
       });
     }
 
-    for (const ca of overdueCAs) {
+    for (const ca of overdueCASource.data) {
       const overdueDays = daysOverdue(ca.scheduled_completion_date);
       const nc = Array.isArray(ca.nonconformance) ? ca.nonconformance[0] : ca.nonconformance;
       if (!nc) continue;
+      const overdueLabel = overdueDays == null ? 'con fecha objetivo no disponible' : `vencida hace ${overdueDays} día${overdueDays === 1 ? '' : 's'}`;
       alerts.push({
         id: `ca-${ca.id}`,
         title: `Acción correctiva vencida - ${ca.ca_number || ca.action_description}`,
-        description: `${ca.action_description}. Relacionada a ${nc.title || 'no conformidad'} y vencida hace ${overdueDays} día${overdueDays === 1 ? '' : 's'}.`,
+        description: `${ca.action_description}. Relacionada a ${nc.title || 'no conformidad'} y ${overdueLabel}.`,
         severity: severityFromDays(overdueDays, severityFromPriority(nc.severity)),
         type: 'sostenibilidad',
-        timestamp: safeDate(ca.scheduled_completion_date),
-        read: false,
+        timestamp: sourceDate(ca.scheduled_completion_date),
         actionRequired: true,
         actionUrl: '/dashboard/sostenibilidad',
       });
     }
 
-    const severityRank: Record<AlertSeverity, number> = {
-      critica: 5,
-      alta: 4,
-      media: 3,
-      baja: 2,
-      info: 1,
-    };
-
+    const severityRank: Record<AlertSeverity, number> = { critica: 5, alta: 4, media: 3, baja: 2, info: 1 };
     alerts.sort((left, right) => {
       const severityDiff = severityRank[right.severity] - severityRank[left.severity];
       if (severityDiff !== 0) return severityDiff;
-      return new Date(right.timestamp).getTime() - new Date(left.timestamp).getTime();
+      const rightTime = right.timestamp ? new Date(right.timestamp).getTime() : -Infinity;
+      const leftTime = left.timestamp ? new Date(left.timestamp).getTime() : -Infinity;
+      return rightTime - leftTime;
     });
 
     return NextResponse.json({
       alerts,
       stats: {
         total: alerts.length,
-        unread: alerts.filter((alert) => !alert.read).length,
         critical: alerts.filter((alert) => alert.severity === 'critica').length,
         actionRequired: alerts.filter((alert) => alert.actionRequired).length,
         stockAlerts: lowStockRows.length,
-        stockItemsEvaluated: stockAlertResult.evaluatedItems,
+        stockItemsEvaluated: stockSource.data.evaluatedItems,
       },
-      stockAlertSource: stockAlertResult.dataSource,
+      sourceStatus: {
+        available: sources.length - unavailable.length,
+        total: sources.length,
+        complete: unavailable.length === 0,
+        unavailable,
+      },
+      stockAlertSource: stockSource.data.dataSource,
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
