@@ -1,6 +1,9 @@
 'use client';
 
-import { AlertTriangle, ArrowRight, Beaker, MapPinned } from 'lucide-react';
+import useSWR, { useSWRConfig } from 'swr';
+import { useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { AlertTriangle, ArrowRight, Beaker, CheckCircle2, MapPinned, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { GeologiaImmediateTaskQueue } from '@/components/production/geologia-immediate-task-queue';
@@ -32,6 +35,32 @@ type DrillingRow = {
 };
 
 type Mine = { id:string; code:string|null; name:string };
+type SectorOption = { id:string; name:string; mineSourceId:string };
+type AssistedReview = {
+  drillHoleId:string;
+  holeCode:string;
+  reviewLane:string|null;
+  reviewPriority:number|null;
+  recommendedAction:string|null;
+  operationalBucket:string|null;
+  operationalPriority:number|null;
+  candidateMineSourceId:string|null;
+  candidateMineName:string|null;
+  candidateEvidenceCount:number;
+  reportCount:number;
+  lastReportDate:string|null;
+  sourceSite:string|null;
+  sourceSites:string[];
+  distinctSiteCount:number;
+  evidence:{ type:unknown; sourceReference:unknown; evidenceDate:unknown; confidence:unknown; status:unknown; notes:unknown }|null;
+  sectors:SectorOption[];
+  canConfirmSector:boolean;
+};
+type AssistedReviewData = {
+  canWrite:boolean;
+  summary:{ operational:number; sectorConfirmation:number; sourceConflict:number };
+  items:AssistedReview[];
+};
 
 type Props = {
   unlocatedCount:number;
@@ -45,6 +74,13 @@ type Props = {
   savingId:string|null;
   onSelectMine:(reportId:string,mineId:string)=>void;
   onAssignMine:(reportId:string)=>void;
+};
+
+const assistedFetcher=async(url:string):Promise<AssistedReviewData>=>{
+  const response=await fetch(url,{credentials:'include'});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||'No fue posible cargar la revisión asistida');
+  return data;
 };
 
 function priorityLabel(value:number|null){
@@ -79,11 +115,19 @@ function bucketLabel(value:string|null|undefined){
   return 'Operacional';
 }
 
+function text(value:unknown){return typeof value==='string'&&value.trim()?value:'—';}
+
 function Metric({label,value,detail}:{label:string;value:number;detail:string}){
   return <section className="rounded-lg border bg-card p-5"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-xl font-semibold tracking-tight">{value}</p><p className="mt-1 text-xs text-muted-foreground">{detail}</p></section>;
 }
 
 export function GeologiaPendingDecisionQueue(props:Props){
+  const {mutate:mutateCache}=useSWRConfig();
+  const {data:assisted,error:assistedError,isLoading:assistedLoading,mutate:mutateAssisted}=useSWR('/api/produccion/geologia/location-review',assistedFetcher);
+  const [selectedSectors,setSelectedSectors]=useState<Record<string,string>>({});
+  const [resolvingHoleId,setResolvingHoleId]=useState<string|null>(null);
+
+  const assistedByHole=useMemo(()=>new Map((assisted?.items||[]).map((item)=>[item.drillHoleId,item])),[assisted?.items]);
   const unresolved=props.pending.filter((row)=>!isResolved(row.resolution_state));
   const activePending=unresolved
     .filter((row)=>String(row.operational_bucket||'').toLowerCase()!=='historico')
@@ -95,6 +139,31 @@ export function GeologiaPendingDecisionQueue(props:Props){
   const unresolvedDrilling=[...props.recentDrilling]
     .filter((r)=>!r.canonical_mine_source_id||!r.canonical_mine_sector_id||!r.canonical_drill_hole_id)
     .sort((a,b)=>dateValue(b.operation_date)-dateValue(a.operation_date)||String(a.hole_code_raw||'').localeCompare(String(b.hole_code_raw||''),'es',{numeric:true}));
+
+  async function confirmSector(item:AssistedReview){
+    const sectorId=selectedSectors[item.drillHoleId];
+    if(!sectorId)return;
+    setResolvingHoleId(item.drillHoleId);
+    try{
+      const response=await fetch('/api/produccion/geologia/location-review',{
+        method:'POST',
+        credentials:'include',
+        headers:{'content-type':'application/json'},
+        body:JSON.stringify({drillHoleId:item.drillHoleId,sectorId,confirmation:true}),
+      });
+      const result=await response.json().catch(()=>null);
+      if(!response.ok)throw new Error(result?.error||'No fue posible confirmar el sector');
+      toast.success(`${result.holeCode} confirmado en ${result.mine?.name||'mina'} · ${result.sector?.name||'sector'}`);
+      setSelectedSectors((current)=>{const next={...current};delete next[item.drillHoleId];return next;});
+      await mutateAssisted();
+      await mutateCache(
+        (key)=>typeof key==='string'&&key.startsWith('/api/produccion/geologia')&&!key.includes('/location-review'),
+        undefined,
+        {revalidate:true},
+      );
+    }catch(reason){toast.error(reason instanceof Error?reason.message:'No fue posible confirmar el sector');}
+    finally{setResolvingHoleId(null);}
+  }
 
   return <div className="space-y-5">
     <GeologiaImmediateTaskQueue />
@@ -119,9 +188,21 @@ export function GeologiaPendingDecisionQueue(props:Props){
       <div className="rounded-lg border bg-card p-4"><div className="flex items-start gap-3"><Beaker className="mt-0.5 h-4 w-4 text-muted-foreground"/><div><p className="font-medium">Validación</p><p className="mt-1 text-sm text-muted-foreground">Una muestra abierta a revisión no debe alimentar conclusiones cerradas ni recomendaciones de ley.</p></div></div></div>
     </div>
 
+    {assistedError?<div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">No fue posible cargar el detalle de evidencia para confirmar sectores. La cola permanece en modo lectura.</div>:null}
+
     {activePending.length?<section className="overflow-hidden rounded-lg border bg-card">
-      <div className="border-b px-4 py-3"><p className="font-medium">Decisiones priorizadas</p><p className="mt-1 text-sm text-muted-foreground">Primero urgencia operacional y luego prioridad de revisión; no se completa información por inferencia.</p></div>
-      <div className="divide-y">{activePending.slice(0,100).map((row)=>{const priority=priorityLabel(row.review_priority);return <div key={row.drill_hole_id} className="grid gap-4 px-4 py-4 md:grid-cols-[minmax(150px,.7fr)_minmax(0,1.5fr)_auto] md:items-center"><div><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{row.hole_code}</p><span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{bucketLabel(row.operational_bucket)}</span><span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{priority}</span></div><p className="mt-1 text-xs text-muted-foreground">{row.resolution_state||'Pendiente'} · P{row.review_priority??'—'}{row.last_report_date?` · ${formatDate(row.last_report_date)}`:''}</p></div><div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Acción recomendada</p><p className="mt-1 text-sm">{row.recommended_action||'Revisar evidencia y confirmar ubicación.'}</p><p className="mt-2 text-xs text-muted-foreground">Impacto: la evidencia queda ambigua hasta cerrar su ubicación canónica.</p><p className="mt-1 text-xs text-muted-foreground">Propuesta: {row.proposed_mine_name||'sin mina'}{row.proposed_sector_name?` · ${row.proposed_sector_name}`:''}</p></div><ArrowRight className="hidden h-4 w-4 text-muted-foreground md:block"/></div>})}</div>
+      <div className="border-b px-4 py-3"><p className="font-medium">Decisiones priorizadas</p><p className="mt-1 text-sm text-muted-foreground">Primero urgencia operacional y luego prioridad de revisión; no se completa información por inferencia. Confirmar un sector registra evidencia <code>manual_review</code> y sincroniza el pozo sólo después de una acción humana explícita.</p></div>
+      <div className="divide-y">{activePending.slice(0,100).map((row)=>{
+        const priority=priorityLabel(row.review_priority);
+        const item=assistedByHole.get(row.drill_hole_id);
+        const isConflict=item?.reviewLane==='conflicto_fuente';
+        const canConfirm=Boolean(item?.canConfirmSector&&item.sectors.length>0&&props.canWrite);
+        return <div key={row.drill_hole_id} className="grid gap-4 px-4 py-4 lg:grid-cols-[minmax(150px,.65fr)_minmax(0,1.2fr)_minmax(300px,1fr)] lg:items-start">
+          <div><div className="flex flex-wrap items-center gap-2"><p className="font-medium">{row.hole_code}</p><span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{bucketLabel(row.operational_bucket)}</span><span className="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">{priority}</span></div><p className="mt-1 text-xs text-muted-foreground">{row.resolution_state||'Pendiente'} · P{row.review_priority??'—'}{row.last_report_date?` · ${formatDate(row.last_report_date)}`:''}</p></div>
+          <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Evidencia y decisión</p><p className="mt-1 text-sm">{row.recommended_action||'Revisar evidencia y confirmar ubicación.'}</p>{item?<><p className="mt-2 text-xs text-muted-foreground">Mina respaldada: <span className="font-medium text-foreground">{item.candidateMineName||'sin consenso'}</span> · {item.candidateEvidenceCount} evidencia(s) candidata(s)</p><p className="mt-1 text-xs text-muted-foreground">Fuente: {text(item.evidence?.sourceReference||item.sourceSite)}{item.lastReportDate?` · ${formatDate(item.lastReportDate)}`:''}</p></>:<p className="mt-2 text-xs text-muted-foreground">{assistedLoading?'Cargando evidencia…':'Detalle de evidencia no disponible.'}</p>}</div>
+          <div>{isConflict?<div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3"><div className="flex items-start gap-2"><ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-700 dark:text-amber-400"/><div><p className="text-sm font-medium">Conflicto de fuente · asignación bloqueada</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Sitios observados: {item?.sourceSites?.length?item.sourceSites.join(' · '):item?.sourceSite||'sin detalle'}. Primero debe resolverse la discrepancia de evidencia; Motil no propone sector.</p></div></div></div>:item?.reviewLane==='mina_conocida_falta_sector'?<div className="rounded-md border bg-muted/10 p-3"><div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-muted-foreground"/><p className="text-sm font-medium">Confirmación humana de sector</p></div><p className="mt-1 text-xs text-muted-foreground">Elige sólo dentro de {item.candidateMineName||'la mina respaldada'}. No hay asignación automática.</p><div className="mt-3 flex flex-col gap-2 sm:flex-row"><Select value={selectedSectors[item.drillHoleId]||''} onValueChange={(value)=>setSelectedSectors((current)=>({...current,[item.drillHoleId]:value}))} disabled={!canConfirm}><SelectTrigger className="h-9 min-w-0 flex-1"><SelectValue placeholder={item.sectors.length?'Seleccionar sector':'Sin sectores activos'}/></SelectTrigger><SelectContent>{item.sectors.map((sector)=><SelectItem key={sector.id} value={sector.id}>{sector.name}</SelectItem>)}</SelectContent></Select>{props.canWrite?<Button size="sm" disabled={!canConfirm||!selectedSectors[item.drillHoleId]||resolvingHoleId===item.drillHoleId} onClick={()=>void confirmSector(item)}>{resolvingHoleId===item.drillHoleId?'Confirmando…':'Confirmar sector'}</Button>:null}</div></div>:<div className="flex items-center gap-2 text-xs text-muted-foreground"><ArrowRight className="h-4 w-4"/>Revisar evidencia antes de resolver.</div>}</div>
+        </div>;
+      })}</div>
     </section>:<div className="rounded-lg border border-dashed bg-muted/10 px-5 py-8 text-center"><p className="font-medium">Sin revisiones operacionales activas</p><p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">No hay casos vigentes que deban competir por atención geológica diaria. El histórico permanece registrado para recuperación de evidencia.</p></div>}
 
     <section className="overflow-hidden rounded-lg border bg-card">
