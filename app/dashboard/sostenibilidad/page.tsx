@@ -1,26 +1,11 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { Badge } from '@/components/ui/badge';
+import { AlertTriangle, ArrowRight, FileCheck2, Leaf, ShieldCheck, Upload, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowRight, CheckCircle, Clock, Leaf, Shield, Target, Upload, Users } from 'lucide-react';
-import { SustainabilityKPIDashboard } from '@/components/sostenibilidad/kpi-dashboard';
-import { SustainabilityModuleConnections } from '@/components/sostenibilidad/module-connections';
-import { SustainabilityWorkflowDiagram } from '@/components/sostenibilidad/sustainability-workflow-diagram';
-import { HSECanonicalDashboard } from '@/components/sostenibilidad/hse-canonical-dashboard';
-
-const fetcher = async (url: string) => {
-  const response = await fetch(url, { credentials: 'include' });
-  const payload = await response.json().catch(() => null);
-  if (!response.ok) return null;
-  return payload;
-};
-
-const PREVENCION_MODULE = 'prevenci\u00f3n';
-const DOCUMENTOS_HSE_CATEGORY = 'documentos-hse';
+import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
+import { StatePanel } from '@/components/ui/state-panel';
 
 type OverviewResponse = {
   period: string;
@@ -32,47 +17,27 @@ type OverviewResponse = {
     overdue_cas: number;
     trend: 'mejorando' | 'empeorando' | 'stable';
   };
-  nc_stats: { critical: number; high: number; medium: number; low: number };
-  ca_stats: {
-    total: number;
-    planned: number;
-    in_progress: number;
-    completed: number;
-    overdue: number;
-    completionRate: number;
-  };
-  trends: Array<{ report_period: string; compliance_score: number }>;
-  top_risks: Array<{ id: string; nc_number: string | null; title: string | null; severity: string | null; status: string | null }>;
-  inspections_completed: number;
-  generated_at: string;
 };
 
-type ListResponse<T = unknown> = {
-  data?: T[];
-  total?: number;
-  items?: T[];
-  count?: number;
-};
+type ListResponse<T = unknown> = { data?: T[]; total?: number; items?: T[]; count?: number };
 
-type ModuleItem = {
-  name: string;
-  path: string;
-  count: number;
-  status: 'pending' | 'active' | 'completed';
-  importPath?: string | null;
-};
-
-type PillarCard = {
+type AreaCard = {
   title: string;
-  icon: ReactNode;
-  colorClass: string;
-  bgClass: string;
-  borderClass: string;
-  modules: ModuleItem[];
+  description: string;
+  href: string;
+  icon: typeof ShieldCheck;
+  facts: Array<{ label: string; value: number | null }>;
 };
 
-const normalizeCount = (payload: ListResponse | unknown): number => {
-  if (!payload) return 0;
+const fetcher = async <T,>(url: string): Promise<T> => {
+  const response = await fetch(url, { credentials: 'include' });
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error || `No fue posible cargar ${url}`);
+  return payload as T;
+};
+
+function exactCount(payload: ListResponse | unknown | undefined): number | null {
+  if (payload === undefined || payload === null) return null;
   if (Array.isArray(payload)) return payload.length;
   if (typeof payload === 'object') {
     const typed = payload as ListResponse;
@@ -81,400 +46,132 @@ const normalizeCount = (payload: ListResponse | unknown): number => {
     if (typeof typed.total === 'number') return typed.total;
     if (typeof typed.count === 'number') return typed.count;
   }
-  return 0;
-};
+  return null;
+}
 
-const emptyOverview: OverviewResponse = {
-  period: '',
-  overview: {
-    compliance_score: 0,
-    total_ncs: 0,
-    open_ncs: 0,
-    closed_ncs: 0,
-    overdue_cas: 0,
-    trend: 'stable',
-  },
-  nc_stats: { critical: 0, high: 0, medium: 0, low: 0 },
-  ca_stats: { total: 0, planned: 0, in_progress: 0, completed: 0, overdue: 0, completionRate: 0 },
-  trends: [],
-  top_risks: [],
-  inspections_completed: 0,
-  generated_at: '',
-};
+const value = (count: number | null) => count === null ? '—' : count.toLocaleString('es-CL');
 
 export default function SostenibilidadDashboard() {
-  const { data: overviewData } = useSWR<OverviewResponse>('/api/sostenibilidad/dashboard/overview', fetcher, {
-    refreshInterval: 60000,
-  });
-  const { data: documentosData } = useSWR<ListResponse>(
-    `/api/documents/list?module=${encodeURIComponent(PREVENCION_MODULE)}&category=${encodeURIComponent(DOCUMENTOS_HSE_CATEGORY)}`,
-    fetcher
-  );
+  const { data: overviewData, error: overviewError, isLoading: overviewLoading, mutate: refreshOverview } = useSWR<OverviewResponse>('/api/sostenibilidad/dashboard/overview', fetcher, { refreshInterval: 60000 });
+  const { data: documentosData } = useSWR<ListResponse>('/api/documents/list?module=prevenci%C3%B3n&category=documentos-hse', fetcher);
   const { data: capacitacionesData } = useSWR<ListResponse>('/api/sostenibilidad/capacitaciones', fetcher);
   const { data: eppData } = useSWR<ListResponse>('/api/sostenibilidad/epp', fetcher);
-  const { data: inspeccionesData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);
+  const { data: inspeccionesInternasData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones', fetcher);
+  const { data: inspeccionesExternasData } = useSWR<ListResponse>('/api/sostenibilidad/inspecciones?tipo=externas', fetcher);
   const { data: noConformidadesData } = useSWR<ListResponse>('/api/sostenibilidad/no-conformidades', fetcher);
   const { data: accionesCorrectivasData } = useSWR<ListResponse>('/api/sostenibilidad/corrective-actions', fetcher);
   const { data: medioAmbienteData } = useSWR<ListResponse>('/api/sostenibilidad/medio-ambiente', fetcher);
   const { data: comunidadesData } = useSWR<ListResponse>('/api/sostenibilidad/comunidades', fetcher);
 
-  const overview = (overviewData?.overview ? overviewData : null) || emptyOverview;
-  const docCount = normalizeCount(documentosData);
-  const capCount = normalizeCount(capacitacionesData);
-  const eppCount = normalizeCount(eppData);
-  const inspeccionesCount = normalizeCount(inspeccionesData) || overview.inspections_completed || 0;
-  const noConformidadesCount = normalizeCount(noConformidadesData) || overview.overview?.open_ncs || 0;
-  const accionesCorrectivasCount = normalizeCount(accionesCorrectivasData) || overview.ca_stats?.total || 0;
-  const ambienteCount = normalizeCount(medioAmbienteData);
-  const comunidadesCount = normalizeCount(comunidadesData);
-  const complianceScore = overview.overview?.compliance_score ?? 0;
-  const openNcs = overview.overview?.open_ncs ?? 0;
-  const overdueCas = overview.overview?.overdue_cas ?? 0;
-  const totalActions = overview.ca_stats?.total || 0;
-  const completionRate = overview.ca_stats?.completionRate || 0;
+  const overview = overviewData?.overview ?? null;
+  const docCount = exactCount(documentosData);
+  const capCount = exactCount(capacitacionesData);
+  const eppCount = exactCount(eppData);
+  const internalInspectionCount = exactCount(inspeccionesInternasData);
+  const externalInspectionCount = exactCount(inspeccionesExternasData);
+  const ncCount = exactCount(noConformidadesData);
+  const correctiveActionCount = exactCount(accionesCorrectivasData);
+  const environmentCount = exactCount(medioAmbienteData);
+  const communityCount = exactCount(comunidadesData);
 
-  const trendLabel = overview.overview.trend === 'mejorando'
-    ? 'Mejorando'
-    : overview.overview.trend === 'empeorando'
-      ? 'Empeorando'
-      : 'Estable';
+  const trend = overview?.trend === 'mejorando' ? 'Mejorando' : overview?.trend === 'empeorando' ? 'Empeorando' : overview ? 'Estable' : 'Sin fuente';
+  const metrics = [
+    { label: 'Cumplimiento', value: overview ? `${overview.compliance_score.toLocaleString('es-CL', { maximumFractionDigits: 1 })}%` : '—', detail: trend },
+    { label: 'NC abiertas', value: overview ? overview.open_ncs.toLocaleString('es-CL') : '—', detail: overview ? `${overview.total_ncs} registradas` : 'Sin resumen disponible' },
+    { label: 'Acciones vencidas', value: overview ? overview.overdue_cas.toLocaleString('es-CL') : '—', detail: 'Sólo acciones con vencimiento acreditado' },
+    { label: 'Inspecciones internas', value: value(internalInspectionCount), detail: 'Fuente específica' },
+    { label: 'Inspecciones externas', value: value(externalInspectionCount), detail: 'Fuente específica' },
+    { label: 'Documentos HSE', value: value(docCount), detail: 'Biblioteca HSE' },
+  ];
 
-  const pillars = useMemo<PillarCard[]>(() => {
-    const makeStatus = (count: number): ModuleItem['status'] => {
-      if (count > 0) return 'active';
-      return 'pending';
-    };
-
-    return [
-      {
-        title: 'HSE / Prevencion de Riesgos',
-        icon: <Shield className="w-8 h-8" />,
-        colorClass: 'text-primary',
-        bgClass: 'bg-primary/10',
-        borderClass: 'border-l-primary',
-        modules: [
-          {
-            name: 'Documentos HSE',
-            path: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse',
-            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/documentos-hse/importar',
-            count: docCount,
-            status: makeStatus(docCount),
-          },
-          {
-            name: 'Capacitaciones',
-            path: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones',
-            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones/importar',
-            count: capCount,
-            status: makeStatus(capCount),
-          },
-          {
-            name: 'EPP',
-            path: '/dashboard/sostenibilidad/prevencion-riesgos/epp',
-            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/epp/importar',
-            count: eppCount,
-            status: makeStatus(eppCount),
-          },
-          {
-            name: 'No conformidades',
-            path: '/dashboard/sostenibilidad/prevencion-riesgos/no-conformidades',
-            count: noConformidadesCount,
-            status: makeStatus(noConformidadesCount),
-          },
-          {
-            name: 'Acciones correctivas',
-            path: '/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas',
-            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas/importar',
-            count: accionesCorrectivasCount,
-            status: makeStatus(accionesCorrectivasCount),
-          },
-          {
-            name: 'Inspecciones',
-            path: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones',
-            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar',
-            count: inspeccionesCount,
-            status: makeStatus(inspeccionesCount),
-          },
-          {
-            name: 'Inspecciones externas',
-            path: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas',
-            importPath: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas/importar',
-            count: inspeccionesCount,
-            status: makeStatus(inspeccionesCount),
-          },
-        ],
-      },
-      {
-        title: 'Medio Ambiente',
-        icon: <Leaf className="w-8 h-8" />,
-        colorClass: 'text-secondary',
-        bgClass: 'bg-secondary/10',
-        borderClass: 'border-l-secondary',
-        modules: [
-          {
-            name: 'Monitoreos',
-            path: '/dashboard/sostenibilidad/medio-ambiente',
-            importPath: '/dashboard/sostenibilidad/medio-ambiente/importar',
-            count: ambienteCount,
-            status: makeStatus(ambienteCount),
-          },
-          {
-            name: 'Permisos',
-            path: '/dashboard/sostenibilidad/medio-ambiente',
-            importPath: '/dashboard/sostenibilidad/medio-ambiente/importar',
-            count: ambienteCount,
-            status: makeStatus(ambienteCount),
-          },
-          {
-            name: 'Planes de accion',
-            path: '/dashboard/sostenibilidad/medio-ambiente',
-            importPath: '/dashboard/sostenibilidad/medio-ambiente/importar',
-            count: overdueCas,
-            status: makeStatus(overdueCas),
-          },
-        ],
-      },
-      {
-        title: 'Comunidades',
-        icon: <Users className="w-8 h-8" />,
-        colorClass: 'text-muted-foreground',
-        bgClass: 'bg-muted',
-        borderClass: 'border-l-muted-foreground',
-        modules: [
-          {
-            name: 'Partes interesadas',
-            path: '/dashboard/sostenibilidad/comunidades',
-            importPath: '/dashboard/sostenibilidad/comunidades/importar',
-            count: comunidadesCount,
-            status: makeStatus(comunidadesCount),
-          },
-          {
-            name: 'Compromisos',
-            path: '/dashboard/sostenibilidad/comunidades',
-            importPath: '/dashboard/sostenibilidad/comunidades/importar',
-            count: comunidadesCount,
-            status: makeStatus(comunidadesCount),
-          },
-          {
-            name: 'Licencia Social',
-            path: '/dashboard/sostenibilidad/comunidades',
-            importPath: '/dashboard/sostenibilidad/comunidades/importar',
-            count: comunidadesCount,
-            status: makeStatus(comunidadesCount),
-          },
-        ],
-      },
-      {
-        title: 'Proyectos de sostenibilidad',
-        icon: <Target className="w-8 h-8" />,
-        colorClass: 'text-destructive',
-        bgClass: 'bg-destructive/10',
-        borderClass: 'border-l-destructive',
-        modules: [
-          { name: 'Iniciativas', path: '/dashboard/sostenibilidad/reportes', count: totalActions, status: makeStatus(totalActions) },
-          { name: 'Presupuesto', path: '/dashboard/sostenibilidad/reportes', count: totalActions, status: makeStatus(totalActions) },
-          { name: 'Seguimiento de retorno', path: '/dashboard/sostenibilidad/reportes', count: Math.round(completionRate), status: makeStatus(completionRate) },
-        ],
-      },
-    ];
-  }, [
-    accionesCorrectivasCount,
-    ambienteCount,
-    capCount,
-    comunidadesCount,
-    completionRate,
-    docCount,
-    eppCount,
-    inspeccionesCount,
-    noConformidadesCount,
-    overdueCas,
-    totalActions,
-  ]);
-
-  const allModules = pillars.flatMap((pillar) => pillar.modules);
-  const modulesWithData = allModules.filter((module) => module.count > 0).length;
-  const modulesWithoutData = allModules.length - modulesWithData;
-
-  const topMetrics = [
-    { label: 'Indice de cumplimiento', value: `${complianceScore}%`, helper: trendLabel, tone: complianceScore >= 85 ? 'text-secondary' : complianceScore >= 70 ? 'text-primary' : 'text-destructive' },
-    { label: 'NC abiertas', value: `${openNcs}`, helper: `${overview.overview.total_ncs} totales`, tone: 'text-primary' },
-    { label: 'Acciones vencidas', value: `${overdueCas}`, helper: 'Requieren accion', tone: overdueCas > 0 ? 'text-destructive' : 'text-secondary' },
-    { label: 'Inspecciones cerradas', value: `${inspeccionesCount}`, helper: 'Fuente real', tone: 'text-secondary' },
-    { label: 'Documentos HSE', value: `${docCount}`, helper: 'En el modulo', tone: 'text-primary' },
-    { label: 'Modulos con data', value: `${modulesWithData}`, helper: `Sin data: ${modulesWithoutData}`, tone: modulesWithoutData > 0 ? 'text-primary' : 'text-secondary' },
+  const areas: AreaCard[] = [
+    {
+      title: 'HSE / Prevención',
+      description: 'Documentos, capacitación y EPP permanecen como fuentes distintas.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos',
+      icon: ShieldCheck,
+      facts: [
+        { label: 'Documentos', value: docCount },
+        { label: 'Capacitaciones', value: capCount },
+        { label: 'EPP', value: eppCount },
+      ],
+    },
+    {
+      title: 'Inspecciones',
+      description: 'Internas y externas se cuentan por separado; una no sustituye a la otra.',
+      href: '/dashboard/sostenibilidad/prevencion-riesgos/inspecciones',
+      icon: FileCheck2,
+      facts: [
+        { label: 'Internas', value: internalInspectionCount },
+        { label: 'Externas', value: externalInspectionCount },
+      ],
+    },
+    {
+      title: 'No conformidades',
+      description: 'Registro y acciones correctivas sin convertir un porcentaje en un conteo.',
+      href: '/dashboard/sostenibilidad/no-conformidades',
+      icon: AlertTriangle,
+      facts: [
+        { label: 'Registros', value: ncCount },
+        { label: 'Acciones correctivas', value: correctiveActionCount },
+      ],
+    },
+    {
+      title: 'Medio Ambiente',
+      description: 'Sólo se muestra el total del registro ambiental disponible; no se inventan subtotales de permisos o monitoreos.',
+      href: '/dashboard/sostenibilidad/medio-ambiente',
+      icon: Leaf,
+      facts: [{ label: 'Registros ambientales', value: environmentCount }],
+    },
+    {
+      title: 'Comunidades',
+      description: 'El total de la fuente no se reutiliza como partes interesadas, compromisos y licencia social.',
+      href: '/dashboard/sostenibilidad/comunidades',
+      icon: Users,
+      facts: [{ label: 'Registros de comunidades', value: communityCount }],
+    },
   ];
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <div className="mb-3 flex items-center gap-2">
-            <Badge variant="outline" className="rounded-full border-primary/30 bg-primary/10 text-primary">
-              Datos reales
-            </Badge>
-            <Badge variant="outline" className="rounded-full">
-              Periodo {overview.period || 'actual'}
-            </Badge>
-          </div>
-          <h1 className="text-4xl font-bold text-foreground">Departamento de Sostenibilidad y HSE</h1>
-          <p className="mt-2 max-w-3xl text-muted-foreground">
-            Gestion integrada de HSE, Medio Ambiente, Comunidades y Proyectos con datos operativos reales.
-          </p>
+    <div className="space-y-6">
+      <PageHeader>
+        <PageHeaderContent>
+          <PageHeaderEyebrow>Sostenibilidad · HSE</PageHeaderEyebrow>
+          <PageHeaderTitle>Sostenibilidad</PageHeaderTitle>
+          <PageHeaderDescription>Estado y trabajo operativo desde fuentes específicas. Si una fuente no está disponible, MOTIL muestra “—”; no la reemplaza por cero ni reutiliza el conteo de otro módulo.</PageHeaderDescription>
+        </PageHeaderContent>
+        <PageHeaderActions>
+          <Button asChild variant="outline"><Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar"><Upload className="h-4 w-4"/>Importar inspecciones</Link></Button>
+        </PageHeaderActions>
+      </PageHeader>
+
+      {overviewError ? <StatePanel tone="warning" title="Resumen HSE no disponible" description="Las demás fuentes siguen visibles por separado. No se muestran ceros de reemplazo para cumplimiento, no conformidades o acciones vencidas." actions={<Button variant="outline" onClick={() => void refreshOverview()}>Reintentar</Button>} className="min-h-0 py-5"/> : null}
+
+      <section aria-label="Estado de Sostenibilidad" className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-6">
+        {metrics.map((metric) => <div key={metric.label} className="bg-card px-4 py-4"><p className="text-xs text-muted-foreground">{metric.label}</p><p className="mt-1 text-2xl font-semibold tracking-tight">{overviewLoading && ['Cumplimiento','NC abiertas','Acciones vencidas'].includes(metric.label) ? '—' : metric.value}</p><p className="mt-1 text-xs text-muted-foreground">{metric.detail}</p></div>)}
+      </section>
+
+      <section className="space-y-3" aria-labelledby="sustainability-areas">
+        <div><h2 id="sustainability-areas" className="text-lg font-semibold tracking-tight">Áreas y evidencia disponible</h2><p className="text-sm text-muted-foreground">Cada cifra pertenece a su propia fuente. Un cero es un cero real; “—” significa que la fuente no respondió.</p></div>
+        <div className="grid gap-px overflow-hidden rounded-lg border bg-border lg:grid-cols-2">
+          {areas.map((area) => {
+            const Icon = area.icon;
+            return <Link key={area.title} href={area.href} className="group bg-card px-5 py-4 transition-colors hover:bg-muted/30"><div className="flex items-start gap-3"><div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border bg-background"><Icon className="h-4 w-4"/></div><div className="min-w-0 flex-1"><div className="flex items-center justify-between gap-3"><h3 className="font-medium">{area.title}</h3><ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-1"/></div><p className="mt-1 text-sm text-muted-foreground">{area.description}</p><div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">{area.facts.map((fact) => <div key={fact.label}><p className="text-lg font-semibold tabular-nums">{value(fact.value)}</p><p className="text-xs text-muted-foreground">{fact.label}</p></div>)}</div></div></div></Link>;
+          })}
         </div>
-      </div>
+      </section>
 
-      <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
-        {topMetrics.map((metric) => (
-          <Card key={metric.label} className="rounded-xl shadow-none">
-            <CardHeader className="pb-3">
-              <CardDescription>{metric.label}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className={`text-3xl font-bold ${metric.tone}`}>{metric.value}</div>
-              <p className="mt-2 text-xs text-muted-foreground">{metric.helper}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="mb-12 rounded-xl border border-border/70 p-6 bg-card shadow-none">
-        <HSECanonicalDashboard />
-      </div>
-
-      <Card className="mb-12 rounded-xl border shadow-none">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-xl">
-            <Upload className="h-5 w-5 text-primary" />
-            Cargas rapidas por Excel
-          </CardTitle>
-          <CardDescription>
-            Entra directo a los modulos que ya permiten importar o actualizar datos desde archivos.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones/importar">
-              Inspecciones
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/sostenibilidad/prevencion-riesgos">
-              HSE / Prevencion
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp/importar">
-              EPP
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones">
-              Capacitaciones
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones/importar">
-              Capacitaciones Excel
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/sostenibilidad/documentos-flujo/importar">
-              Flujo documental
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/sostenibilidad/medio-ambiente/importar">
-              Medio ambiente
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/sostenibilidad/comunidades/importar">
-              Comunidades
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/sostenibilidad/no-conformidades/importar">
-              No conformidades
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-          <Button asChild variant="outline" className="justify-between">
-            <Link href="/dashboard/sostenibilidad/prevencion-riesgos/acciones-correctivas/importar">
-              Acciones correctivas
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <div className="mb-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {pillars.map((pillar) => (
-          <Card key={pillar.title} className={`rounded-xl border shadow-none ${pillar.borderClass}`}>
-            <CardHeader>
-              <div className="mb-4 flex items-center gap-3">
-                <div className={`rounded-lg p-3 ${pillar.bgClass}`}>
-                  <div className={pillar.colorClass}>{pillar.icon}</div>
-                </div>
-                <div>
-                  <CardTitle className="text-xl">{pillar.title}</CardTitle>
-                  <CardDescription>{pillar.modules.length} modulos conectados</CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="mb-3 text-sm font-semibold text-foreground">Modulos</h3>
-                <div className="space-y-2">
-                  {pillar.modules.map((module) => (
-                    <div key={`${module.name}-${module.path}`} className="flex items-center justify-between gap-3 rounded-xl border border-border px-3 py-3 transition hover:bg-muted/40">
-                      <Link href={module.path} className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="truncate text-sm font-medium">{module.name}</span>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="rounded-full text-xs">
-                              {module.count}
-                            </Badge>
-                            {module.status === 'active' ? (
-                              <CheckCircle className="h-4 w-4 text-secondary" />
-                            ) : (
-                              <Clock className="h-4 w-4 text-primary" />
-                            )}
-                          </div>
-                        </div>
-                      </Link>
-                      {module.importPath ? (
-                        <Button asChild size="sm" variant="ghost" className="shrink-0 gap-1">
-                          <Link href={module.importPath}>
-                            Excel
-                            <Upload className="h-3.5 w-3.5" />
-                          </Link>
-                        </Button>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="mb-12">
-        <SustainabilityKPIDashboard />
-      </div>
-
-      <div className="mb-12">
-        <SustainabilityWorkflowDiagram />
-      </div>
-
-      <SustainabilityModuleConnections />
+      <section className="space-y-3 border-t pt-5">
+        <div><h2 className="text-lg font-semibold tracking-tight">Accesos operativos</h2><p className="text-sm text-muted-foreground">Carga o revisa el dominio correspondiente; las importaciones no se presentan como KPI.</p></div>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild variant="outline"><Link href="/dashboard/sostenibilidad/prevencion-riesgos/capacitaciones">Capacitaciones</Link></Button>
+          <Button asChild variant="outline"><Link href="/dashboard/sostenibilidad/prevencion-riesgos/epp">EPP</Link></Button>
+          <Button asChild variant="outline"><Link href="/dashboard/sostenibilidad/prevencion-riesgos/inspecciones-externas">Inspecciones externas</Link></Button>
+          <Button asChild variant="outline"><Link href="/dashboard/sostenibilidad/medio-ambiente">Medio ambiente</Link></Button>
+          <Button asChild variant="outline"><Link href="/dashboard/sostenibilidad/comunidades">Comunidades</Link></Button>
+          <Button asChild variant="outline"><Link href="/dashboard/sostenibilidad/reportes">Reportes</Link></Button>
+        </div>
+      </section>
     </div>
   );
 }
