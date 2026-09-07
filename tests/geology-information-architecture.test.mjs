@@ -23,7 +23,9 @@ test('geology keeps decision views as local controls inside Production instead o
   assert.match(shell, /\['matrix', 'Matriz'\]/);
   assert.match(shell, /\['results', 'Resultados'\]/);
   assert.match(shell, /\['completeness', 'Cobertura'\]/);
-  assert.match(shell, /\['canonical', 'Fuentes'\]/);
+  assert.match(shell, /\['canonical', 'Estado'\]/);
+  assert.match(shell, /Resultados, cobertura y estado canónico/);
+  assert.doesNotMatch(shell, /\['canonical', 'Fuentes'\]/);
   assert.match(shell, /mismo sondaje canónico de Producción → Perforación/);
 });
 
