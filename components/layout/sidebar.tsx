@@ -23,7 +23,7 @@ const menuItems: MenuItem[] = [
   { label:'Producción',href:'/dashboard/produccion',icon:Zap,group:'Áreas',moduleKey:'prod_operaciones',roles:['superadmin','admin','Operaciones-Supervisor','jefe_mantencion','jefe_planta','jefe_produccion'] },
   { label:'Geología',href:'/dashboard/produccion/geologia',icon:Gem,group:'Áreas',moduleKey:'prod_geologia' },
   { label:'Mantenimiento',href:'/dashboard/mantenimiento',icon:Wrench,group:'Áreas',moduleKey:'mant_operaciones',roles:['superadmin','admin','Operaciones-Supervisor','jefe_mantencion'] },
-  { label:'Inventario',href:'/dashboard/bodega',icon:Boxes,group:'Áreas',moduleKey:'bodega_inventario',roles:['superadmin','admin','Bodega-Supervisor','jefe_mantencion'] },
+  { label:'Bodega',href:'/dashboard/bodega',icon:Boxes,group:'Áreas',moduleKey:'bodega_inventario',roles:['superadmin','admin','Bodega-Supervisor','jefe_mantencion'] },
   { label:'Compras',href:'/dashboard/compras',icon:ShoppingCart,group:'Áreas',moduleKey:'fin_compras',roles:['superadmin','admin','Compras-Supervisor'] },
   { label:'Finanzas',href:'/dashboard/finanzas',icon:CircleDollarSign,group:'Áreas',moduleKey:'fin_finanzas',roles:['superadmin','admin','Finanzas-Supervisor'] },
   { label:'RRHH',href:'/dashboard/rrhh',icon:Users,group:'Áreas',roles:['superadmin','admin','manager'] },
