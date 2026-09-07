@@ -38,7 +38,7 @@ const period=(v:string|null|undefined)=>v?new Intl.DateTimeFormat('es-CL',{month
 const domains=[
   {key:'transport',href:'/dashboard/produccion/transporte-mineral',title:'Transporte',unit:'movimientos',icon:Truck},
   {key:'plant',href:'/dashboard/produccion/planta-metalurgia',title:'Planta / Metalurgia',unit:'turnos',icon:Factory},
-  {key:'drilling',href:'/dashboard/produccion/sondaje',title:'Sondaje',unit:'pozos',icon:Drill},
+  {key:'drilling',href:'/dashboard/produccion/sondaje',title:'Perforación',unit:'pozos',icon:Drill},
   {key:'chemistry',href:'/dashboard/produccion/quimica',title:'Química',unit:'resultados',icon:Beaker},
   {key:'geology',href:'/dashboard/produccion/geologia',title:'Geología',unit:'registros externos',icon:Gem},
   {key:'topography',href:'/dashboard/produccion/topografia',title:'Topografía',unit:'levantamientos reales',icon:Map},
@@ -51,7 +51,6 @@ export function ProduccionDashboard(){
 
   const p=data.currentPeriod;
   const plan=p?.plan;
-  const qualityOk=data.quality.status==='PASS';
   const pace=plan?.paceIndexPct ?? null;
   const paceLabel=pace===null?'—':pace>=97?'En ritmo':pace>=90?'Leve desvío':'Bajo ritmo';
 
@@ -65,20 +64,21 @@ export function ProduccionDashboard(){
       <PageHeaderActions><Button asChild variant="outline"><Link href="/dashboard/produccion/ingreso-datos"><Upload className="h-4 w-4"/>Ingresar datos</Link></Button></PageHeaderActions>
     </PageHeader>
 
-    <CoverageOverview data={data}/>
-
-    <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-6">
-      <Metric icon={Factory} label="Tratado" value={p?tons(p.treatedTons,1):'—'} detail={plan?`${pct(plan.treatmentProgressPct)} del plan de mineral a planta`:'Sin plan activo'}/>
-      <Metric icon={Target} label="Ritmo mensual" value={paceLabel} detail={plan?`Índice ${pct(plan.paceIndexPct)} · calendario ${pct(p?.calendarProgressPct)}`:'Sin comparación'}/>
-      <Metric icon={Gauge} label="Ley cabeza Cu" value={pct(p?.avgHeadGradePct,3)} detail={plan?.targetCuGradePct!=null?`Objetivo ${pct(plan.targetCuGradePct,2)}`:'Sin objetivo'}/>
-      <Metric icon={Activity} label="Recuperación" value={pct(p?.avgRecoveryPct,2)} detail={p?`${p.deterministicShifts}/${p.plantShifts} turnos determinísticos`:'—'}/>
-      <Metric icon={Beaker} label="Cu fino recuperado" value={p?tons(p.recoveredFineCuTons,3):'—'} detail={p?`${tons(p.containedCuTons,3)} Cu contenido`:'—'}/>
-      <Metric icon={PackageCheck} label="Concentrado despachado" value={p?tons(p.dispatch.wetMetricTons,2):'—'} detail={p?`${p.dispatch.validShipmentRows} válidos · ${p.dispatch.reviewShipmentRows} revisión`:'—'}/>
+    <section aria-label="Operación actual" className="space-y-3">
+      <div><p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Ahora</p><h2 className="mt-1 text-lg font-semibold tracking-tight">Ejecución del período</h2></div>
+      <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-6">
+        <Metric icon={Factory} label="Tratado" value={p?tons(p.treatedTons,1):'—'} detail={plan?`${pct(plan.treatmentProgressPct)} del plan de mineral a planta`:'Sin plan activo'}/>
+        <Metric icon={Target} label="Ritmo mensual" value={paceLabel} detail={plan?`Índice ${pct(plan.paceIndexPct)} · calendario ${pct(p?.calendarProgressPct)}`:'Sin comparación'}/>
+        <Metric icon={Gauge} label="Ley cabeza Cu" value={pct(p?.avgHeadGradePct,3)} detail={plan?.targetCuGradePct!=null?`Objetivo ${pct(plan.targetCuGradePct,2)}`:'Sin objetivo'}/>
+        <Metric icon={Activity} label="Recuperación" value={pct(p?.avgRecoveryPct,2)} detail={p?`${p.deterministicShifts}/${p.plantShifts} turnos determinísticos`:'—'}/>
+        <Metric icon={Beaker} label="Cu fino recuperado" value={p?tons(p.recoveredFineCuTons,3):'—'} detail={p?`${tons(p.containedCuTons,3)} Cu contenido`:'—'}/>
+        <Metric icon={PackageCheck} label="Concentrado despachado" value={p?tons(p.dispatch.wetMetricTons,2):'—'} detail={p?`${p.dispatch.validShipmentRows} válidos · ${p.dispatch.reviewShipmentRows} revisión`:'—'}/>
+      </div>
     </section>
 
-    <section className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
+    <section className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
       <div className="rounded-lg border bg-card">
-        <div className="border-b px-5 py-4"><div className="flex items-center justify-between gap-4"><div><h2 className="font-medium">Plan vs ejecución</h2><p className="mt-1 text-xs text-muted-foreground">Comparación operacional usando tratamiento de Planta. Transporte conserva su propia ventana de fuente.</p></div>{plan?<span className="text-xs text-muted-foreground">{plan.code}</span>:null}</div></div>
+        <div className="border-b px-5 py-4"><div className="flex items-center justify-between gap-4"><div><h2 className="font-medium">Plan vs ejecución</h2><p className="mt-1 text-xs text-muted-foreground">Tratamiento de Planta contra el plan mensual; transporte conserva su propia ventana de fuente.</p></div>{plan?<span className="text-xs text-muted-foreground">{plan.code}</span>:null}</div></div>
         <div className="grid gap-px bg-border md:grid-cols-4">
           <Mini label="Plan mineral a planta" value={plan?tons(plan.mineralToPlantTons):'—'} detail="Mes completo"/>
           <Mini label="Tratado acumulado" value={p?tons(p.treatedTons,1):'—'} detail={plan?`${pct(plan.treatmentProgressPct)} ejecutado`:'—'}/>
@@ -89,89 +89,59 @@ export function ProduccionDashboard(){
       </div>
 
       <div className="rounded-lg border bg-card">
-        <div className="border-b px-5 py-4"><h2 className="font-medium">Calidad de datos</h2><p className="mt-1 text-xs text-muted-foreground">Gate maestro de Producción.</p></div>
-        <div className="px-5 py-5"><div className="flex items-center gap-3">{qualityOk?<CheckCircle2 className="h-5 w-5"/>:<AlertTriangle className="h-5 w-5"/>}<div><p className="text-lg font-semibold">{data.quality.pass} PASS · {data.quality.hold} HOLD</p><p className="text-xs text-muted-foreground">{data.quality.sourceFiles}/7 archivos · {data.quality.sourceSheets}/172 hojas</p></div></div>
-          <div className="mt-5 grid grid-cols-3 gap-3 text-center"><Small value={data.quality.supplementalRecords} label="Complementarios"/><Small value={data.quality.sourceAnomalies} label="Anomalías fuente"/><Small value={data.quality.referenceOnly} label="Referencia"/></div>
-        </div>
-      </div>
-    </section>
-
-    <section className="grid gap-4 lg:grid-cols-2">
-      <div className="rounded-lg border bg-card">
-        <div className="border-b px-5 py-4"><h2 className="font-medium">Cobertura de transporte</h2><p className="mt-1 text-xs text-muted-foreground">Comparación sólo donde TM existe.</p></div>
-        <div className="grid gap-px bg-border sm:grid-cols-3"><Mini label="Transportado" value={p?tons(p.transportComparable.transportedTons,1):'—'} detail={`Hasta ${date(p?.transportComparable.sourceThrough)}`}/><Mini label="Tratado comparable" value={p?tons(p.transportComparable.treatedTons,1):'—'} detail="Misma ventana"/><Mini label="Brecha comparable" value={p?tons(p.transportComparable.deltaTons,1):'—'} detail="No equivale a pérdida"/></div>
-        <p className="px-5 py-4 text-xs text-muted-foreground">{data.semantics.sourceAbsence}</p>
-      </div>
-
-      <div className="rounded-lg border bg-card">
-        <div className="border-b px-5 py-4"><h2 className="font-medium">Inteligencia operacional</h2><p className="mt-1 text-xs text-muted-foreground">Señales determinísticas; no son predicciones de ML.</p></div>
+        <div className="border-b px-5 py-4"><h2 className="font-medium">Qué requiere atención</h2><p className="mt-1 text-xs text-muted-foreground">Señales determinísticas sobre la operación; no son predicciones de ML.</p></div>
         <div className="divide-y">{data.intelligence.length?data.intelligence.map(signal=><div key={signal.code} className="flex gap-3 px-5 py-4"><SignalIcon level={signal.level}/><div><p className="text-sm font-medium">{signal.title}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{signal.detail}</p></div></div>):<div className="px-5 py-5 text-sm text-muted-foreground">Sin señales para el período.</div>}</div>
       </div>
     </section>
 
-    <section className="grid gap-px overflow-hidden rounded-lg border bg-border md:grid-cols-5">
-      <Mini label="Movimientos" value={n(data.counts.materialMovements)} detail="Histórico"/>
-      <Mini label="Turnos Planta" value={n(data.counts.plantShifts)} detail="Histórico"/>
-      <Mini label="Metalurgia" value={n(data.counts.metallurgyResults)} detail="Resultados"/>
-      <Mini label="Sondajes" value={n(data.counts.drillingReports)} detail={`${n(data.counts.drillingHoles)} pozos`}/>
-      <Mini label="Despachos" value={n(data.counts.concentrateShipments)} detail="Histórico"/>
+    <section className="rounded-lg border bg-card">
+      <div className="border-b px-5 py-4"><h2 className="font-medium">Transporte comparable</h2><p className="mt-1 text-xs text-muted-foreground">Sólo la ventana donde existe evidencia TM; una brecha no se clasifica automáticamente como pérdida.</p></div>
+      <div className="grid gap-px bg-border sm:grid-cols-3"><Mini label="Transportado" value={p?tons(p.transportComparable.transportedTons,1):'—'} detail={`Hasta ${date(p?.transportComparable.sourceThrough)}`}/><Mini label="Tratado comparable" value={p?tons(p.transportComparable.treatedTons,1):'—'} detail="Misma ventana"/><Mini label="Brecha comparable" value={p?tons(p.transportComparable.deltaTons,1):'—'} detail="No equivale a pérdida"/></div>
     </section>
 
-    <div className="rounded-lg border bg-card px-5 py-4 text-xs leading-5 text-muted-foreground"><strong className="font-medium text-foreground">Semántica:</strong> {data.semantics.planVsActual} {data.semantics.concentrate}</div>
+    <CoverageOverview data={data}/>
+
+    <div className="rounded-lg border bg-card px-5 py-4 text-xs leading-5 text-muted-foreground"><strong className="font-medium text-foreground">Semántica:</strong> {data.semantics.planVsActual} {data.semantics.concentrate} {data.semantics.sourceAbsence}</div>
   </div>;
 }
 
 function CoverageOverview({data}:{data:Overview}){
   const queue=data.coverage.queue;
+  const qualityOk=data.quality.status==='PASS';
   const reviewItems=[
-    {label:'Importación',value:queue.importExceptions,detail:'excepciones pendientes'},
-    {label:'Transporte',value:queue.movementValidation,detail:`en revisión · ${n(queue.movementNormalization)} sin normalizar`},
-    {label:'Identidades',value:queue.entityReconciliation,detail:'por reconciliar'},
-    {label:'Planta',value:queue.plantShifts+queue.metallurgy,detail:'turnos o análisis'},
-    {label:'Ubicación de pozos',value:queue.drillLocations,detail:'requieren evidencia'},
+    `Importación ${n(queue.importExceptions)}`,
+    `Transporte ${n(queue.movementValidation)} revisión / ${n(queue.movementNormalization)} sin normalizar`,
+    `Identidades ${n(queue.entityReconciliation)}`,
+    `Planta ${n(queue.plantShifts+queue.metallurgy)}`,
+    `Pozos ${n(queue.drillLocations)}`,
   ];
 
   return <section aria-labelledby="production-coverage-title" className="space-y-3">
     <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Estado de las fuentes</p>
-        <h2 id="production-coverage-title" className="mt-1 text-lg font-semibold tracking-tight">Cobertura real por área</h2>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Control de fuente</p>
+        <h2 id="production-coverage-title" className="mt-1 text-lg font-semibold tracking-tight">Estado de fuentes</h2>
       </div>
-      <p className="max-w-xl text-xs leading-5 text-muted-foreground">Cada área muestra sólo evidencia acreditada. Parcial significa utilizable con límites; sin fuente nunca se representa como cero.</p>
+      <p className="max-w-xl text-xs leading-5 text-muted-foreground">Detalle secundario de cobertura. Parcial significa utilizable con límites; sin fuente nunca se representa como cero.</p>
     </div>
 
-    <div className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-3">
+    <div className="overflow-hidden rounded-lg border bg-card divide-y">
       {domains.map((domain)=>{
         const coverage=data.coverage.domains[domain.key];
         const Icon=domain.icon;
         const meta=coverageStatus(coverage.status);
         const StatusIcon=meta.icon;
-        return <Link key={domain.key} href={domain.href} aria-label={`Abrir ${domain.title}: ${meta.label}`} className="group flex min-h-52 flex-col bg-card px-5 py-5 outline-none transition-colors hover:bg-muted/25 focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex size-9 items-center justify-center rounded-md border bg-background"><Icon className="size-4"/></div>
-            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${meta.className}`}><StatusIcon className="size-3"/>{meta.label}</span>
-          </div>
-          <div className="mt-5 flex-1">
-            <p className="font-medium">{domain.title}</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight">{n(coverage.evidenceCount)}</p>
-            <p className="text-xs text-muted-foreground">{domain.unit}{coverage.dataThrough?` · corte ${date(coverage.dataThrough)}`:''}</p>
-            <p className="mt-3 text-xs leading-5 text-muted-foreground">{coverage.note}</p>
-          </div>
-          <div className="mt-4 flex items-center justify-between border-t pt-3 text-xs">
-            <span className={coverage.reviewCount>0?'text-foreground':'text-muted-foreground'}>{coverage.reviewCount>0?`${n(coverage.reviewCount)} requieren atención`:'Sin revisión pendiente'}</span>
-            <ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5"/>
-          </div>
+        return <Link key={domain.key} href={domain.href} aria-label={`Abrir ${domain.title}: ${meta.label}`} className="group grid gap-3 px-4 py-3 outline-none transition-colors hover:bg-muted/20 focus-visible:ring-2 focus-visible:ring-ring sm:grid-cols-[minmax(170px,.8fr)_minmax(180px,1fr)_auto] sm:items-center">
+          <div className="flex items-center gap-3"><Icon className="size-4 shrink-0 text-muted-foreground"/><div><p className="text-sm font-medium">{domain.title}</p><p className="text-xs text-muted-foreground">{n(coverage.evidenceCount)} {domain.unit}{coverage.dataThrough?` · corte ${date(coverage.dataThrough)}`:''}</p></div></div>
+          <p className="text-xs leading-5 text-muted-foreground line-clamp-2">{coverage.note}</p>
+          <div className="flex items-center gap-3 sm:justify-end"><span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] ${meta.className}`}><StatusIcon className="size-3"/>{meta.label}</span><span className="text-xs text-muted-foreground">{coverage.reviewCount>0?`${n(coverage.reviewCount)} revisión`:'Sin revisión'}</span><ArrowRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5"/></div>
         </Link>;
       })}
     </div>
 
-    <div className="rounded-lg border bg-card">
-      <div className="border-b px-5 py-4">
-        <div className="flex items-center justify-between gap-4"><div><h3 className="font-medium">Trabajo pendiente sobre datos</h3><p className="mt-1 text-xs text-muted-foreground">Colas de revisión; pueden solaparse y no deben sumarse como un único total.</p></div><AlertTriangle className="size-4 text-muted-foreground"/></div>
-      </div>
-      <div className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-5">
-        {reviewItems.map(item=><Mini key={item.label} label={item.label} value={n(item.value)} detail={item.detail}/>) }
-      </div>
+    <div className="grid gap-3 lg:grid-cols-[0.8fr_1.2fr]">
+      <div className="rounded-lg border bg-card px-4 py-3"><div className="flex items-center gap-3">{qualityOk?<CheckCircle2 className="h-4 w-4"/>:<AlertTriangle className="h-4 w-4"/>}<div><p className="text-sm font-medium">Calidad de datos · {data.quality.pass} PASS · {data.quality.hold} HOLD</p><p className="mt-1 text-xs text-muted-foreground">{data.quality.sourceFiles}/7 archivos · {data.quality.sourceSheets}/172 hojas · {data.quality.sourceAnomalies} anomalías fuente</p></div></div></div>
+      <div className="rounded-lg border bg-card px-4 py-3"><p className="text-sm font-medium">Revisiones de datos</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{reviewItems.join(' · ')}. Las colas pueden solaparse y no se suman como un único total.</p></div>
     </div>
   </section>;
 }
@@ -184,5 +154,4 @@ function coverageStatus(status:'operational'|'partial'|'awaiting_source'){
 
 function Metric({icon:Icon,label,value,detail}:{icon:any;label:string;value:string;detail:string}){return <div className="bg-card px-5 py-4"><div className="flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">{label}</p><Icon className="h-4 w-4 text-muted-foreground"/></div><p className="mt-2 text-xl font-semibold tracking-tight">{value}</p><p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p></div>}
 function Mini({label,value,detail}:{label:string;value:string;detail:string}){return <div className="bg-card px-4 py-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-lg font-semibold tracking-tight">{value}</p><p className="mt-1 text-xs text-muted-foreground">{detail}</p></div>}
-function Small({value,label}:{value:number;label:string}){return <div><p className="text-lg font-semibold">{n(value)}</p><p className="text-[11px] text-muted-foreground">{label}</p></div>}
 function SignalIcon({level}:{level:'info'|'watch'|'alert'}){return level==='info'?<CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0"/>:<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0"/>}
