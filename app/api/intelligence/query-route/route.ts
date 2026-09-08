@@ -2,30 +2,38 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { isAssistantDomain, resolveAssistantContext } from '@/lib/intelligence/assistant-context';
 import { routeOperationalQuery } from '@/lib/intelligence/query-router';
 
 export async function POST(request: NextRequest) {
-  const context = await getOrganizationContext(request);
-  if (!context.ok) return context.response;
+  const auth = await getOrganizationContext(request);
+  if (!auth.ok) return auth.response;
 
   try {
     const body = await request.json().catch(() => null);
     const query = typeof body?.query === 'string' ? body.query : '';
+    const pathname = typeof body?.context?.pathname === 'string' ? body.context.pathname : '';
+    const resolvedContext = resolveAssistantContext(pathname);
+    const requestedDomain = isAssistantDomain(body?.context?.domain) ? body.context.domain : resolvedContext.domain;
 
     if (!query.trim()) {
       return NextResponse.json({ error: 'query es requerido' }, { status: 400 });
     }
 
-    const route = routeOperationalQuery(query);
+    const route = routeOperationalQuery(query, { domain: requestedDomain, pathname });
 
     return NextResponse.json({
       route,
+      context: {
+        domain: resolvedContext.domain,
+        label: resolvedContext.label,
+        title: resolvedContext.title,
+      },
       policy: {
-        fast: 'Consulta un solo dominio canónico.',
-        agentic: 'Puede correlacionar varias capacidades de lectura; no autoriza escrituras.',
+        fast: 'Usa primero el módulo actual o un único dominio canónico.',
+        agentic: 'Amplía a capacidades de lectura sólo cuando la pregunta requiere correlación o causalidad.',
         action: 'Toda mutación requiere autorización explícita y controles del dominio antes de ejecutarse.',
       },
-      organizationId: context.organizationId,
       generatedAt: new Date().toISOString(),
     });
   } catch (error) {
