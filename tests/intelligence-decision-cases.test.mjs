@@ -47,7 +47,7 @@ test('human workflow linkage is read-only and must match the current role task w
   assert.match(route, /role_tasks_actionable_v1/);
   assert.match(route, /\.eq\('organization_id', organizationId\)/);
   assert.match(route, /\.eq\('cargo_id', profile\.cargo_id\)/);
-  assert.match(route, /workflow\.task_key/);
+  assert.match(route, /workflow\?\.task_key/);
   assert.match(route, /operationalMutationExecuted: false/);
   assert.doesNotMatch(route, /role_tasks_actionable_v1[\s\S]{0,250}\.update\(/);
   assert.doesNotMatch(route, /role_tasks_actionable_v1[\s\S]{0,250}\.insert\(/);
