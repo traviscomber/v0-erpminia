@@ -12,6 +12,16 @@ test('maintenance decision intelligence is tenant scoped and reads canonical ope
   for (const source of ['drilling_maintenance_review_queue_v1','drill_asset_operational_evidence_90d_v1','preventive_maintenance_hour_status_v1','work_order_close_readiness_v2','maintenance_work_orders','maintenance_reliability_base_v1']) assert.match(route, new RegExp(source));
 });
 
+test('maintenance decision intelligence resolves closure asset identity from the canonical asset view', async () => {
+  const route = await readFile(routeUrl, 'utf8');
+  assert.match(route, /from\('maintenance_canonical_assets_v1'\)/);
+  assert.match(route, /select\('id,asset_code,name'\)/);
+  assert.match(route, /canonicalAssetMap/);
+  assert.match(route, /asset_code: asset\?\.asset_code \|\| null/);
+  assert.match(route, /asset_name: asset\?\.name \|\| null/);
+  assert.doesNotMatch(route, /work_order_id,work_order_number,canonical_asset_id,asset_code,asset_name,title/);
+});
+
 test('maintenance decision intelligence separates fact interpretation hypothesis and human action', async () => {
   const [route,page] = await Promise.all([readFile(routeUrl,'utf8'),readFile(pageUrl,'utf8')]);
   assert.match(route, /canonical_fact/);
