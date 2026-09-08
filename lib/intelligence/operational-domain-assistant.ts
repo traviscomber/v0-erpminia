@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { OrganizationSuccessContext } from '@/lib/api/organization-context';
 import { routeOperationalQuery, type QueryCapability } from '@/lib/intelligence/query-router';
 
-export type OperationalAssistantDomain = 'inventory' | 'procurement';
+export type OperationalAssistantDomain = 'inventory' | 'procurement' | 'production';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const DEFAULT_MODEL = 'gpt-5.6';
@@ -155,16 +155,96 @@ async function buildProcurementEvidence(context: OrganizationSuccessContext): Pr
   };
 }
 
+async function buildProductionEvidence(context: OrganizationSuccessContext): Promise<EvidenceBundle> {
+  const organizationId = context.organizationId;
+  const [fineCopper, fineFlow, metallurgy, drilling, movements, fidelity] = await Promise.all([
+    context.supabase.from('production_fine_copper_daily_v1')
+      .select('operation_date,shifts,deterministic_shifts,treated_wet_metric_tons,mineral_dry_metric_tons,contained_feed_cu_metric_tons,recovered_fine_cu_metric_tons,avg_head_grade_pct,effective_recovery_pct,treated_wet_tons_without_fine,fine_coverage_state')
+      .eq('organization_id', organizationId).order('operation_date', { ascending: false }).limit(45),
+    context.supabase.from('production_fine_flow_daily_v1')
+      .select('operation_date,movements,transported_wet_metric_tons,shifts,deterministic_shifts,treated_wet_metric_tons,mineral_dry_metric_tons,contained_feed_cu_metric_tons,recovered_fine_cu_metric_tons,fine_coverage_state,transport_treatment_delta_metric_tons,flow_state')
+      .eq('organization_id', organizationId).order('operation_date', { ascending: false }).limit(45),
+    context.supabase.from('production_metallurgy_deterministic_v2')
+      .select('operation_date,shift_code,plant_validation_status,treated_metric_tons,mineral_moisture_pct,head_grade,concentrate_grade,tailings_grade,recovery_reported,fine_metal_reported,calculation_rule_version,metallurgy_state,mineral_dry_metric_tons,feed_fine_metric_tons,recovery_by_grades_pct,concentrate_dry_metric_tons,concentrate_fine_metric_tons,recovery_by_fine_balance_pct')
+      .eq('organization_id', organizationId).order('operation_date', { ascending: false }).limit(90),
+    context.supabase.from('production_drilling_operational_summary_v1').select('*').eq('organization_id', organizationId).maybeSingle(),
+    context.supabase.from('production_material_movements')
+      .select('movement_date,normalized_metric_tons,normalization_status,validation_status,material_classification,mine_name_raw,sector_name_raw')
+      .eq('organization_id', organizationId).order('movement_date', { ascending: false }).limit(80),
+    context.supabase.from('production_source_fidelity_exceptions_v1')
+      .select('domain,exception_type,source_file,source_sheet,source_row,event_date,reference_code,description')
+      .eq('organization_id', organizationId).order('event_date', { ascending: false }).limit(60),
+  ]);
+
+  const failures = [fineCopper.error, fineFlow.error, metallurgy.error, drilling.error, movements.error, fidelity.error].filter(Boolean);
+  if (failures.length) throw new Error((failures[0] as any)?.message || 'No se pudo cargar producción canónica');
+
+  const copperRows = fineCopper.data || [];
+  const flowRows = fineFlow.data || [];
+  const movementRows = movements.data || [];
+  return {
+    capability: 'production',
+    sources: [
+      'production_fine_copper_daily_v1',
+      'production_fine_flow_daily_v1',
+      'production_metallurgy_deterministic_v2',
+      'production_drilling_operational_summary_v1',
+      'production_material_movements',
+      'production_source_fidelity_exceptions_v1',
+    ],
+    toolsUsed: [
+      { name: 'read_production_daily_fine', mode: 'read' },
+      { name: 'read_production_flow', mode: 'read' },
+      { name: 'read_production_metallurgy', mode: 'read' },
+      { name: 'read_production_drilling_summary', mode: 'read' },
+      { name: 'read_production_fidelity', mode: 'read' },
+    ],
+    payload: {
+      freshness: {
+        latest_fine_copper_date: copperRows[0]?.operation_date || null,
+        latest_flow_date: flowRows[0]?.operation_date || null,
+        latest_movement_date: movementRows[0]?.movement_date || null,
+        drilling_max_date: drilling.data?.max_date || null,
+        meaning: 'Fechas máximas disponibles por fuente. Ninguna de ellas implica telemetría o tiempo real.',
+      },
+      daily_fine_copper: copperRows,
+      daily_flow: flowRows,
+      recent_metallurgy: metallurgy.data || [],
+      drilling_summary: drilling.data || null,
+      recent_material_movements: movementRows,
+      source_fidelity_exceptions: fidelity.data || [],
+      semantics: {
+        deterministic_metrics: 'Los cálculos determinísticos conservan reglas/versiones de cálculo y deben separarse de valores reportados por fuente.',
+        fine_coverage: 'La cobertura de cobre fino puede ser incompleta; no se extrapola a días sin evidencia.',
+        flow_delta: 'La diferencia transporte-tratamiento describe un balance observado, no una causa raíz.',
+        drilling_status: 'Conteos fuera de servicio, sin dotación, energía o agua son frecuencia observada en reportes, no probabilidad futura.',
+      },
+    },
+  };
+}
+
+async function buildEvidence(domain: OperationalAssistantDomain, context: OrganizationSuccessContext) {
+  if (domain === 'inventory') return buildInventoryEvidence(context);
+  if (domain === 'procurement') return buildProcurementEvidence(context);
+  return buildProductionEvidence(context);
+}
+
 function requestedOperationalDomains(capabilities: QueryCapability[], localDomain: OperationalAssistantDomain) {
   const requested = new Set<OperationalAssistantDomain>([localDomain]);
   if (capabilities.includes('inventory')) requested.add('inventory');
   if (capabilities.includes('procurement')) requested.add('procurement');
+  if (capabilities.includes('production')) requested.add('production');
   return [...requested];
 }
 
+function domainLabel(domain: OperationalAssistantDomain) {
+  if (domain === 'inventory') return 'Inventario';
+  if (domain === 'procurement') return 'Compras';
+  return 'Producción';
+}
+
 function actionRefusal(domain: OperationalAssistantDomain) {
-  const label = domain === 'inventory' ? 'Inventario' : 'Compras';
-  return `Puedo preparar y explicar la decisión en ${label}, pero este asistente no ejecuta mutaciones operacionales. La acción debe realizarse en el flujo autorizado del módulo y con confirmación humana.`;
+  return `Puedo preparar y explicar la decisión en ${domainLabel(domain)}, pero este asistente no ejecuta mutaciones operacionales. La acción debe realizarse en el flujo autorizado del módulo y con confirmación humana.`;
 }
 
 export async function handleOperationalDomainAssistant(args: {
@@ -212,14 +292,14 @@ export async function handleOperationalDomainAssistant(args: {
     const desired = requestedOperationalDomains(route.capabilities, domain);
     const permitted = desired.filter((item) => args.allowedDomains.includes(item));
     const denied = desired.filter((item) => !args.allowedDomains.includes(item));
-    const bundles = await Promise.all(permitted.map((item) => item === 'inventory' ? buildInventoryEvidence(context) : buildProcurementEvidence(context)));
+    const bundles = await Promise.all(permitted.map((item) => buildEvidence(item, context)));
 
     const sources = Array.from(new Set(bundles.flatMap((bundle) => bundle.sources)));
     const toolsUsed = bundles.flatMap((bundle) => bundle.toolsUsed);
     const evidence = Object.fromEntries(bundles.map((bundle) => [bundle.capability, bundle.payload]));
-    const localLabel = domain === 'inventory' ? 'Inventario' : 'Compras';
+    const localLabel = domainLabel(domain);
 
-    const instructions = `Eres el especialista de ${localLabel} dentro de MOTIL Intelligence Core para una operación minera chilena. Tu arquitectura es contexto local primero y expansión transversal sólo cuando aporta evidencia útil.\n\nREGLAS OBLIGATORIAS:\n1. Usa exclusivamente la evidencia canónica incluida en EVIDENCIA MOTIL para afirmaciones operacionales.\n2. Distingue DATO CANÓNICO, INTERPRETACIÓN PROFESIONAL, HIPÓTESIS A REVISAR y SIGUIENTE ACCIÓN cuando corresponda.\n3. Si el usuario pregunta por hoy, ahora o estado actual, declara explícitamente la fecha de frescura disponible. No presentes un snapshot antiguo como tiempo real.\n4. Un stock en reorder/out_of_stock/negative no es por sí solo criticidad operacional, riesgo de falla ni prioridad de compra. Explica qué evidencia adicional faltaría para priorizar.\n5. Un estado de orden de compra no autoriza inferir recepción, entrega, pago o cierre si esos hechos no están en la evidencia.\n6. No inventes precios vigentes, proveedores, lead times, criticidades, repuestos equivalentes, costos, causas ni disponibilidad.\n7. Si falta permiso para una capacidad transversal solicitada, dilo de forma breve y limita la conclusión a la evidencia autorizada.\n8. No ejecutes compras, reservas, ajustes de stock, recepciones, aprobaciones ni otra mutación. Puedes preparar una recomendación para validación humana.\n9. Mantén la respuesta operacional, concreta y breve. Prioriza qué sabemos, qué excepción importa, qué falta confirmar y cuál es el siguiente paso de mayor valor.\n10. No expongas JSON crudo ni detalles internos del runtime.`;
+    const instructions = `Eres el especialista de ${localLabel} dentro de MOTIL Intelligence Core para una operación minera chilena. Tu arquitectura es contexto local primero y expansión transversal sólo cuando aporta evidencia útil.\n\nREGLAS OBLIGATORIAS:\n1. Usa exclusivamente la evidencia canónica incluida en EVIDENCIA MOTIL para afirmaciones operacionales.\n2. Distingue DATO CANÓNICO, INTERPRETACIÓN PROFESIONAL, HIPÓTESIS A REVISAR y SIGUIENTE ACCIÓN cuando corresponda.\n3. Si el usuario pregunta por hoy, ahora o estado actual, declara explícitamente la fecha de frescura disponible. No presentes un snapshot antiguo como tiempo real.\n4. Un stock en reorder/out_of_stock/negative no es por sí solo criticidad operacional, riesgo de falla ni prioridad de compra. Explica qué evidencia adicional faltaría para priorizar.\n5. Un estado de orden de compra no autoriza inferir recepción, entrega, pago o cierre si esos hechos no están en la evidencia.\n6. En Producción separa valores reportados por fuente de cálculos determinísticos, respeta fine_coverage_state y no conviertas balances, frecuencias o excepciones en causas raíz o pronósticos.\n7. No inventes precios vigentes, proveedores, lead times, criticidades, repuestos equivalentes, costos, causas, disponibilidad, tonelajes, leyes, recuperaciones ni producción faltante.\n8. Si falta permiso para una capacidad transversal solicitada, dilo de forma breve y limita la conclusión a la evidencia autorizada.\n9. No ejecutes compras, reservas, ajustes de stock, recepciones, aprobaciones, cambios de plan, cierres ni otra mutación. Puedes preparar una recomendación para validación humana.\n10. Mantén la respuesta operacional, concreta y breve. Prioriza qué sabemos, qué excepción importa, qué falta confirmar y cuál es el siguiente paso de mayor valor.\n11. No expongas JSON crudo ni detalles internos del runtime.`;
 
     const input = `RUTA DE CONSULTA\n${JSON.stringify(route)}\n\nCAPACIDADES SIN PERMISO\n${JSON.stringify(denied)}\n\nEVIDENCIA MOTIL\n${JSON.stringify(evidence)}\n\nPREGUNTA\n${message}`;
     const result = await callOpenAI({ instructions, input });
