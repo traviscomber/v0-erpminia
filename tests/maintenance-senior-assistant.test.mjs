@@ -6,6 +6,8 @@ const routeUrl = new URL('../app/api/maintenance/senior-assistant/route.ts', imp
 const probeUrl = new URL('../app/api/maintenance/senior-assistant/probe/route.ts', import.meta.url);
 const pageUrl = new URL('../app/dashboard/mantenimiento/page.tsx', import.meta.url);
 const globalWidgetUrl = new URL('../components/intelligence/senior-assistant-widget.tsx', import.meta.url);
+const specialistBodyUrl = new URL('../components/intelligence/specialist-assistant-body.tsx', import.meta.url);
+const contextUrl = new URL('../lib/intelligence/assistant-context.ts', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260906182000_add_maintenance_ai_continuity.sql', import.meta.url);
 
 test('maintenance senior assistant is authorized and tenant scoped', async () => {
@@ -57,24 +59,33 @@ test('assistant memory stays separate from canonical operational truth', async (
 });
 
 test('global assistant exposes maintenance continuity without a local launcher', async () => {
-  const [page, widget] = await Promise.all([readFile(pageUrl, 'utf8'), readFile(globalWidgetUrl, 'utf8')]);
+  const [page, widget, body, context] = await Promise.all([
+    readFile(pageUrl, 'utf8'),
+    readFile(globalWidgetUrl, 'utf8'),
+    readFile(specialistBodyUrl, 'utf8'),
+    readFile(contextUrl, 'utf8'),
+  ]);
   assert.match(page, /Decision Intelligence/);
   assert.doesNotMatch(page, /MaintenanceSeniorAssistant/);
   assert.match(widget, /\/api\/maintenance\/senior-assistant/);
-  assert.match(widget, /conversationId/);
-  assert.match(widget, /Ver mensajes anteriores/);
-  assert.match(widget, /Canónico/);
-  assert.match(widget, /Nueva conversación/);
-  assert.match(widget, /Memoria \{memoryCount\}/);
-  assert.match(widget, /dato faltante tendría más valor para decidir mejor/i);
+  assert.match(body, /conversationId/);
+  assert.match(body, /Ver mensajes anteriores/);
+  assert.match(body, /Canónico/);
+  assert.match(body, /Nueva conversación/);
+  assert.match(body, /Memoria \{memoryCount\}/);
+  assert.match(context, /dato faltante tendría más valor para decidir mejor/i);
 });
 
 test('global assistant launcher is the single in-code corporate mark', async () => {
-  const [page, widget] = await Promise.all([readFile(pageUrl, 'utf8'), readFile(globalWidgetUrl, 'utf8')]);
+  const [page, widget, context] = await Promise.all([
+    readFile(pageUrl, 'utf8'),
+    readFile(globalWidgetUrl, 'utf8'),
+    readFile(contextUrl, 'utf8'),
+  ]);
   assert.match(widget, /function SeniorAssistantMark/);
   assert.match(widget, /fill-primary/);
   assert.match(widget, /stroke-secondary/);
-  assert.match(widget, /Asistente Senior MOTIL/);
+  assert.match(context, /Asistente Senior MOTIL/);
   assert.doesNotMatch(widget, /<img\b/i);
   assert.doesNotMatch(page, /fixed bottom-|MaintenanceAiMark|MaintenanceSeniorAssistant/);
 });
