@@ -17,8 +17,9 @@ test('senior assistant is mounted exactly once in the authenticated dashboard sh
   assert.equal((shell.match(/<SeniorAssistantWidget\s*\/>/g) || []).length, 1);
 });
 
-test('senior assistant exposes accessible open and close controls', () => {
+test('senior assistant exposes accessible contextual open and close controls', () => {
   assert.match(widget, /aria-expanded={open}/);
-  assert.match(widget, /aria-label="Cerrar Asistente Senior"/);
-  assert.match(widget, /aria-label="Asistente Senior MOTIL"/);
+  assert.match(widget, /aria-label={`Cerrar \$\{context\.title\}`}/);
+  assert.match(widget, /aria-label={open \? `Cerrar \$\{context\.title\}` : `Abrir \$\{context\.title\}`}/);
+  assert.match(widget, /<span className="sr-only">{context\.title}<\/span>/);
 });
