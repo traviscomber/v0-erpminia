@@ -4,7 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { resolveDocumentAccess } from '@/lib/intelligence/document-access';
 import { routeOperationalQuery } from '@/lib/intelligence/query-router';
-import { loadSupportAdvisoryHandoffs, supportAdvisoryHandoffPrompt } from '@/lib/intelligence/advisory-handoff-context';
+import {
+  loadSupportAdvisoryHandoffs,
+  recordSupportAdvisoryRevalidation,
+  supportAdvisoryHandoffPrompt,
+} from '@/lib/intelligence/advisory-handoff-context';
 import {
   appendCoreMessage,
   archiveCoreConversation,
@@ -221,13 +225,30 @@ export async function POST(request: NextRequest) {
       `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nHISTORIAL CONVERSACIONAL NO CANÓNICO\n${conversationTranscript(history)}\n\n${advisoryContext}\n\nEVIDENCIA MOTIL CANÓNICA/AUTORIZADA\n${JSON.stringify(evidence)}\n\nPREGUNTA\n${message}`,
     );
 
+    const refs = documentSourceRefs(sources, toolsUsed);
     const persisted = await appendCoreMessage(context.supabase, scope, {
       conversationId: conversation.id,
       role: 'assistant',
       content: result.text,
-      sourceRefs: documentSourceRefs(sources, toolsUsed),
+      sourceRefs: refs,
       model: result.model,
     });
+
+    let decisionCaseRevalidation = { updated: 0, at: null as string | null };
+    if (persisted && advisoryHandoffs.length && refs.length) {
+      try {
+        decisionCaseRevalidation = await recordSupportAdvisoryRevalidation(
+          context,
+          'documents',
+          advisoryHandoffs,
+          refs,
+        );
+      } catch (error) {
+        console.warn('[documents-assistant] advisory revalidation metadata skipped', {
+          detail: error instanceof Error ? error.message : String(error ?? 'unknown'),
+        });
+      }
+    }
 
     return NextResponse.json({
       answer: result.text,
@@ -238,6 +259,7 @@ export async function POST(request: NextRequest) {
       toolsUsed,
       conversationId: conversation.id,
       decisionCaseRefs: advisoryHandoffs.map((row) => row.id),
+      decisionCaseRevalidation,
       route,
       authorizedDomains: access.domains,
       persistence: 'core_continuity_v1',
