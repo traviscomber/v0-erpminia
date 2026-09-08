@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, KeyboardEvent as ReactKeyboardEvent, useEffect, useRef, useState } from 'react';
-import { Database, RotateCcw, Send } from 'lucide-react';
+import { Database, GitBranch, RotateCcw, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 type SourceRef = {
@@ -38,6 +38,17 @@ type SpecialistAssistantBodyProps = {
   toolCopy?: Record<string, string>;
 };
 
+type HandoffState = { state: 'sending' | 'done' | 'error'; label: string };
+
+const DIRECT_EXECUTIVE_HANDOFF_ENDPOINTS = new Set([
+  '/api/inventory/assistant',
+  '/api/procurement/assistant',
+  '/api/production/assistant',
+  '/api/finance/assistant',
+  '/api/documents/assistant',
+  '/api/data-quality/assistant',
+]);
+
 function uniqueEvidenceRefs(refs: SourceRef[]) {
   const unique = new Map<string, SourceRef>();
   for (const ref of refs) {
@@ -66,6 +77,7 @@ export function SpecialistAssistantBody({
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [handoffByMessage, setHandoffByMessage] = useState<Record<string, HandoffState>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
   const suppressAutoScrollRef = useRef(false);
 
@@ -84,6 +96,7 @@ export function SpecialistAssistantBody({
         setOldestMessageAt(data.oldestMessageAt || null);
         setMemoryCount(data.memoryCount || 0);
         setCargo(data.cargo || null);
+        setHandoffByMessage({});
         setLoaded(true);
       })
       .catch((cause) => {
@@ -170,6 +183,43 @@ export function SpecialistAssistantBody({
     }
   }
 
+  const createExecutiveHandoff = async (item: ChatMessage) => {
+    if (!conversationId || !item.id || !DIRECT_EXECUTIVE_HANDOFF_ENDPOINTS.has(endpoint)) return;
+    const currentState = handoffByMessage[item.id];
+    if (currentState?.state === 'sending' || currentState?.state === 'done') return;
+    setHandoffByMessage((current) => ({ ...current, [item.id!]: { state: 'sending', label: 'Derivando…' } }));
+    try {
+      const response = await fetch('/api/intelligence/decision-cases', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'create',
+          sourceConversationId: conversationId,
+          sourceMessageId: item.id,
+          targetDomain: 'executive',
+        }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'No se pudo crear el handoff.');
+      setHandoffByMessage((current) => ({
+        ...current,
+        [item.id!]: {
+          state: 'done',
+          label: payload?.duplicate ? 'Caso ejecutivo ya abierto' : 'Derivado a Centro Ejecutivo',
+        },
+      }));
+    } catch (cause) {
+      setHandoffByMessage((current) => ({
+        ...current,
+        [item.id!]: {
+          state: 'error',
+          label: cause instanceof Error ? cause.message : 'No se pudo crear el handoff.',
+        },
+      }));
+    }
+  };
+
   const onKeyDown = (event: ReactKeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
@@ -196,6 +246,7 @@ export function SpecialistAssistantBody({
       setHasMore(false);
       setOldestMessageAt(null);
       setMessage('');
+      setHandoffByMessage({});
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'No fue posible cerrar la conversación.');
     }
@@ -240,6 +291,11 @@ export function SpecialistAssistantBody({
         <div className="space-y-4">
           {messages.map((item, index) => {
             const evidenceRefs = uniqueEvidenceRefs(item.source_refs || []);
+            const handoff = item.id ? handoffByMessage[item.id] : null;
+            const canCreateExecutiveHandoff = item.role === 'assistant'
+              && Boolean(item.id)
+              && evidenceRefs.length > 0
+              && DIRECT_EXECUTIVE_HANDOFF_ENDPOINTS.has(endpoint);
             return (
               <article key={item.id || `${item.role}-${index}`} className={item.role === 'user' ? 'ml-8 rounded-lg bg-primary px-3 py-2.5 text-sm text-primary-foreground' : 'mr-4 rounded-lg border border-border bg-card px-3 py-3 text-sm text-foreground'}>
                 <p className="whitespace-pre-wrap leading-relaxed">{item.content}</p>
@@ -249,6 +305,23 @@ export function SpecialistAssistantBody({
                       const label = ref.tool ? (toolCopy[ref.tool] || ref.tool) : ref.source;
                       return <span key={`${ref.tool || ref.source}:${ref.mode || 'read'}`} className="rounded-full border border-border px-2 py-1">{label}{ref.mode === 'prepare_only' ? ' · preparar' : ''}</span>;
                     })}
+                  </div>
+                ) : null}
+                {canCreateExecutiveHandoff ? (
+                  <div className="mt-2 border-t border-border pt-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-8 px-2 text-[11px]"
+                      disabled={handoff?.state === 'sending' || handoff?.state === 'done'}
+                      onClick={() => void createExecutiveHandoff(item)}
+                      title="Crea un Decision Case advisory; no ejecuta ninguna acción operacional"
+                    >
+                      <GitBranch className="mr-1.5 size-3.5" />
+                      {handoff?.state === 'sending' ? 'Derivando…' : handoff?.state === 'done' ? handoff.label : 'Derivar a Centro Ejecutivo'}
+                    </Button>
+                    {handoff?.state === 'error' ? <p className="mt-1 text-[10px] leading-4 text-destructive">{handoff.label}</p> : null}
                   </div>
                 ) : null}
               </article>
