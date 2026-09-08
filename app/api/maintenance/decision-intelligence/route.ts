@@ -26,6 +26,11 @@ type DecisionRow = {
 
 const text = (value: unknown) => String(value ?? '').trim();
 const syntheticMarker = (value: unknown) => /\buat\b|simulad|prueba|test controlado/i.test(text(value));
+const hasOperationalSignal = (value: unknown) => {
+  const normalized = text(value).toLowerCase();
+  return Boolean(normalized) && !['0', 'no', 'n/a', 'na', '-'].includes(normalized);
+};
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES);
@@ -34,9 +39,10 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   const db = getSupabaseAdmin();
+  const windowStart = new Date(Date.now() - 89 * DAY_MS).toISOString().slice(0, 10);
 
   try {
-    const [reviews, operationalEvidence, preventive, close, operationalOrders, reliabilityBase, canonicalAssets] = await Promise.all([
+    const [reviews, operationalReports, preventive, close, operationalOrders, reliabilityBase, canonicalAssets] = await Promise.all([
       db
         .from('drilling_maintenance_review_queue_v1')
         .select('review_id,canonical_asset_id,asset_code,asset_name,operation_date,review_reason,equipment_status_raw,machine_observations,review_status,has_linked_work_order')
@@ -45,9 +51,12 @@ export async function GET(request: NextRequest) {
         .eq('has_linked_work_order', false)
         .order('operation_date', { ascending: true }),
       db
-        .from('drill_asset_operational_evidence_90d_v1')
-        .select('canonical_asset_id,asset_code,asset_name,drilling_reports,out_of_service_reports,operational_with_observations_reports,operational_reports,equipment_without_crew_reports,power_outage_reports,water_shortage_reports,install_disassembly_reports,scaling_reports,work_order_count,open_work_order_count,evidence_status')
-        .eq('organization_id', context.organizationId),
+        .from('production_drilling_source_reports')
+        .select('canonical_asset_id,operation_date,equipment_status_raw,equipment_without_crew_raw,power_outage_raw,water_shortage_raw')
+        .eq('organization_id', context.organizationId)
+        .gte('operation_date', windowStart)
+        .not('canonical_asset_id', 'is', null)
+        .limit(5000),
       db
         .from('preventive_maintenance_hour_status_v1')
         .select('schedule_id,canonical_asset_id,asset_code,asset_name,task_name,hour_status,remaining_hours,frequency_hours,generated_work_order_id,effective_current_meter,due_meter,meter_evidence_source,meter_basis_conflict')
@@ -73,7 +82,7 @@ export async function GET(request: NextRequest) {
 
     const sourceErrors = [
       ['drilling_maintenance_review_queue_v1', reviews.error],
-      ['drill_asset_operational_evidence_90d_v1', operationalEvidence.error],
+      ['production_drilling_source_reports', operationalReports.error],
       ['preventive_maintenance_hour_status_v1', preventive.error],
       ['work_order_close_readiness_v2', close.error],
       ['maintenance_work_orders', operationalOrders.error],
@@ -94,9 +103,39 @@ export async function GET(request: NextRequest) {
       throw new Error(`${source}: ${detail?.message || 'query failed'}`);
     }
 
+    const canonicalAssetMap = new Map((canonicalAssets.data || []).map((row: any) => [String(row.id), row]));
+    const operationalMap = new Map<string, any>();
+    for (const report of operationalReports.data || []) {
+      const assetId = String(report.canonical_asset_id || '');
+      if (!assetId) continue;
+      const asset = canonicalAssetMap.get(assetId);
+      const current = operationalMap.get(assetId) || {
+        canonical_asset_id: assetId,
+        asset_code: asset?.asset_code || null,
+        asset_name: asset?.name || null,
+        drilling_reports: 0,
+        out_of_service_reports: 0,
+        operational_with_observations_reports: 0,
+        operational_reports: 0,
+        equipment_without_crew_reports: 0,
+        power_outage_reports: 0,
+        water_shortage_reports: 0,
+        evidence_status: 'derived_from_canonical_source_reports',
+      };
+      current.drilling_reports += 1;
+      const status = text(report.equipment_status_raw).toUpperCase();
+      if (status === 'FUERA DE SERVICIO') current.out_of_service_reports += 1;
+      if (status === 'OPERATIVO CON OBSERVACIONES') current.operational_with_observations_reports += 1;
+      if (status === 'OPERATIVO') current.operational_reports += 1;
+      if (hasOperationalSignal(report.equipment_without_crew_raw)) current.equipment_without_crew_reports += 1;
+      if (hasOperationalSignal(report.power_outage_raw)) current.power_outage_reports += 1;
+      if (hasOperationalSignal(report.water_shortage_raw)) current.water_shortage_reports += 1;
+      operationalMap.set(assetId, current);
+    }
+    const operationalEvidence = Array.from(operationalMap.values());
+
     const rows: DecisionRow[] = [];
     const operationalOrderMap = new Map((operationalOrders.data || []).map((row: any) => [String(row.id), row]));
-    const canonicalAssetMap = new Map((canonicalAssets.data || []).map((row: any) => [String(row.id), row]));
     const eligibleReliability = (reliabilityBase.data || []).filter((row: any) => {
       const operational = operationalOrderMap.get(String(row.work_order_id));
       if (!operational) return false;
@@ -126,7 +165,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    for (const row of operationalEvidence.data || []) {
+    for (const row of operationalEvidence) {
       const total = Number(row.drilling_reports || 0);
       if (!total) continue;
       const out = Number(row.out_of_service_reports || 0);
@@ -255,7 +294,7 @@ export async function GET(request: NextRequest) {
         critical: rows.filter((row) => row.urgency === 'critical').length,
         high: rows.filter((row) => row.urgency === 'high').length,
         hypotheses: rows.filter((row) => Boolean(row.hypothesis_to_review)).length,
-        operationalEvidenceAssets: (operationalEvidence.data || []).length,
+        operationalEvidenceAssets: operationalEvidence.length,
         reliabilityClosuresEligibleForLearning: eligibleReliability.length,
         reliabilityClosuresExcludedAsSyntheticOrNonOperational: Math.max(0, (reliabilityBase.data || []).length - eligibleReliability.length),
         awaitingHumanReview: cases.length,
@@ -275,7 +314,7 @@ export async function GET(request: NextRequest) {
         human_authority: 'Maintenance personnel validate mechanical cause, diagnosis and strategy change.',
       },
       semantics: 'Prioridad operacional explicable; no es probabilidad de falla ni decisión autónoma.',
-      sources: ['drilling_maintenance_review_queue_v1', 'drill_asset_operational_evidence_90d_v1', 'preventive_maintenance_hour_status_v1', 'work_order_close_readiness_v2', 'maintenance_work_orders', 'maintenance_reliability_base_v1', 'maintenance_canonical_assets_v1'],
+      sources: ['drilling_maintenance_review_queue_v1', 'production_drilling_source_reports', 'preventive_maintenance_hour_status_v1', 'work_order_close_readiness_v2', 'maintenance_work_orders', 'maintenance_reliability_base_v1', 'maintenance_canonical_assets_v1'],
       canEdit: access.canWrite,
     });
   } catch (error) {
