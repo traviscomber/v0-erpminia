@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { getSupabaseAdmin } from '@/lib/db/supabase';
 import { buildMaintenanceDecisionCase } from '@/lib/maintenance/decision-case';
 
 type DecisionRow = {
@@ -32,44 +33,66 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
+  const db = getSupabaseAdmin();
+
   try {
     const [reviews, operationalEvidence, preventive, close, operationalOrders, reliabilityBase, canonicalAssets] = await Promise.all([
-      context.supabase
+      db
         .from('drilling_maintenance_review_queue_v1')
         .select('review_id,canonical_asset_id,asset_code,asset_name,operation_date,review_reason,equipment_status_raw,machine_observations,review_status,has_linked_work_order')
         .eq('organization_id', context.organizationId)
         .eq('review_status', 'pending')
         .eq('has_linked_work_order', false)
         .order('operation_date', { ascending: true }),
-      context.supabase
+      db
         .from('drill_asset_operational_evidence_90d_v1')
         .select('canonical_asset_id,asset_code,asset_name,drilling_reports,out_of_service_reports,operational_with_observations_reports,operational_reports,equipment_without_crew_reports,power_outage_reports,water_shortage_reports,install_disassembly_reports,scaling_reports,work_order_count,open_work_order_count,evidence_status')
         .eq('organization_id', context.organizationId),
-      context.supabase
+      db
         .from('preventive_maintenance_hour_status_v1')
         .select('schedule_id,canonical_asset_id,asset_code,asset_name,task_name,hour_status,remaining_hours,frequency_hours,generated_work_order_id,effective_current_meter,due_meter,meter_evidence_source,meter_basis_conflict')
         .eq('organization_id', context.organizationId),
-      context.supabase
+      db
         .from('work_order_close_readiness_v2')
         .select('work_order_id,work_order_number,canonical_asset_id,title,ready_to_close,next_action,open_procurement_orders,pending_parts,unmet_material_requirements,pending_external_services,open_labor_entries,external_cost_conflict,standard_plan_steps_pending,standard_plan_steps_completed,standard_plan_steps_total')
         .eq('organization_id', context.organizationId),
-      context.supabase
+      db
         .from('maintenance_work_orders')
         .select('id,root_cause,preventive_actions,description,title,created_by')
         .eq('organization_id', context.organizationId)
         .not('created_by', 'is', null),
-      context.supabase
+      db
         .from('maintenance_reliability_base_v1')
         .select('work_order_id,canonical_asset_id,asset_code,asset_name,root_cause,root_cause_key,work_type,closed_at')
         .eq('organization_id', context.organizationId),
-      context.supabase
+      db
         .from('maintenance_canonical_assets_v1')
         .select('id,asset_code,name')
         .eq('organization_id', context.organizationId),
     ]);
 
-    const error = reviews.error || operationalEvidence.error || preventive.error || close.error || operationalOrders.error || reliabilityBase.error || canonicalAssets.error;
-    if (error) throw error;
+    const sourceErrors = [
+      ['drilling_maintenance_review_queue_v1', reviews.error],
+      ['drill_asset_operational_evidence_90d_v1', operationalEvidence.error],
+      ['preventive_maintenance_hour_status_v1', preventive.error],
+      ['work_order_close_readiness_v2', close.error],
+      ['maintenance_work_orders', operationalOrders.error],
+      ['maintenance_reliability_base_v1', reliabilityBase.error],
+      ['maintenance_canonical_assets_v1', canonicalAssets.error],
+    ] as const;
+    const failedSource = sourceErrors.find(([, error]) => Boolean(error));
+    if (failedSource) {
+      const [source, sourceError] = failedSource;
+      const detail = sourceError as any;
+      console.error('maintenance_decision_intelligence_source_failed', {
+        source,
+        code: detail?.code || null,
+        message: detail?.message || null,
+        details: detail?.details || null,
+        hint: detail?.hint || null,
+      });
+      throw new Error(`${source}: ${detail?.message || 'query failed'}`);
+    }
 
     const rows: DecisionRow[] = [];
     const operationalOrderMap = new Map((operationalOrders.data || []).map((row: any) => [String(row.id), row]));
@@ -256,7 +279,8 @@ export async function GET(request: NextRequest) {
       canEdit: access.canWrite,
     });
   } catch (error) {
-    console.error('maintenance_decision_intelligence_failed', error instanceof Error ? { name: error.name, message: error.message } : { error: String(error) });
+    const detail = error instanceof Error ? { name: error.name, message: error.message } : { message: text(error) || 'unknown' };
+    console.error('maintenance_decision_intelligence_failed', detail);
     return NextResponse.json({ error: 'No se pudo construir Maintenance Decision Intelligence' }, { status: 500 });
   }
 }
