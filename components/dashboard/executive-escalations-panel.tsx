@@ -22,15 +22,17 @@ type Escalation = {
 };
 
 type Response = {
+  available?:boolean;
   summary:{
     total:number;
     critical:number;
     escalated:number;
     topCargo:{name:string;count:number}|null;
     topDomain:{name:string;count:number}|null;
-  };
+  }|null;
   escalations:Escalation[];
   generatedAt:string;
+  reason?:string;
 };
 
 const fetcher=async(url:string)=>{
@@ -56,6 +58,7 @@ function fmtAge(hours:number|null){
 export function ExecutiveEscalationsPanel(){
   const {data,error,isLoading}=useSWR<Response>('/api/dashboard/executive-escalations',fetcher,{revalidateOnFocus:false});
   if(error)return <Card className="border-dashed"><CardContent className="p-4 text-sm text-muted-foreground">No se pudo cargar el seguimiento de SLA. Las decisiones ejecutivas siguen disponibles arriba.</CardContent></Card>;
+  if(data?.available===false)return <Card className="border-dashed"><CardContent className="p-4 text-sm text-muted-foreground">Seguimiento de SLA temporalmente no disponible. Las decisiones ejecutivas siguen disponibles arriba; no se interpreta la ausencia de datos como cero escalaciones.</CardContent></Card>;
   const rows=data?.escalations||[];
   const summary=data?.summary;
   return <Card className="shadow-none">
