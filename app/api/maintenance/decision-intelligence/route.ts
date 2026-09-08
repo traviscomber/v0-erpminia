@@ -256,6 +256,7 @@ export async function GET(request: NextRequest) {
       canEdit: access.canWrite,
     });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo construir Maintenance Decision Intelligence' }, { status: 500 });
+    console.error('maintenance_decision_intelligence_failed', error instanceof Error ? { name: error.name, message: error.message } : { error: String(error) });
+    return NextResponse.json({ error: 'No se pudo construir Maintenance Decision Intelligence' }, { status: 500 });
   }
 }
