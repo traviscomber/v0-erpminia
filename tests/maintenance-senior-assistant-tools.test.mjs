@@ -8,6 +8,8 @@ test('senior maintenance tool registry exposes only READ and PREPARE_ONLY capabi
   const source = await readFile(toolsPath, 'utf8')
 
   assert.match(source, /MaintenanceSeniorToolMode = 'read' \| 'prepare_only'/)
+  assert.match(source, /search_assets/)
+  assert.match(source, /get_maintenance_attention_queue/)
   assert.match(source, /get_asset_context/)
   assert.match(source, /get_open_work_orders/)
   assert.match(source, /get_maintenance_plan/)
@@ -34,7 +36,7 @@ test('prepared maintenance decision cases remain derived and human-controlled', 
   assert.match(source, /No persiste verdad operacional|no aprueba y no ejecuta/i)
 })
 
-test('READ tools are scoped to a canonical asset instead of exposing arbitrary context', async () => {
+test('READ tools stay bounded to canonical context and discovery remains non-probabilistic', async () => {
   const source = await readFile(toolsPath, 'utf8')
 
   assert.match(source, /function requireAssetId/)
@@ -42,4 +44,7 @@ test('READ tools are scoped to a canonical asset instead of exposing arbitrary c
   assert.match(source, /canonical_asset_id es obligatorio/)
   assert.match(source, /Herramienta no permitida/)
   assert.match(source, /Frecuencia observada en reportes; NO es probabilidad de falla/i)
+  assert.match(source, /Score operacional determinístico para ordenar revisión humana/)
+  assert.match(source, /NO es probabilidad de falla, criticidad OEM ni diagnóstico/i)
+  assert.doesNotMatch(source, /Math\.random|probability|failure_probability/i)
 })
