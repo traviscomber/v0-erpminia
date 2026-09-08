@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 const routeUrl = new URL('../app/api/maintenance/senior-assistant/route.ts', import.meta.url);
 const probeUrl = new URL('../app/api/maintenance/senior-assistant/probe/route.ts', import.meta.url);
 const pageUrl = new URL('../app/dashboard/mantenimiento/page.tsx', import.meta.url);
-const componentUrl = new URL('../components/maintenance/maintenance-senior-assistant.tsx', import.meta.url);
+const globalWidgetUrl = new URL('../components/intelligence/senior-assistant-widget.tsx', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260906182000_add_maintenance_ai_continuity.sql', import.meta.url);
 
 test('maintenance senior assistant is authorized and tenant scoped', async () => {
@@ -56,27 +56,27 @@ test('assistant memory stays separate from canonical operational truth', async (
   assert.match(route, /memoria laboral separada de la verdad operacional/i);
 });
 
-test('maintenance control center exposes persistent history sources and new-conversation control', async () => {
-  const [page, component] = await Promise.all([readFile(pageUrl, 'utf8'), readFile(componentUrl, 'utf8')]);
-  assert.match(page, /MaintenanceSeniorAssistant/);
+test('global assistant exposes maintenance continuity without a local launcher', async () => {
+  const [page, widget] = await Promise.all([readFile(pageUrl, 'utf8'), readFile(globalWidgetUrl, 'utf8')]);
   assert.match(page, /Decision Intelligence/);
-  assert.match(component, /\/api\/maintenance\/senior-assistant/);
-  assert.match(component, /conversationId/);
-  assert.match(component, /Ver mensajes anteriores/);
-  assert.match(component, /fuentes canónicas/i);
-  assert.match(component, /Nueva conversación/);
-  assert.match(component, /Memoria \{memoryCount\}/);
-  assert.match(component, /dato faltante tendría más valor para decidir mejor/i);
+  assert.doesNotMatch(page, /MaintenanceSeniorAssistant/);
+  assert.match(widget, /\/api\/maintenance\/senior-assistant/);
+  assert.match(widget, /conversationId/);
+  assert.match(widget, /Ver mensajes anteriores/);
+  assert.match(widget, /Canónico/);
+  assert.match(widget, /Nueva conversación/);
+  assert.match(widget, /Memoria \{memoryCount\}/);
+  assert.match(widget, /dato faltante tendría más valor para decidir mejor/i);
 });
 
-test('maintenance assistant launcher is a transparent in-code corporate mark', async () => {
-  const component = await readFile(componentUrl, 'utf8');
-  assert.match(component, /function MaintenanceAiMark/);
-  assert.match(component, /bg-transparent/);
-  assert.match(component, /var\(--primary\)/);
-  assert.match(component, /var\(--secondary\)/);
-  assert.doesNotMatch(component, /<img\b/i);
-  assert.doesNotMatch(component, /bg-primary[^-]/);
+test('global assistant launcher is the single in-code corporate mark', async () => {
+  const [page, widget] = await Promise.all([readFile(pageUrl, 'utf8'), readFile(globalWidgetUrl, 'utf8')]);
+  assert.match(widget, /function SeniorAssistantMark/);
+  assert.match(widget, /fill-primary/);
+  assert.match(widget, /stroke-secondary/);
+  assert.match(widget, /Asistente Senior MOTIL/);
+  assert.doesNotMatch(widget, /<img\b/i);
+  assert.doesNotMatch(page, /fixed bottom-|MaintenanceAiMark|MaintenanceSeniorAssistant/);
 });
 
 test('maintenance assistant continuity storage remains backend-only', async () => {
