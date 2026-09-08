@@ -8,7 +8,9 @@ const read = (url) => readFile(url, 'utf8');
 
 test('Executive Center is an allowed advisory handoff target without changing module permissions', async () => {
   const [helper, executive] = await Promise.all([read(helperUrl), read(executiveUrl)]);
-  assert.match(helper, /'documents' \| 'data_health' \| 'executive'/);
+  for (const domain of ['documents', 'data_health', 'executive']) {
+    assert.match(helper, new RegExp(`'${domain}'`));
+  }
   assert.match(executive, /resolveExecutiveAccess/);
   assert.match(executive, /loadSupportAdvisoryHandoffs\(context, 'executive', message\)/);
   assert.doesNotMatch(helper, /MODULE_KEYS/);
