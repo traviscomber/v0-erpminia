@@ -2,18 +2,16 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFile } from 'node:fs/promises'
 
-const componentPath = new URL('../components/maintenance/maintenance-senior-assistant.tsx', import.meta.url)
+const componentPath = new URL('../components/intelligence/senior-assistant-widget.tsx', import.meta.url)
 
-test('senior maintenance assistant surfaces sanitized evidence provenance', async () => {
+test('global senior assistant surfaces sanitized maintenance evidence provenance', async () => {
   const source = await readFile(componentPath, 'utf8')
 
-  assert.match(source, /Evidencia consultada/)
-  assert.match(source, /Consultas operacionales/)
-  assert.match(source, /Fuentes canónicas/)
-  assert.match(source, /Las consultas son de lectura o preparación\. La decisión y ejecución permanecen humanas\./)
+  assert.match(source, /Canónico/)
   assert.match(source, /get_maintenance_attention_queue: 'Cola de atención'/)
   assert.match(source, /get_asset_context: 'Contexto del activo'/)
   assert.match(source, /prepare_maintenance_decision_case: 'Caso preparado'/)
+  assert.match(source, /Las recomendaciones se separan de la evidencia\. Las acciones operacionales requieren confirmación humana\./)
 })
 
 test('assistant UI keeps raw tool internals out of the rendered provenance surface', async () => {
@@ -27,9 +25,8 @@ test('assistant UI keeps raw tool internals out of the rendered provenance surfa
   assert.match(source, /uniqueToolRefs/)
 })
 
-test('assistant progress state explains that canonical evidence is being consulted', async () => {
+test('assistant progress state explains that canonical evidence is being analyzed', async () => {
   const source = await readFile(componentPath, 'utf8')
 
-  assert.match(source, /Consultando evidencia canónica y contrastando señales/)
-  assert.match(source, /SearchCheck/)
+  assert.match(source, /Analizando evidencia canónica/)
 })
