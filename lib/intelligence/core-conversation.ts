@@ -348,7 +348,7 @@ export async function appendCoreMessage(
   if (updateError) throw updateError;
 
   if (args.role === 'user') {
-    void learnCoreMemory(db, scope, data.id, args.content);
+    await learnCoreMemory(db, scope, data.id, args.content);
   }
 
   return data;
