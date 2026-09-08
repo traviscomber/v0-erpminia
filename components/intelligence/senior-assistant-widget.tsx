@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ArrowUpRight, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import { resolveAssistantContext } from '@/lib/intelligence/assistant-context';
 import { SpecialistAssistantBody } from '@/components/intelligence/specialist-assistant-body';
 
@@ -18,6 +17,24 @@ const maintenanceToolCopy: Record<string, string> = {
   get_observed_condition_history: 'Condición observada',
   get_closure_readiness: 'Preparación de cierre',
   prepare_maintenance_decision_case: 'Caso preparado',
+};
+
+const inventoryToolCopy: Record<string, string> = {
+  read_inventory_overview: 'Resumen de inventario',
+  read_inventory_attention: 'Excepciones de stock',
+  read_inventory_freshness: 'Frescura de inventario',
+  read_procurement_overview: 'Resumen de compras',
+  read_recent_purchase_orders: 'Órdenes recientes',
+  read_procurement_quality: 'Calidad de compras',
+};
+
+const procurementToolCopy: Record<string, string> = {
+  read_procurement_overview: 'Resumen de compras',
+  read_recent_purchase_orders: 'Órdenes recientes',
+  read_procurement_quality: 'Calidad de compras',
+  read_inventory_overview: 'Resumen de inventario',
+  read_inventory_attention: 'Excepciones de stock',
+  read_inventory_freshness: 'Frescura de inventario',
 };
 
 const specialistConfig = {
@@ -35,7 +52,23 @@ const specialistConfig = {
     placeholder: 'Pregunta al Asistente de Geología…',
     toolCopy: {},
   },
+  inventory: {
+    endpoint: '/api/inventory/assistant',
+    loadingCopy: 'Cargando inventario canónico…',
+    emptyCopy: 'Pregunta por stock, quiebres, reposición, valorización y dependencias de compras. La frescura de la fuente se declara explícitamente.',
+    placeholder: 'Pregunta al Asistente de Inventario…',
+    toolCopy: inventoryToolCopy,
+  },
+  procurement: {
+    endpoint: '/api/procurement/assistant',
+    loadingCopy: 'Cargando compras canónicas…',
+    emptyCopy: 'Pregunta por órdenes, proveedores, montos, estados y dependencias de inventario. No se infieren recepciones o entregas sin evidencia.',
+    placeholder: 'Pregunta al Asistente de Compras…',
+    toolCopy: procurementToolCopy,
+  },
 } as const;
+
+type SpecialistDomain = keyof typeof specialistConfig;
 
 export function SeniorAssistantMark({ className = '' }: { className?: string }) {
   return (
@@ -57,7 +90,9 @@ export function SeniorAssistantWidget() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const context = useMemo(() => resolveAssistantContext(pathname), [pathname]);
-  const specialist = context.domain === 'maintenance' || context.domain === 'geology' ? specialistConfig[context.domain] : null;
+  const specialist = Object.prototype.hasOwnProperty.call(specialistConfig, context.domain)
+    ? specialistConfig[context.domain as SpecialistDomain]
+    : null;
 
   useEffect(() => {
     if (!open) return;
