@@ -36,7 +36,8 @@ test('Documents revalidates advisory context only against tenant-safe document e
   assert.match(source, /\.from\('documents'\)/);
   assert.match(source, /\.from\('contracts'\)/);
   assert.match(source, /\.eq\('organization_id', org\)/);
-  assert.match(source, /sourceRefs: documentSourceRefs\(sources, toolsUsed\)/);
+  assert.match(source, /const refs = documentSourceRefs\(sources, toolsUsed\)/);
+  assert.match(source, /sourceRefs: refs/);
   assert.match(source, /decisionCaseRefs: advisoryHandoffs\.map/);
   assert.doesNotMatch(source, /sourceRefs:\s*advisoryHandoffs/);
 });
@@ -47,7 +48,8 @@ test('Data Health treats prior findings as hypotheses to recheck rather than cur
   assert.match(source, /HANDOFF ADVISORY es contexto NO CANÓNICO/);
   assert.match(source, /Nunca transforma un warning, diagnóstico o inconsistencia previa en estado actual/);
   assert.match(source, /Una advertencia, inconsistencia o diagnóstico previo nunca representa la calidad, frescura, cobertura o conciliación actual/);
-  assert.match(source, /sourceRefs: dataHealthSourceRefs\(refs\)/);
+  assert.match(source, /const canonicalRefs = dataHealthSourceRefs\(refs\)/);
+  assert.match(source, /sourceRefs: canonicalRefs/);
   assert.match(source, /decisionCaseRefs: advisoryHandoffs\.map/);
   assert.doesNotMatch(source, /sourceRefs:\s*advisoryHandoffs/);
 });
