@@ -126,9 +126,13 @@ function monthLabel(dateValue?: string | null) {
   return date.toLocaleDateString('es-CL', { month: 'short' }).replace('.', '');
 }
 
-async function safeQuery<T>(fn: () => PromiseLike<T>, fallback: T): Promise<T> {
+async function safeQuery<T>(fn: () => PromiseLike<unknown>, fallback: T): Promise<T> {
   try {
-    const result = await fn();
+    const result: any = await fn();
+    if (result && typeof result === 'object' && 'data' in result) {
+      if (result.error) return fallback;
+      return (result.data ?? fallback) as T;
+    }
     return (result ?? fallback) as T;
   } catch {
     return fallback;
