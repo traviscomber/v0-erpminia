@@ -86,6 +86,13 @@ function dateOnly(value?: string | null) {
   return date.toISOString().slice(0, 10);
 }
 
+function earliestDate(values: Array<string | null | undefined>) {
+  return values
+    .map((value) => dateOnly(value))
+    .filter((value): value is string => Boolean(value))
+    .sort()[0] || null;
+}
+
 function isBeforeToday(value?: string | null) {
   const normalized = dateOnly(value);
   if (!normalized) return false;
@@ -152,6 +159,17 @@ export async function GET(request: NextRequest) {
 
     const zeroStockItems = lowStockItems.filter((item) => toNumber(item.quantity_on_hand) <= 0);
     const belowMinimumWithStock = lowStockItems.filter((item) => toNumber(item.quantity_on_hand) > 0);
+    const expiredDocuments = expiringDocuments.filter((document) => {
+      const days = daysFromToday(document.expiry_date);
+      return days !== null && days < 0;
+    });
+    const upcomingDocuments = expiringDocuments.filter((document) => {
+      const days = daysFromToday(document.expiry_date);
+      return days !== null && days >= 0;
+    });
+    const financeOverdueIds = new Set(overdueFinancial.map((item) => item.id));
+    const upcomingContracts = expiringContracts.filter((item) => !financeOverdueIds.has(item.id));
+    const financialPendingAmount = overdueFinancial.reduce((sum, item) => sum + toNumber(item.pending_amount), 0);
     const decisions: Decision[] = [];
 
     overdueWorkOrders.forEach((order) => {
@@ -220,53 +238,58 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    expiringDocuments.forEach((document) => {
-      const days = daysFromToday(document.expiry_date);
+    if (expiringDocuments.length > 0) {
+      const hasUpcomingWithinSevenDays = upcomingDocuments.some((document) => {
+        const days = daysFromToday(document.expiry_date);
+        return days !== null && days <= 7;
+      });
+      const observedLabel = expiringDocuments.length >= 25
+        ? `Al menos ${expiringDocuments.length}`
+        : String(expiringDocuments.length);
       decisions.push({
-        id: `document-${document.id}`,
+        id: 'document-expiry-attention',
         category: 'documents',
-        severity: days !== null && days < 0 ? 'critical' : days !== null && days <= 7 ? 'warning' : 'info',
-        title: days !== null && days < 0 ? 'Documento vencido' : 'Documento próximo a vencer',
-        description: document.title || 'Documento con fecha de vencimiento registrada.',
+        severity: expiredDocuments.length > 0 ? 'critical' : hasUpcomingWithinSevenDays ? 'warning' : 'info',
+        title: expiredDocuments.length > 0 ? 'Documentación vencida requiere regularización' : 'Documentación próxima a vencer',
+        description: `${observedLabel} documento(s) aparecen en la ventana ejecutiva: ${expiredDocuments.length} vencido(s) y ${upcomingDocuments.length} próximo(s). El detalle y la resolución permanecen en Gestión documental.`,
         responsibleArea: 'Gestión documental',
-        dueDate: dateOnly(document.expiry_date),
+        dueDate: earliestDate(expiringDocuments.map((document) => document.expiry_date)),
         amount: null,
         href: '/dashboard/documentos-gestion',
-        sourceId: document.id,
+        sourceId: 'document-expiry-attention',
       });
-    });
+    }
 
-    overdueFinancial.forEach((contract) => {
-      const pending = toNumber(contract.pending_amount);
+    if (overdueFinancial.length > 0) {
       decisions.push({
-        id: `finance-${contract.id}`,
+        id: 'finance-overdue-attention',
         category: 'finance',
-        severity: pending > 0 ? 'warning' : 'info',
-        title: 'Compromiso financiero vencido',
-        description: contract.contractor_name || contract.title || 'Contrato con saldo pendiente y fecha vencida.',
+        severity: 'warning',
+        title: 'Compromisos financieros vencidos',
+        description: `${overdueFinancial.length} compromiso(s) tienen saldo pendiente y fecha vencida. El detalle contractual y la moneda aplicable permanecen en Finanzas; no se infiere prioridad de pago desde el monto.`,
         responsibleArea: 'Finanzas / Compras',
-        dueDate: dateOnly(contract.review_due_date || contract.end_date),
-        amount: pending,
+        dueDate: earliestDate(overdueFinancial.map((item) => item.review_due_date || item.end_date)),
+        amount: financialPendingAmount || null,
         href: '/dashboard/finanzas',
-        sourceId: contract.id,
+        sourceId: 'finance-overdue-attention',
       });
-    });
+    }
 
-    expiringContracts.forEach((contract) => {
-      if (overdueFinancial.some((item) => item.id === contract.id)) return;
+    if (upcomingContracts.length > 0) {
+      const nearestDays = Math.min(...upcomingContracts.map((item) => toNumber(item.days_until_expiry)));
       decisions.push({
-        id: `contract-${contract.id}`,
+        id: 'contract-expiry-attention',
         category: 'finance',
-        severity: toNumber(contract.days_until_expiry) <= 7 ? 'warning' : 'info',
-        title: 'Contrato próximo a vencer',
-        description: contract.contractor_name || contract.title || 'Contrato dentro de la ventana de 30 días.',
+        severity: nearestDays <= 7 ? 'warning' : 'info',
+        title: 'Contratos próximos a vencer',
+        description: `${upcomingContracts.length} contrato(s) están dentro de la ventana de vencimiento. La revisión individual permanece en Contratos.`,
         responsibleArea: 'Administración / Finanzas',
-        dueDate: dateOnly(contract.end_date),
-        amount: toNumber(contract.pending_amount) || null,
+        dueDate: earliestDate(upcomingContracts.map((item) => item.end_date)),
+        amount: null,
         href: '/dashboard/documentos-gestion/contratos',
-        sourceId: contract.id,
+        sourceId: 'contract-expiry-attention',
       });
-    });
+    }
 
     const severityRank = { critical: 0, warning: 1, info: 2 } as const;
     decisions.sort((a, b) => {
@@ -296,8 +319,12 @@ export async function GET(request: NextRequest) {
         lowStock: lowStockItems.length,
         zeroStock: zeroStockItems.length,
         belowMinimumWithStock: belowMinimumWithStock.length,
-        documentsAtRisk: expiringDocuments.length,
-        financialPendingAmount: overdueFinancial.reduce((sum, item) => sum + toNumber(item.pending_amount), 0),
+        documentsAtRiskObserved: expiringDocuments.length,
+        documentsAtRiskMayBeCapped: expiringDocuments.length >= 25,
+        documentsExpiredObserved: expiredDocuments.length,
+        overdueFinancial: overdueFinancial.length,
+        expiringContracts: upcomingContracts.length,
+        financialPendingAmount,
       },
       decisions,
       weeklyActivity: {
