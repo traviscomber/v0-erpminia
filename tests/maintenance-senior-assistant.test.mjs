@@ -63,7 +63,7 @@ test('maintenance control center exposes persistent history sources and new-conv
   assert.match(component, /\/api\/maintenance\/senior-assistant/);
   assert.match(component, /conversationId/);
   assert.match(component, /Ver mensajes anteriores/);
-  assert.match(component, /fuentes canónicas/);
+  assert.match(component, /fuentes canónicas/i);
   assert.match(component, /Nueva conversación/);
   assert.match(component, /Memoria \{memoryCount\}/);
   assert.match(component, /dato faltante tendría más valor para decidir mejor/i);
