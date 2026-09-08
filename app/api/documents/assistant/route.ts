@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { resolveDocumentAccess } from '@/lib/intelligence/document-access';
 import { routeOperationalQuery } from '@/lib/intelligence/query-router';
+import { loadSupportAdvisoryHandoffs, supportAdvisoryHandoffPrompt } from '@/lib/intelligence/advisory-handoff-context';
 import {
   appendCoreMessage,
   archiveCoreConversation,
@@ -207,11 +208,17 @@ export async function POST(request: NextRequest) {
       evidence.unavailable_tenant_safe_document_domains = unsupported;
     }
 
-    const instructions = `Eres el especialista de Documentos dentro de MOTIL Intelligence Core.\n\nREGLAS:\n1. Usa sólo EVIDENCIA MOTIL y únicamente dominios autorizados para afirmar presencia, estado, vigencia, vencimiento, aprobación, contrato o cumplimiento.\n2. HISTORIAL CONVERSACIONAL es contexto NO CANÓNICO. Puede ayudarte a entender a qué documento, contrato o tema se refiere el usuario, pero una mención previa nunca prueba que un documento exista ni cuál sea su estado actual.\n3. Separa documento vigente, próximo a vencer, vencido, en revisión y evidencia faltante según campos explícitos.\n4. Nunca infieras cumplimiento contractual, aprobación, renovación o vigencia cuando la fuente no lo acredita.\n5. Declara fechas exactas cuando hables de vencimientos o revisiones.\n6. Si un dominio aparece como unavailable_tenant_safe_document_domains, explica que no se incluyó porque no existe una fuente tenant-safe confirmada; no lo presentes como ausencia de documentos.\n7. No expongas URLs privadas, rutas de almacenamiento ni datos personales innecesarios.\n8. No modifiques archivos ni estados. Recomienda la validación humana mínima necesaria.\n9. Responde de forma ejecutiva: Dato canónico → riesgo/impacto documental → evidencia faltante → siguiente acción.\n10. No muestres JSON crudo.`;
+    const advisoryHandoffs = await loadSupportAdvisoryHandoffs(context, 'documents', message);
+    const advisoryContext = supportAdvisoryHandoffPrompt(
+      advisoryHandoffs,
+      'Un caso previo nunca prueba que un documento o contrato exista, esté vigente, vencido, aprobado, renovado o en cumplimiento. Si la evidencia documental actual no lo respalda, descarta esa parte del caso y explica qué falta verificar.',
+    );
+
+    const instructions = `Eres el especialista de Documentos dentro de MOTIL Intelligence Core.\n\nREGLAS:\n1. Usa sólo EVIDENCIA MOTIL y únicamente dominios autorizados para afirmar presencia, estado, vigencia, vencimiento, aprobación, contrato o cumplimiento.\n2. HISTORIAL CONVERSACIONAL es contexto NO CANÓNICO. Puede ayudarte a entender a qué documento, contrato o tema se refiere el usuario, pero una mención previa nunca prueba que un documento exista ni cuál sea su estado actual.\n3. HANDOFF ADVISORY es contexto NO CANÓNICO: sólo define qué revalidar. Nunca acredita existencia, vigencia, vencimiento, aprobación, renovación, cumplimiento ni prioridad documental.\n4. Separa documento vigente, próximo a vencer, vencido, en revisión y evidencia faltante según campos explícitos.\n5. Nunca infieras cumplimiento contractual, aprobación, renovación o vigencia cuando la fuente no lo acredita.\n6. Declara fechas exactas cuando hables de vencimientos o revisiones.\n7. Si un dominio aparece como unavailable_tenant_safe_document_domains, explica que no se incluyó porque no existe una fuente tenant-safe confirmada; no lo presentes como ausencia de documentos.\n8. No expongas URLs privadas, rutas de almacenamiento ni datos personales innecesarios.\n9. No modifiques archivos ni estados. Recomienda la validación humana mínima necesaria.\n10. Responde de forma ejecutiva: Dato canónico → riesgo/impacto documental → evidencia faltante → siguiente acción.\n11. No muestres JSON crudo.`;
 
     const result = await callModel(
       instructions,
-      `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nHISTORIAL CONVERSACIONAL NO CANÓNICO\n${conversationTranscript(history)}\n\nEVIDENCIA MOTIL CANÓNICA/AUTORIZADA\n${JSON.stringify(evidence)}\n\nPREGUNTA\n${message}`,
+      `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nHISTORIAL CONVERSACIONAL NO CANÓNICO\n${conversationTranscript(history)}\n\n${advisoryContext}\n\nEVIDENCIA MOTIL CANÓNICA/AUTORIZADA\n${JSON.stringify(evidence)}\n\nPREGUNTA\n${message}`,
     );
 
     const persisted = await appendCoreMessage(context.supabase, scope, {
@@ -230,10 +237,11 @@ export async function POST(request: NextRequest) {
       sources: Array.from(new Set(sources)),
       toolsUsed,
       conversationId: conversation.id,
+      decisionCaseRefs: advisoryHandoffs.map((row) => row.id),
       route,
       authorizedDomains: access.domains,
       persistence: 'core_continuity_v1',
-      policy: 'READ_ONLY + tenant-safe: sólo documentos con organización explícita y permisos confirmados. Historial no canónico separado de evidencia.',
+      policy: 'READ_ONLY + tenant-safe: sólo documentos con organización explícita y permisos confirmados. Historial y Decision Cases son contexto no canónico separado de evidencia.',
     });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error ?? 'unknown');
