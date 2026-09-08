@@ -10,22 +10,22 @@ const financeUrl = new URL('../app/api/finance/assistant/route.ts', import.meta.
 const runtimeUrl = new URL('../lib/intelligence/operational-domain-assistant.ts', import.meta.url);
 const read = (url) => readFile(url, 'utf8');
 
-test('Inventory and Procurement opt into scoped Core continuity without enabling it for Production or Finance yet', async () => {
-  const [inventory, procurement, production, finance] = await Promise.all([
+test('Inventory Procurement Production and Finance use scoped Core continuity', async () => {
+  const routes = await Promise.all([
     read(inventoryUrl),
     read(procurementUrl),
     read(productionUrl),
     read(financeUrl),
   ]);
 
-  assert.match(inventory, /handlePersistentOperationalDomainAssistant/);
-  assert.match(procurement, /handlePersistentOperationalDomainAssistant/);
-  assert.doesNotMatch(production, /handlePersistentOperationalDomainAssistant/);
-  assert.doesNotMatch(finance, /handlePersistentOperationalDomainAssistant/);
+  for (const route of routes) {
+    assert.match(route, /handlePersistentOperationalDomainAssistant/);
+  }
 });
 
-test('supply continuity is isolated by organization user and local domain through the Core helper', async () => {
+test('operational continuity is isolated by organization user and local domain through the Core helper', async () => {
   const wrapper = await read(wrapperUrl);
+  assert.match(wrapper, /type PersistentOperationalDomain = OperationalAssistantDomain/);
   assert.match(wrapper, /scopeFor\(context, domain\)/);
   assert.match(wrapper, /organizationId: context\.organizationId/);
   assert.match(wrapper, /userId: context\.userId/);
@@ -63,4 +63,12 @@ test('follow-up rewrite fails closed to the original user question', async () =>
   assert.match(wrapper, /if \(!apiKey\) return message/);
   assert.match(wrapper, /catch \{\s*return message;\s*\}/);
   assert.match(wrapper, /if \(!rewritten \|\| rewritten\.length > MAX_MESSAGE_CHARS\) return message/);
+});
+
+test('forwarded canonical request keeps auth headers but normalizes body headers safely', async () => {
+  const wrapper = await read(wrapperUrl);
+  assert.match(wrapper, /const headers = new Headers\(request\.headers\)/);
+  assert.match(wrapper, /headers\.delete\('content-length'\)/);
+  assert.match(wrapper, /headers\.set\('content-type', 'application\/json'\)/);
+  assert.match(wrapper, /body: JSON\.stringify\(\{ message \}\)/);
 });
