@@ -31,6 +31,21 @@ export async function GET(request: NextRequest) {
     .order('escalation_at', { ascending: true, nullsFirst: false });
 
   if (error) {
+    if (error.code === '57014') {
+      console.warn('[executive-escalations] source timed out; returning explicit unavailable state', {
+        code: error.code,
+        message: error.message,
+      });
+      return NextResponse.json({
+        available: false,
+        summary: null,
+        escalations: [],
+        generatedAt: new Date().toISOString(),
+        source: 'role_task_escalations_v1',
+        reason: 'source_timeout',
+      });
+    }
+
     console.error('[executive-escalations] lookup failed', error);
     return NextResponse.json({ error: 'No se pudo cargar el seguimiento ejecutivo' }, { status: 500 });
   }
@@ -49,6 +64,7 @@ export async function GET(request: NextRequest) {
   const topDomain = [...byDomain.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0] || null;
 
   return NextResponse.json({
+    available: true,
     summary: {
       total: rows.length,
       critical: rows.filter((row) => row.severity === 'critical').length,
