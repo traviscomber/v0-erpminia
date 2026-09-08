@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await context.supabase
     .from('motil_ai_decision_cases')
-    .select('id,source_domain,target_domain,source_conversation_id,source_message_id,title,summary,evidence_refs,uncertainty,contradictions,missing_evidence,recommended_human_action,recommended_workflow_key,authority,status,acknowledged_at,created_at,updated_at')
+    .select('id,source_domain,target_domain,source_conversation_id,source_message_id,title,summary,evidence_refs,uncertainty,contradictions,missing_evidence,recommended_human_action,recommended_workflow_key,authority,status,acknowledged_at,last_revalidated_at,last_revalidated_by_user_id,last_revalidation_evidence_refs,created_at,updated_at')
     .eq('organization_id', context.organizationId)
     .eq('created_by_user_id', context.userId)
     .eq('status', status)

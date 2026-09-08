@@ -23,6 +23,9 @@ type DecisionCase = {
   recommended_workflow_key?: string | null;
   authority: 'advisory_only';
   status: 'open' | 'acknowledged' | 'archived';
+  last_revalidated_at?: string | null;
+  last_revalidated_by_user_id?: string | null;
+  last_revalidation_evidence_refs?: SourceRef[];
   created_at: string;
 };
 
@@ -81,6 +84,16 @@ function shortSummary(value: string) {
 
 function evidenceLabel(ref: SourceRef) {
   return ref.tool || ref.source || 'Fuente';
+}
+
+function formatRevalidationDate(value?: string | null) {
+  if (!value) return null;
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return value;
+  return new Intl.DateTimeFormat('es-CL', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(date);
 }
 
 function parseExplicitCaseSections(summary: string): ParsedCaseSections {
@@ -222,6 +235,8 @@ export function DecisionCasesPanel() {
       <div className="grid gap-3 xl:grid-cols-2">
         {cases.slice(0, 8).map((item) => {
           const evidence = Array.isArray(item.evidence_refs) ? item.evidence_refs : [];
+          const revalidationEvidence = Array.isArray(item.last_revalidation_evidence_refs) ? item.last_revalidation_evidence_refs : [];
+          const revalidatedAt = formatRevalidationDate(item.last_revalidated_at);
           const explicit = parseExplicitCaseSections(item.summary);
           const missing = Array.isArray(item.missing_evidence) && item.missing_evidence.length
             ? item.missing_evidence
@@ -256,6 +271,19 @@ export function DecisionCasesPanel() {
                     </span>
                   ))}
                   {evidence.length > 6 ? <span className="rounded-full border px-2 py-1 text-[10px] text-muted-foreground">+{evidence.length - 6} fuentes</span> : null}
+                </div>
+
+                <div className="rounded-md border border-dashed px-3 py-2 text-[11px] leading-5 text-muted-foreground">
+                  {revalidatedAt ? (
+                    <>
+                      <span className="font-medium text-foreground">Última revalidación registrada:</span> {revalidatedAt}.
+                      {' '}{revalidationEvidence.length} referencia(s) de evidencia fueron usadas en esa revisión. El registro sigue siendo advisory y puede quedar desactualizado si cambian las fuentes.
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-medium text-foreground">Pendiente de revalidación en destino.</span> Aún no existe una revisión fundamentada registrada por el especialista destino para este caso.
+                    </>
+                  )}
                 </div>
 
                 {uncertainty ? <p className="text-xs leading-5"><span className="font-medium">Incertidumbre:</span> {uncertainty}</p> : null}
