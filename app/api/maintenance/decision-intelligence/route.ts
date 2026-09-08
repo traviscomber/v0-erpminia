@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const [reviews, operationalEvidence, preventive, close, operationalOrders, reliabilityBase] = await Promise.all([
+    const [reviews, operationalEvidence, preventive, close, operationalOrders, reliabilityBase, canonicalAssets] = await Promise.all([
       context.supabase
         .from('drilling_maintenance_review_queue_v1')
         .select('review_id,canonical_asset_id,asset_code,asset_name,operation_date,review_reason,equipment_status_raw,machine_observations,review_status,has_linked_work_order')
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
         .eq('organization_id', context.organizationId),
       context.supabase
         .from('work_order_close_readiness_v2')
-        .select('work_order_id,work_order_number,canonical_asset_id,asset_code,asset_name,title,ready_to_close,next_action,open_procurement_orders,pending_parts,unmet_material_requirements,pending_external_services,open_labor_entries,external_cost_conflict,standard_plan_steps_pending,standard_plan_steps_completed,standard_plan_steps_total')
+        .select('work_order_id,work_order_number,canonical_asset_id,title,ready_to_close,next_action,open_procurement_orders,pending_parts,unmet_material_requirements,pending_external_services,open_labor_entries,external_cost_conflict,standard_plan_steps_pending,standard_plan_steps_completed,standard_plan_steps_total')
         .eq('organization_id', context.organizationId),
       context.supabase
         .from('maintenance_work_orders')
@@ -62,13 +62,18 @@ export async function GET(request: NextRequest) {
         .from('maintenance_reliability_base_v1')
         .select('work_order_id,canonical_asset_id,asset_code,asset_name,root_cause,root_cause_key,work_type,closed_at')
         .eq('organization_id', context.organizationId),
+      context.supabase
+        .from('maintenance_canonical_assets_v1')
+        .select('id,asset_code,name')
+        .eq('organization_id', context.organizationId),
     ]);
 
-    const error = reviews.error || operationalEvidence.error || preventive.error || close.error || operationalOrders.error || reliabilityBase.error;
+    const error = reviews.error || operationalEvidence.error || preventive.error || close.error || operationalOrders.error || reliabilityBase.error || canonicalAssets.error;
     if (error) throw error;
 
     const rows: DecisionRow[] = [];
     const operationalOrderMap = new Map((operationalOrders.data || []).map((row: any) => [String(row.id), row]));
+    const canonicalAssetMap = new Map((canonicalAssets.data || []).map((row: any) => [String(row.id), row]));
     const eligibleReliability = (reliabilityBase.data || []).filter((row: any) => {
       const operational = operationalOrderMap.get(String(row.work_order_id));
       if (!operational) return false;
@@ -167,11 +172,12 @@ export async function GET(request: NextRequest) {
       if (row.external_cost_conflict) blockers.push('Conflicto de costo externo');
       const planPending = Number(row.standard_plan_steps_pending || 0);
       if (!blockers.length && !planPending && !row.next_action) continue;
+      const asset = canonicalAssetMap.get(String(row.canonical_asset_id || ''));
       rows.push({
         id: `closure:${row.work_order_id}`,
         asset_id: row.canonical_asset_id || null,
-        asset_code: row.asset_code || null,
-        asset_name: row.asset_name || null,
+        asset_code: asset?.asset_code || null,
+        asset_name: asset?.name || null,
         kind: 'closure',
         urgency: blockers.length ? 'high' : 'medium',
         canonical_fact: `${row.work_order_number || 'OT'} no está lista para cierre auditado.`,
@@ -246,7 +252,7 @@ export async function GET(request: NextRequest) {
         human_authority: 'Maintenance personnel validate mechanical cause, diagnosis and strategy change.',
       },
       semantics: 'Prioridad operacional explicable; no es probabilidad de falla ni decisión autónoma.',
-      sources: ['drilling_maintenance_review_queue_v1', 'drill_asset_operational_evidence_90d_v1', 'preventive_maintenance_hour_status_v1', 'work_order_close_readiness_v2', 'maintenance_work_orders', 'maintenance_reliability_base_v1'],
+      sources: ['drilling_maintenance_review_queue_v1', 'drill_asset_operational_evidence_90d_v1', 'preventive_maintenance_hour_status_v1', 'work_order_close_readiness_v2', 'maintenance_work_orders', 'maintenance_reliability_base_v1', 'maintenance_canonical_assets_v1'],
       canEdit: access.canWrite,
     });
   } catch (error) {
