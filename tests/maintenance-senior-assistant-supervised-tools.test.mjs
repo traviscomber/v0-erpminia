@@ -41,10 +41,10 @@ test('tool provenance is persisted and returned without exposing raw call ids', 
 test('OpenAI loop preserves response items and returns matching function outputs', async () => {
   const loop = await readFile(loopPath, 'utf8')
 
-  assert.match(loop, /const responseItems = Array\.isArray\(payload\?\.output\) \? payload\.output : \[\]/)
+  assert.match(loop, /input = \[\.\.\.input, \.\.\.\(payload\.output \|\| \[\]\)\]/)
   assert.match(loop, /type: 'function_call_output'/)
   assert.match(loop, /call_id: call\.call_id/)
-  assert.match(loop, /input: \[\.\.\.responseItems, \.\.\.toolOutputs\]/)
+  assert.match(loop, /input\.push\(\{/)
   assert.match(loop, /parallel_tool_calls: false/)
   assert.match(loop, /MAX_TOOL_ROUNDS = 4/)
 })
