@@ -15,7 +15,16 @@ test('support handoff loader is tenant user target and status scoped', async () 
   assert.match(helper, /\.eq\('target_domain', targetDomain\)/);
   assert.match(helper, /\.eq\('status', 'open'\)/);
   assert.match(helper, /\.limit\(3\)/);
-  assert.doesNotMatch(helper, /\.(insert|update|delete)\(/);
+});
+
+test('shared helper may write only advisory revalidation provenance for a grounded specialist review', async () => {
+  const helper = await read(helperUrl);
+  assert.match(helper, /recordSupportAdvisoryRevalidation/);
+  assert.match(helper, /last_revalidated_at/);
+  assert.match(helper, /last_revalidated_by_user_id/);
+  assert.match(helper, /last_revalidation_evidence_refs/);
+  assert.match(helper, /\.in\('id', caseIds\)/);
+  assert.doesNotMatch(helper, /maintenance_work_orders|canonical_purchase_orders_current|canonical_inventory_current/);
 });
 
 test('Documents revalidates advisory context only against tenant-safe document evidence', async () => {
