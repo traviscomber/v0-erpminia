@@ -38,14 +38,14 @@ test('tool provenance is persisted and returned without exposing raw call ids', 
   assert.doesNotMatch(route, /call_id:/)
 })
 
-test('OpenAI loop preserves response items and bounds multi-step tool use', async () => {
+test('OpenAI loop preserves response items and bounds parallel multi-step tool use', async () => {
   const loop = await readFile(loopPath, 'utf8')
 
   assert.match(loop, /input = \[\.\.\.input, \.\.\.\(payload\.output \|\| \[\]\)\]/)
   assert.match(loop, /type: 'function_call_output'/)
   assert.match(loop, /call_id: call\.call_id/)
   assert.match(loop, /input\.push\(\{/)
-  assert.match(loop, /parallel_tool_calls: false/)
+  assert.match(loop, /parallel_tool_calls: true/)
   assert.match(loop, /MAX_TOOL_ROUNDS = 8/)
   assert.match(loop, /MAX_TOOL_CALLS = 12/)
   assert.match(loop, /totalToolCalls \+ calls\.length > MAX_TOOL_CALLS/)
