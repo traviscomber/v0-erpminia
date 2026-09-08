@@ -13,7 +13,17 @@ test('maintenance decision intelligence is authorized tenant scoped and reads ba
   assert.match(route, /const db = getSupabaseAdmin\(\)/);
   assert.match(route, /eq\('organization_id', context\.organizationId\)/);
   assert.doesNotMatch(route, /context\.supabase\s*\n\s*\.from/);
-  for (const source of ['drilling_maintenance_review_queue_v1','drill_asset_operational_evidence_90d_v1','preventive_maintenance_hour_status_v1','work_order_close_readiness_v2','maintenance_work_orders','maintenance_reliability_base_v1']) assert.match(route, new RegExp(source));
+  for (const source of ['drilling_maintenance_review_queue_v1','production_drilling_source_reports','preventive_maintenance_hour_status_v1','work_order_close_readiness_v2','maintenance_work_orders','maintenance_reliability_base_v1']) assert.match(route, new RegExp(source));
+});
+
+test('decision intelligence derives 90d operational patterns from lightweight canonical source reports', async () => {
+  const route = await readFile(routeUrl, 'utf8');
+  assert.match(route, /from\('production_drilling_source_reports'\)/);
+  assert.match(route, /gte\('operation_date', windowStart\)/);
+  assert.match(route, /limit\(5000\)/);
+  assert.match(route, /const operationalMap = new Map/);
+  assert.match(route, /derived_from_canonical_source_reports/);
+  assert.doesNotMatch(route, /from\('drill_asset_operational_evidence_90d_v1'\)/);
 });
 
 test('maintenance decision intelligence reports the exact failing backend source without weakening access', async () => {
