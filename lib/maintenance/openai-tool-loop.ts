@@ -40,7 +40,9 @@ async function createResponse(args: {
       input: args.input,
       tools: maintenanceSeniorTools,
       tool_choice: 'auto',
-      parallel_tool_calls: false,
+      // Multiple bounded READ/PREPARE_ONLY calls may be requested in one model round.
+      // Safety still lives in the allowlisted registry plus the 8-round / 12-call caps below.
+      parallel_tool_calls: true,
       reasoning: { effort: 'medium' },
       max_output_tokens: args.maxOutputTokens,
     }),
