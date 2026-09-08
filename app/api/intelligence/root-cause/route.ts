@@ -2,7 +2,6 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
-import { getSupabaseAdmin } from '@/lib/db/supabase';
 
 const CLOSED = new Set(['completed','closed','cancelled','canceled','completada','cerrada','cancelada']);
 const norm = (value: unknown) => String(value ?? '').trim().toLowerCase();
@@ -11,18 +10,13 @@ export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
-  // procurement_intake_flow is a server-only operational view. Resolve the
-  // authenticated tenant first, then read that view with service role while
-  // preserving the same organization_id scope used by user-accessible sources.
-  const db = getSupabaseAdmin();
-
   try {
     const [reviewsRes, workOrdersRes, requirementsRes, needsRes, flowRes, ordersRes, receiptsRes] = await Promise.all([
       context.supabase.from('drilling_maintenance_review_queue_v1').select('source_report_id,canonical_asset_id,asset_code,asset_name,operation_date,review_reason,equipment_status_raw,machine_observations,review_status,review_id,linked_work_order_id,has_linked_work_order').eq('organization_id', context.organizationId),
       context.supabase.from('maintenance_work_orders').select('id,work_order_number,canonical_asset_id,title,status,priority,root_cause,created_at').eq('organization_id', context.organizationId),
       context.supabase.from('work_order_material_requirements').select('id,work_order_id,canonical_asset_id,canonical_product_id,quantity_required,quantity_available,quantity_shortage,status,required_date').eq('organization_id', context.organizationId),
       context.supabase.from('work_order_supply_needs').select('id,work_order_id,canonical_asset_id,status,priority,required_date,procurement_request_id').eq('organization_id', context.organizationId),
-      db.from('procurement_intake_flow').select('id,request_number,status,work_order_id,canonical_asset_id,asset_code,asset_name,source_supply_need_id,promoted_request_id,line_count,total_units').eq('organization_id', context.organizationId),
+      context.supabase.from('procurement_intake_requests').select('id,request_number,status,work_order_id,canonical_asset_id,source_supply_need_id,promoted_request_id').eq('organization_id', context.organizationId),
       context.supabase.from('procurement_operational_orders').select('id,order_number,work_order_id,canonical_asset_id,status,expected_delivery_date,actual_delivery_date,issued_at').eq('organization_id', context.organizationId),
       context.supabase.from('procurement_operational_receipts').select('id,receipt_number,order_id,received_at').eq('organization_id', context.organizationId),
     ]);
