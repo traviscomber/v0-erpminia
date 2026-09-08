@@ -51,6 +51,19 @@ const productionToolCopy: Record<string, string> = {
   read_procurement_quality: 'Calidad de compras',
 };
 
+const financeToolCopy: Record<string, string> = {
+  read_finance_overview: 'Resumen financiero',
+  read_finance_cost_centers: 'Centros de costo',
+  read_finance_reconciliation: 'Conciliación de activos',
+  read_maintenance_cost_centers: 'Costos de mantenimiento',
+  read_procurement_overview: 'Resumen de compras',
+  read_recent_purchase_orders: 'Órdenes recientes',
+  read_procurement_quality: 'Calidad de compras',
+  read_production_daily_fine: 'Cobre fino diario',
+  read_production_flow: 'Flujo de producción',
+  read_production_metallurgy: 'Metalurgia determinística',
+};
+
 const specialistConfig = {
   maintenance: {
     endpoint: '/api/maintenance/senior-assistant',
@@ -86,6 +99,13 @@ const specialistConfig = {
     emptyCopy: 'Pregunta por tratamiento, cobre fino, recuperación, flujo, perforación y excepciones de fuente. El asistente separa valores reportados de cálculos determinísticos.',
     placeholder: 'Pregunta al Asistente de Producción…',
     toolCopy: productionToolCopy,
+  },
+  finance: {
+    endpoint: '/api/finance/assistant',
+    loadingCopy: 'Cargando evidencia financiera canónica…',
+    emptyCopy: 'Pregunta por compromisos, costos y centros de costo. El asistente conserva la fecha de corte de cada fuente y no mezcla compromiso, gasto reconocido ni pago.',
+    placeholder: 'Pregunta al Asistente de Finanzas…',
+    toolCopy: financeToolCopy,
   },
 } as const;
 
