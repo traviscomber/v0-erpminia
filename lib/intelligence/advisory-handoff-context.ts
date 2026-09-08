@@ -20,9 +20,11 @@ export type AdvisoryHandoffContext = {
   created_at: string;
 };
 
-export type AdvisoryRevalidationSourceRef =
-  | { source: string }
-  | { tool: string; mode?: string };
+export type AdvisoryRevalidationSourceRef = {
+  source?: string;
+  tool?: string;
+  mode?: string;
+};
 
 type ScopedContext = {
   organizationId: string;
@@ -57,10 +59,10 @@ export async function recordSupportAdvisoryRevalidation(
   evidenceRefs: AdvisoryRevalidationSourceRef[],
 ) {
   const caseIds = Array.from(new Set(handoffs.map((row) => row.id).filter(Boolean)));
-  const refs = evidenceRefs.filter((ref) => {
-    if ('source' in ref) return typeof ref.source === 'string' && ref.source.trim().length > 0;
-    return typeof ref.tool === 'string' && ref.tool.trim().length > 0;
-  });
+  const refs = evidenceRefs.filter((ref) =>
+    (typeof ref.source === 'string' && ref.source.trim().length > 0)
+    || (typeof ref.tool === 'string' && ref.tool.trim().length > 0),
+  );
   if (!caseIds.length || !refs.length) return { updated: 0, at: null as string | null };
 
   const at = new Date().toISOString();
