@@ -6,6 +6,7 @@ import { Header } from '@/components/layout/header';
 import { DailyManagementContextNav } from '@/components/layout/daily-management-context-nav';
 import { DocumentationContextNav } from '@/components/layout/documentation-context-nav';
 import { OperationalAttentionContextNav } from '@/components/layout/operational-attention-context-nav';
+import { SeniorAssistantWidget } from '@/components/intelligence/senior-assistant-widget';
 import { cn } from '@/lib/utils';
 import { DashboardPeriodProvider } from '@/components/dashboard/dashboard-period-provider';
 
@@ -51,6 +52,8 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           </main>
         </DashboardPeriodProvider>
       </div>
+
+      <SeniorAssistantWidget />
     </div>
   );
 }
