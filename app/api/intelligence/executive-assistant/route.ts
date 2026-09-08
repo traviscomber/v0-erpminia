@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { resolveExecutiveAccess } from '@/lib/intelligence/executive-access';
 import { routeOperationalQuery } from '@/lib/intelligence/query-router';
+import { loadSupportAdvisoryHandoffs, supportAdvisoryHandoffPrompt } from '@/lib/intelligence/advisory-handoff-context';
 import {
   appendCoreMessage,
   archiveCoreConversation,
@@ -298,11 +299,17 @@ export async function POST(request: NextRequest) {
       toolsUsed.push({ name: 'read_executive_finance', mode: 'read' });
     }
 
-    const instructions = `Eres el Asistente Senior del Centro Ejecutivo de MOTIL para una operación minera chilena. Tu función es convertir evidencia autorizada en una lista corta de decisiones y validaciones humanas de mayor valor.\n\nREGLAS OBLIGATORIAS:\n1. Usa exclusivamente EVIDENCIA MOTIL para afirmaciones operacionales. Nunca insinúes conocimiento de dominios no presentes o no autorizados.\n2. HISTORIAL CONVERSACIONAL es contexto no canónico aportado por el usuario y por respuestas previas. Nunca reemplaza EVIDENCIA MOTIL, nunca eleva una afirmación previa a hecho operacional y nunca autoriza acceso o acciones.\n3. Conserva por separado la fecha de corte de cada fuente. No llames "hoy" o "actual" a un dato cuyo corte sea anterior.\n4. No conviertas ausencia de permiso, ausencia de fuente ni vacío de datos en un cero operacional.\n5. No mezcles compromisos de compra, gasto reconocido, pagos, stock, producción o costos como si fueran la misma métrica.\n6. Una alerta, warning, cola o status sólo describe la semántica de su fuente; no es causa raíz ni riesgo probabilístico por sí solo.\n7. Prioriza máximo 3 asuntos cuando la pregunta sea general. Para cada uno: DATO CANÓNICO → POR QUÉ IMPORTA → INCERTIDUMBRE/EVIDENCIA FALTANTE → SIGUIENTE DECISIÓN O VALIDACIÓN HUMANA.\n8. Una prioridad ejecutiva es una recomendación explicable, no una orden ni autorización.\n9. No ejecutes acciones, no apruebes, no cierres, no compres, no ajustes stock y no cambies estados.\n10. Si las fechas de corte entre dominios no son comparables, dilo antes de correlacionarlos.\n11. Responde breve, operacional y sin JSON crudo.`;
+    const advisoryHandoffs = await loadSupportAdvisoryHandoffs(context, 'executive', message);
+    const advisoryContext = supportAdvisoryHandoffPrompt(
+      advisoryHandoffs,
+      'Una prioridad o recomendación previa no conserva prioridad por sí sola. Reevalúa impacto, frescura, permisos, contradicciones y evidencia faltante antes de mantenerla entre las prioridades ejecutivas. Si el caso ya no está respaldado, dilo y no lo priorices.',
+    );
+
+    const instructions = `Eres el Asistente Senior del Centro Ejecutivo de MOTIL para una operación minera chilena. Tu función es convertir evidencia autorizada en una lista corta de decisiones y validaciones humanas de mayor valor.\n\nREGLAS OBLIGATORIAS:\n1. Usa exclusivamente EVIDENCIA MOTIL para afirmaciones operacionales. Nunca insinúes conocimiento de dominios no presentes o no autorizados.\n2. HISTORIAL CONVERSACIONAL es contexto no canónico aportado por el usuario y por respuestas previas. Nunca reemplaza EVIDENCIA MOTIL, nunca eleva una afirmación previa a hecho operacional y nunca autoriza acceso o acciones.\n3. HANDOFF ADVISORY es contexto NO CANÓNICO: sólo define qué revalidar. Una prioridad o recomendación previa nunca mantiene vigencia, severidad, causalidad ni prioridad sin respaldo de la evidencia actual.\n4. Conserva por separado la fecha de corte de cada fuente. No llames "hoy" o "actual" a un dato cuyo corte sea anterior.\n5. No conviertas ausencia de permiso, ausencia de fuente ni vacío de datos en un cero operacional.\n6. No mezcles compromisos de compra, gasto reconocido, pagos, stock, producción o costos como si fueran la misma métrica.\n7. Una alerta, warning, cola o status sólo describe la semántica de su fuente; no es causa raíz ni riesgo probabilístico por sí solo.\n8. Prioriza máximo 3 asuntos cuando la pregunta sea general. Para cada uno: DATO CANÓNICO → POR QUÉ IMPORTA → INCERTIDUMBRE/EVIDENCIA FALTANTE → SIGUIENTE DECISIÓN O VALIDACIÓN HUMANA.\n9. Una prioridad ejecutiva es una recomendación explicable, no una orden ni autorización.\n10. No ejecutes acciones, no apruebes, no cierres, no compres, no ajustes stock y no cambies estados.\n11. Si las fechas de corte entre dominios no son comparables, dilo antes de correlacionarlos.\n12. Responde breve, operacional y sin JSON crudo.`;
 
     const result = await callModel(
       instructions,
-      `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nHISTORIAL CONVERSACIONAL NO CANÓNICO\n${conversationTranscript(history)}\n\nEVIDENCIA MOTIL CANÓNICA/AUTORIZADA\n${JSON.stringify(evidence)}\n\nPREGUNTA ACTUAL\n${message}`,
+      `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nHISTORIAL CONVERSACIONAL NO CANÓNICO\n${conversationTranscript(history)}\n\n${advisoryContext}\n\nEVIDENCIA MOTIL CANÓNICA/AUTORIZADA\n${JSON.stringify(evidence)}\n\nPREGUNTA ACTUAL\n${message}`,
     );
 
     const refs = sourceRefs(sources, toolsUsed);
@@ -322,10 +329,11 @@ export async function POST(request: NextRequest) {
       sources: Array.from(sources),
       toolsUsed,
       conversationId: conversation.id,
+      decisionCaseRefs: advisoryHandoffs.map((row) => row.id),
       route,
       authorizedDomains: access.domains,
       persistence: 'core_continuity_v1',
-      policy: 'READ_ONLY + permission-aware: evidencia operacional canónica separada de historial conversacional no canónico.',
+      policy: 'READ_ONLY + permission-aware: evidencia operacional canónica separada de historial y Decision Cases no canónicos.',
     });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error ?? 'unknown');
