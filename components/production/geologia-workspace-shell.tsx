@@ -10,7 +10,6 @@ import { GeologiaInterpretation } from '@/components/production/geologia-interpr
 import { GeologiaInterpretationMatrix } from '@/components/production/geologia-interpretation-matrix';
 import { GeologiaNextBestEvidence } from '@/components/production/geologia-next-best-evidence';
 import { GeologiaCoreVision } from '@/components/production/geologia-corevision';
-import { GeologiaAiFloatingChat } from '@/components/production/geologia-ai-floating-chat';
 
 const tabs = [
   ['today', 'Resumen'],
@@ -207,7 +206,6 @@ export function GeologiaWorkspaceShell() {
       {tab === 'completeness' ? <GeologiaDataCompleteness /> : null}
       {tab === 'canonical' ? <GeologiaCanonicalStatus /> : null}
       {tab === 'history' ? <GeologiaHistoricalCanonical /> : null}
-      <GeologiaAiFloatingChat />
     </div>
   );
 }
