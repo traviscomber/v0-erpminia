@@ -77,7 +77,7 @@ export default function MaintenanceDecisionIntelligencePage(){
       <PageHeaderContent>
         <PageHeaderEyebrow>Mantenimiento · Decision Intelligence</PageHeaderEyebrow>
         <PageHeaderTitle>Decisiones que requieren validación humana</PageHeaderTitle>
-        <PageHeaderDescription>Dato canónico → señal explicable → caso de decisión → revisión humana → acción autorizada → resultado medido.</PageHeaderDescription>
+        <PageHeaderDescription>Dato canónico → interpretación profesional → hipótesis revisable → evidencia faltante → próxima acción → validación humana. Cada señal se expone además como caso auditable hasta resultado medido.</PageHeaderDescription>
       </PageHeaderContent>
       <PageHeaderActions><Button variant="outline" onClick={()=>void mutate()}><RefreshCw className="h-4 w-4"/>Actualizar</Button></PageHeaderActions>
     </PageHeader>
@@ -105,7 +105,7 @@ export default function MaintenanceDecisionIntelligencePage(){
 
     <section className="grid gap-3 lg:grid-cols-3" aria-label="Política de decisión">
       <Policy title="Ejecución" text="Sólo humana. El caso prepara evidencia y próxima acción; no autoriza trabajo."/>
-      <Policy title="Persistencia" text="Derivada de señales canónicas existentes; este bloque no crea una segunda fuente de verdad."/>
+      <Policy title="Persistencia" text={`Derivada de señales canónicas existentes; ${data.summary.reliabilityClosuresExcludedAsSyntheticOrNonOperational} cierre(s) fueron excluidos de aprendizaje por ser UAT/simulados o no operacionales.`}/>
       <Policy title="Impacto" text="No se atribuye mejora hasta que un flujo autorizado registre un resultado observado comparable con la línea base."/>
     </section>
   </div>;
@@ -128,7 +128,7 @@ function DecisionRow({decisionCase,index}:{decisionCase:DecisionCase;index:numbe
       </div>
       <div className="grid gap-3 text-sm md:grid-cols-2">
         <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Próxima acción</p><p className="mt-1 leading-5">{decisionCase.next_best_action}</p></div>
-        <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Checkpoint</p><p className="mt-1 leading-5 text-muted-foreground">{decisionCase.human_checkpoint}</p></div>
+        <div><p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Checkpoint humano</p><p className="mt-1 leading-5 text-muted-foreground">{decisionCase.human_checkpoint}</p></div>
       </div>
       {decisionCase.hypothesis_to_review?<p className="border-l-2 pl-3 text-xs leading-5 text-muted-foreground"><span className="font-medium text-foreground">Hipótesis a revisar:</span> {decisionCase.hypothesis_to_review}</p>:null}
     </div>
