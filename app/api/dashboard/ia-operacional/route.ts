@@ -150,6 +150,8 @@ export async function GET(request: NextRequest) {
       (order) => !overdueIds.has(order.id) && ['critical', 'high'].includes(normalize(order.priority)),
     );
 
+    const zeroStockItems = lowStockItems.filter((item) => toNumber(item.quantity_on_hand) <= 0);
+    const belowMinimumWithStock = lowStockItems.filter((item) => toNumber(item.quantity_on_hand) > 0);
     const decisions: Decision[] = [];
 
     overdueWorkOrders.forEach((order) => {
@@ -203,22 +205,20 @@ export async function GET(request: NextRequest) {
       });
     });
 
-    lowStockItems.forEach((item) => {
-      const quantity = toNumber(item.quantity_on_hand);
-      const reorder = toNumber(item.reorder_level);
+    if (lowStockItems.length > 0) {
       decisions.push({
-        id: `stock-${item.id}`,
+        id: 'inventory-reorder-attention',
         category: 'inventory',
-        severity: quantity <= 0 ? 'critical' : 'warning',
-        title: quantity <= 0 ? 'Repuesto sin stock' : 'Repuesto bajo nivel de reorden',
-        description: `${item.part_name || item.part_code || 'Ítem de inventario'} · Disponible ${quantity} / Reorden ${reorder}`,
+        severity: 'warning',
+        title: 'Inventario bajo mínimo configurado',
+        description: `${lowStockItems.length} ítem(s) están bajo su mínimo configurado; ${zeroStockItems.length} sin stock disponible y ${belowMinimumWithStock.length} con existencia positiva. Es una señal de reposición, no criticidad operacional del repuesto; la criticidad se acredita cuando existe demanda, OT o evidencia vinculada.`,
         responsibleArea: 'Bodega / Compras',
         dueDate: null,
         amount: null,
         href: '/dashboard/bodega',
-        sourceId: item.id,
+        sourceId: 'inventory-stock-alerts',
       });
-    });
+    }
 
     expiringDocuments.forEach((document) => {
       const days = daysFromToday(document.expiry_date);
@@ -294,6 +294,8 @@ export async function GET(request: NextRequest) {
         overdueWorkOrders: overdueWorkOrders.length,
         preventiveDue: decisions.filter((item) => item.category === 'preventive').length,
         lowStock: lowStockItems.length,
+        zeroStock: zeroStockItems.length,
+        belowMinimumWithStock: belowMinimumWithStock.length,
         documentsAtRisk: expiringDocuments.length,
         financialPendingAmount: overdueFinancial.reduce((sum, item) => sum + toNumber(item.pending_amount), 0),
       },
