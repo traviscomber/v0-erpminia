@@ -71,6 +71,12 @@ const dataHealthToolCopy: Record<string, string> = {
   read_data_health_procurement: 'Calidad de Compras',
 };
 
+const documentsToolCopy: Record<string, string> = {
+  read_hse_documents: 'Documentos HSE',
+  read_legal_documents: 'Documentos legales',
+  read_contracts: 'Contratos',
+};
+
 const specialistConfig = {
   maintenance: {
     endpoint: '/api/maintenance/senior-assistant',
@@ -113,6 +119,13 @@ const specialistConfig = {
     emptyCopy: 'Pregunta por compromisos, costos y centros de costo. El asistente conserva la fecha de corte de cada fuente y no mezcla compromiso, gasto reconocido ni pago.',
     placeholder: 'Pregunta al Asistente de Finanzas…',
     toolCopy: financeToolCopy,
+  },
+  documents: {
+    endpoint: '/api/documents/assistant',
+    loadingCopy: 'Cargando documentos autorizados…',
+    emptyCopy: 'Pregunta por vigencias, vencimientos, contratos y evidencia documental faltante. Sólo se usan fuentes tenant-safe con organización explícita.',
+    placeholder: 'Pregunta al Asistente de Documentos…',
+    toolCopy: documentsToolCopy,
   },
   data_health: {
     endpoint: '/api/data-quality/assistant',
