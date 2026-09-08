@@ -4,6 +4,7 @@ export type MaintenanceSeniorToolName =
   | 'search_assets'
   | 'get_maintenance_attention_queue'
   | 'get_asset_context'
+  | 'get_asset_context_batch'
   | 'get_open_work_orders'
   | 'get_maintenance_plan'
   | 'get_observed_condition_history'
@@ -58,6 +59,7 @@ const toolModes: Record<MaintenanceSeniorToolName, MaintenanceSeniorToolMode> = 
   search_assets: 'read',
   get_maintenance_attention_queue: 'read',
   get_asset_context: 'read',
+  get_asset_context_batch: 'read',
   get_open_work_orders: 'read',
   get_maintenance_plan: 'read',
   get_observed_condition_history: 'read',
@@ -102,12 +104,32 @@ export const maintenanceSeniorTools: MaintenanceSeniorToolDefinition[] = [
   {
     type: 'function',
     name: 'get_asset_context',
-    description: 'READ. Recupera el activo canónico y la evidencia operacional disponible en el contexto autorizado. No modifica datos.',
+    description: 'READ. Recupera el activo canónico y la evidencia operacional disponible para un solo activo. Úsala cuando la consulta sea individual. No modifica datos.',
     strict: true,
     parameters: {
       type: 'object',
       properties: { canonical_asset_id: assetIdSchema },
       required: ['canonical_asset_id'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'get_asset_context_batch',
+    description: 'READ. Recupera en una sola llamada el contexto canónico y la evidencia operacional de hasta 8 activos. Después de una cola de atención, PREFIERE esta herramienta para comparar varios activos en vez de repetir get_asset_context. No modifica datos.',
+    strict: true,
+    parameters: {
+      type: 'object',
+      properties: {
+        canonical_asset_ids: {
+          type: 'array',
+          minItems: 1,
+          maxItems: 8,
+          items: assetIdSchema,
+          description: 'Lista de 1 a 8 IDs canónicos ya obtenidos desde el contexto autorizado.',
+        },
+      },
+      required: ['canonical_asset_ids'],
       additionalProperties: false,
     },
   },
@@ -211,6 +233,16 @@ function requireAssetId(args: Record<string, unknown>) {
   return canonicalAssetId
 }
 
+function requireAssetIds(args: Record<string, unknown>) {
+  if (!Array.isArray(args.canonical_asset_ids)) {
+    throw new Error('canonical_asset_ids debe ser una lista para esta herramienta')
+  }
+  const canonicalAssetIds = Array.from(new Set(args.canonical_asset_ids.map((value) => String(value || '').trim()).filter(Boolean)))
+  if (!canonicalAssetIds.length) throw new Error('canonical_asset_ids debe contener al menos un activo')
+  if (canonicalAssetIds.length > 8) throw new Error('canonical_asset_ids admite un máximo de 8 activos por llamada')
+  return canonicalAssetIds
+}
+
 function normalizedText(value: unknown) {
   return String(value ?? '').trim().toLowerCase()
 }
@@ -219,6 +251,18 @@ function cappedLimit(value: unknown, fallback = 10) {
   const parsed = Number(value)
   if (!Number.isFinite(parsed)) return fallback
   return Math.max(1, Math.min(20, Math.trunc(parsed)))
+}
+
+function assetContext(canonicalAssetId: string, context: MaintenanceCanonicalToolContext) {
+  return {
+    canonical_asset_id: canonicalAssetId,
+    asset: (context.assets || []).find((row) => String(row?.id || '') === canonicalAssetId) || null,
+    pending_reviews: byAsset(context.pending_operational_reviews, canonicalAssetId),
+    observed_conditions: byAsset(context.observed_conditions_90d, canonicalAssetId),
+    preventive_status: byAsset(context.preventive_hour_status, canonicalAssetId),
+    work_orders: byAsset(context.operational_work_orders, canonicalAssetId),
+    closure_readiness: byAsset(context.closure_readiness, canonicalAssetId),
+  }
 }
 
 function attentionScore(assetId: string, context: MaintenanceCanonicalToolContext) {
@@ -321,13 +365,17 @@ export function executeMaintenanceSeniorTool(
     const canonicalAssetId = requireAssetId(args)
     return {
       mode,
-      asset: (context.assets || []).find((row) => String(row?.id || '') === canonicalAssetId) || null,
-      pending_reviews: byAsset(context.pending_operational_reviews, canonicalAssetId),
-      observed_conditions: byAsset(context.observed_conditions_90d, canonicalAssetId),
-      preventive_status: byAsset(context.preventive_hour_status, canonicalAssetId),
-      work_orders: byAsset(context.operational_work_orders, canonicalAssetId),
-      closure_readiness: byAsset(context.closure_readiness, canonicalAssetId),
+      ...assetContext(canonicalAssetId, context),
       semantics: 'La evidencia observada describe hechos/frecuencias registradas; no probabilidad de falla ni causa raíz automática.',
+    }
+  }
+
+  if (name === 'get_asset_context_batch') {
+    const canonicalAssetIds = requireAssetIds(args)
+    return {
+      mode,
+      rows: canonicalAssetIds.map((canonicalAssetId) => assetContext(canonicalAssetId, context)),
+      semantics: 'Lectura batch acotada de evidencia por activo. La evidencia observada describe hechos/frecuencias registradas; no probabilidad de falla, diagnóstico ni autorización automática.',
     }
   }
 
