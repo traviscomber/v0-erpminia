@@ -17,9 +17,9 @@ import {
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const MAX_MESSAGE_CHARS = 12000;
-const FOLLOW_UP_HINT = /(^|\s)(y\s+(el|la|los|las)|eso|ese|esa|esos|esas|anterior|mismo|misma|segundo|segunda|tercero|tercera|profundiza|detalle|también|además)(\s|$|[?¿.,;:])/i;
+const FOLLOW_UP_HINT = /(^|[\s¿¡])(y\s+(el|la|los|las)|eso|ese|esa|esos|esas|anterior|mismo|misma|segundo|segunda|tercero|tercera|profundiza|detalle|también|además)(\s|$|[?¿!¡.,;:])/i;
 
-type PersistentOperationalDomain = Extract<OperationalAssistantDomain, 'inventory' | 'procurement'>;
+type PersistentOperationalDomain = OperationalAssistantDomain;
 
 type HandlerArgs = {
   request: NextRequest;
@@ -104,9 +104,12 @@ async function rewriteFollowUp(message: string, history: any[]) {
 }
 
 function forwardedRequest(request: NextRequest, message: string) {
+  const headers = new Headers(request.headers);
+  headers.delete('content-length');
+  headers.set('content-type', 'application/json');
   return new NextRequest(request.url, {
     method: 'POST',
-    headers: new Headers(request.headers),
+    headers,
     body: JSON.stringify({ message }),
   });
 }
