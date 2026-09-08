@@ -10,6 +10,7 @@ test('senior maintenance tool registry exposes only READ and PREPARE_ONLY capabi
   assert.match(source, /MaintenanceSeniorToolMode = 'read' \| 'prepare_only'/)
   assert.match(source, /search_assets/)
   assert.match(source, /get_maintenance_attention_queue/)
+  assert.match(source, /get_maintenance_attention_context/)
   assert.match(source, /get_asset_context/)
   assert.match(source, /get_asset_context_batch/)
   assert.match(source, /get_open_work_orders/)
@@ -34,6 +35,18 @@ test('batch asset context remains read-only and strictly bounded', async () => {
   assert.match(source, /PREFIERE esta herramienta para comparar varios activos/i)
   assert.match(source, /canonicalAssetIds\.map\(\(canonicalAssetId\) => assetContext\(canonicalAssetId, context\)\)/)
   assert.match(source, /get_asset_context_batch: 'read'/)
+})
+
+test('attention context combines ranking and canonical evidence without expanding authority', async () => {
+  const source = await readFile(toolsPath, 'utf8')
+
+  assert.match(source, /name: 'get_maintenance_attention_context'/)
+  assert.match(source, /maximum: 8/)
+  assert.match(source, /PREFIERE esta herramienta para preguntas multi-activo/i)
+  assert.match(source, /get_maintenance_attention_context: 'read'/)
+  assert.match(source, /maintenanceAttentionRows\(limit, context\)/)
+  assert.match(source, /context: assetContext\(attention\.canonical_asset_id, context\)/)
+  assert.match(source, /NO es probabilidad de falla, diagnóstico, criticidad OEM ni autorización de prioridad/i)
 })
 
 test('prepared maintenance decision cases remain derived and human-controlled', async () => {
