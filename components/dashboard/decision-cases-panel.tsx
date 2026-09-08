@@ -1,7 +1,8 @@
 'use client';
 
+import { useState } from 'react';
 import useSWR from 'swr';
-import { Archive, CheckCircle2, RefreshCw, Route, ShieldCheck } from 'lucide-react';
+import { Archive, CheckCircle2, Plus, RefreshCw, Route, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,6 +44,9 @@ const labels: Record<string, string> = {
   geology: 'Geología',
 };
 
+const sourceDomains = ['executive', 'inventory', 'procurement', 'production', 'finance', 'documents', 'data_health'] as const;
+const targetDomains = [...sourceDomains, 'maintenance', 'geology'] as const;
+
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include', cache: 'no-store' });
   const payload = await response.json().catch(() => null);
@@ -62,6 +66,34 @@ function evidenceLabel(ref: SourceRef) {
 export function DecisionCasesPanel() {
   const state = useSWR<Response>('/api/intelligence/decision-cases?status=open', fetcher, { revalidateOnFocus: false });
   const cases = state.data?.cases || [];
+  const [sourceDomain, setSourceDomain] = useState('');
+  const [targetDomain, setTargetDomain] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [createNotice, setCreateNotice] = useState<string | null>(null);
+
+  const createLatest = async () => {
+    if (!sourceDomain || !targetDomain || creating) return;
+    setCreating(true);
+    setCreateError(null);
+    setCreateNotice(null);
+    try {
+      const response = await fetch('/api/intelligence/decision-cases', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create_latest', sourceDomain, targetDomain }),
+      });
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'No se pudo crear el handoff.');
+      setCreateNotice(payload?.duplicate ? 'Ese análisis ya tiene un caso abierto hacia el mismo destino.' : 'Decision Case creado desde la última respuesta fundamentada.');
+      await state.mutate();
+    } catch (cause) {
+      setCreateError(cause instanceof Error ? cause.message : 'No se pudo crear el handoff.');
+    } finally {
+      setCreating(false);
+    }
+  };
 
   const updateCase = async (caseId: string, action: 'acknowledge' | 'archive') => {
     const response = await fetch('/api/intelligence/decision-cases', {
@@ -91,6 +123,33 @@ export function DecisionCasesPanel() {
           <RefreshCw className="mr-2 size-4" />Actualizar casos
         </Button>
       </div>
+
+      <Card className="border-dashed">
+        <CardContent className="p-4">
+          <div className="grid gap-3 lg:grid-cols-[1fr_1fr_auto] lg:items-end">
+            <label className="space-y-1.5 text-xs font-medium">
+              Análisis origen
+              <select value={sourceDomain} onChange={(event) => setSourceDomain(event.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-primary/40">
+                <option value="">Seleccionar último análisis fundamentado</option>
+                {sourceDomains.map((domain) => <option key={domain} value={domain}>{labels[domain]}</option>)}
+              </select>
+            </label>
+            <label className="space-y-1.5 text-xs font-medium">
+              Handoff a
+              <select value={targetDomain} onChange={(event) => setTargetDomain(event.target.value)} className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm font-normal text-foreground outline-none focus:ring-2 focus:ring-primary/40">
+                <option value="">Seleccionar dominio destino</option>
+                {targetDomains.map((domain) => <option key={domain} value={domain}>{labels[domain]}</option>)}
+              </select>
+            </label>
+            <Button type="button" onClick={() => void createLatest()} disabled={!sourceDomain || !targetDomain || creating}>
+              <Plus className="mr-2 size-4" />{creating ? 'Creando…' : 'Crear handoff'}
+            </Button>
+          </div>
+          <p className="mt-2 text-[11px] leading-5 text-muted-foreground">El servidor toma la última respuesta del dominio que tenga evidencia persistida, vuelve a validar permisos de origen y destino y evita duplicar un caso abierto. Mantención y Geología reciben el caso como referencia advisory; sus especialistas no son modificados.</p>
+          {createError ? <p className="mt-2 text-xs text-destructive">{createError}</p> : null}
+          {createNotice ? <p className="mt-2 text-xs text-muted-foreground">{createNotice}</p> : null}
+        </CardContent>
+      </Card>
 
       {state.error ? (
         <Card className="border-destructive/30">
