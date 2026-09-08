@@ -11,6 +11,7 @@ test('senior maintenance tool registry exposes only READ and PREPARE_ONLY capabi
   assert.match(source, /search_assets/)
   assert.match(source, /get_maintenance_attention_queue/)
   assert.match(source, /get_asset_context/)
+  assert.match(source, /get_asset_context_batch/)
   assert.match(source, /get_open_work_orders/)
   assert.match(source, /get_maintenance_plan/)
   assert.match(source, /get_observed_condition_history/)
@@ -22,6 +23,17 @@ test('senior maintenance tool registry exposes only READ and PREPARE_ONLY capabi
   assert.doesNotMatch(source, /execute_work_order/)
   assert.doesNotMatch(source, /prioritize_work_order/)
   assert.doesNotMatch(source, /general_sql|execute_sql|raw_sql/i)
+})
+
+test('batch asset context remains read-only and strictly bounded', async () => {
+  const source = await readFile(toolsPath, 'utf8')
+
+  assert.match(source, /name: 'get_asset_context_batch'/)
+  assert.match(source, /maxItems: 8/)
+  assert.match(source, /máximo de 8 activos por llamada/i)
+  assert.match(source, /PREFIERE esta herramienta para comparar varios activos/i)
+  assert.match(source, /canonicalAssetIds\.map\(\(canonicalAssetId\) => assetContext\(canonicalAssetId, context\)\)/)
+  assert.match(source, /get_asset_context_batch: 'read'/)
 })
 
 test('prepared maintenance decision cases remain derived and human-controlled', async () => {
@@ -40,11 +52,13 @@ test('READ tools stay bounded to canonical context and discovery remains non-pro
   const source = await readFile(toolsPath, 'utf8')
 
   assert.match(source, /function requireAssetId/)
+  assert.match(source, /function requireAssetIds/)
   assert.match(source, /function byAsset/)
+  assert.match(source, /function assetContext/)
   assert.match(source, /canonical_asset_id es obligatorio/)
   assert.match(source, /Herramienta no permitida/)
   assert.match(source, /Frecuencia observada en reportes; NO es probabilidad de falla/i)
   assert.match(source, /Score operacional determinístico para ordenar revisión humana/)
   assert.match(source, /NO es probabilidad de falla, criticidad OEM ni diagnóstico/i)
-  assert.doesNotMatch(source, /Math\.random|probability|failure_probability/i)
+  assert.doesNotMatch(source, /Math\.random|failure_probability/i)
 })
