@@ -1,6 +1,8 @@
 export type MaintenanceSeniorToolMode = 'read' | 'prepare_only'
 
 export type MaintenanceSeniorToolName =
+  | 'search_assets'
+  | 'get_maintenance_attention_queue'
   | 'get_asset_context'
   | 'get_open_work_orders'
   | 'get_maintenance_plan'
@@ -53,6 +55,8 @@ export type MaintenancePreparedDecisionCase = {
 }
 
 const toolModes: Record<MaintenanceSeniorToolName, MaintenanceSeniorToolMode> = {
+  search_assets: 'read',
+  get_maintenance_attention_queue: 'read',
   get_asset_context: 'read',
   get_open_work_orders: 'read',
   get_maintenance_plan: 'read',
@@ -67,6 +71,34 @@ const assetIdSchema = {
 }
 
 export const maintenanceSeniorTools: MaintenanceSeniorToolDefinition[] = [
+  {
+    type: 'function',
+    name: 'search_assets',
+    description: 'READ. Busca activos canónicos por código, nombre, fabricante o modelo dentro del contexto autorizado. No modifica datos.',
+    strict: true,
+    parameters: {
+      type: 'object',
+      properties: {
+        query: { type: 'string', description: 'Texto de búsqueda entregado por el usuario o derivado de su consulta.' },
+      },
+      required: ['query'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'get_maintenance_attention_queue',
+    description: 'READ. Recupera la cola operacional derivada para identificar activos que requieren revisión humana. Combina observaciones, preventivos, OT y cierre sin convertir frecuencia en probabilidad de falla.',
+    strict: true,
+    parameters: {
+      type: 'object',
+      properties: {
+        limit: { type: 'integer', minimum: 1, maximum: 20, description: 'Cantidad máxima de activos o señales a devolver.' },
+      },
+      required: ['limit'],
+      additionalProperties: false,
+    },
+  },
   {
     type: 'function',
     name: 'get_asset_context',
@@ -179,6 +211,42 @@ function requireAssetId(args: Record<string, unknown>) {
   return canonicalAssetId
 }
 
+function normalizedText(value: unknown) {
+  return String(value ?? '').trim().toLowerCase()
+}
+
+function cappedLimit(value: unknown, fallback = 10) {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return fallback
+  return Math.max(1, Math.min(20, Math.trunc(parsed)))
+}
+
+function attentionScore(assetId: string, context: MaintenanceCanonicalToolContext) {
+  const observed = byAsset(context.observed_conditions_90d, assetId)[0] || {}
+  const reviews = byAsset(context.pending_operational_reviews, assetId)
+  const preventive = byAsset(context.preventive_hour_status, assetId)
+  const workOrders = byAsset(context.operational_work_orders, assetId)
+  const closure = byAsset(context.closure_readiness, assetId)
+
+  const overduePreventive = preventive.filter((row) => ['due', 'overdue', 'vencido', 'vencida'].includes(normalizedText(row?.hour_status))).length
+  const openWorkOrders = workOrders.filter((row) =>
+    !['closed', 'cerrada', 'cerrado', 'completed', 'completada', 'completado', 'cancelled', 'cancelada', 'cancelado'].includes(normalizedText(row?.status))
+  ).length
+  const closureBlocked = closure.filter((row) => row?.ready_to_close === false).length
+  const outOfService = Number(observed?.out_of_service_reports || 0)
+  const withObservations = Number(observed?.operational_with_observations_reports || 0)
+
+  return {
+    score: reviews.length * 5 + overduePreventive * 4 + outOfService * 3 + withObservations * 2 + openWorkOrders + closureBlocked,
+    pending_reviews: reviews.length,
+    overdue_preventive: overduePreventive,
+    out_of_service_reports: outOfService,
+    operational_with_observations_reports: withObservations,
+    open_work_orders: openWorkOrders,
+    closure_blockers: closureBlocked,
+  }
+}
+
 export function executeMaintenanceSeniorTool(
   name: string,
   rawArgs: unknown,
@@ -190,6 +258,64 @@ export function executeMaintenanceSeniorTool(
   const args = rawArgs && typeof rawArgs === 'object' && !Array.isArray(rawArgs)
     ? rawArgs as Record<string, unknown>
     : {}
+
+  if (name === 'search_assets') {
+    const query = normalizedText(args.query)
+    if (!query) throw new Error('query es obligatorio para buscar activos')
+    const rows = (context.assets || [])
+      .filter((row) => [row?.asset_code, row?.name, row?.manufacturer, row?.model]
+        .some((value) => normalizedText(value).includes(query)))
+      .slice(0, 20)
+      .map((row) => ({
+        canonical_asset_id: row?.id || null,
+        asset_code: row?.asset_code || null,
+        asset_name: row?.name || null,
+        manufacturer: row?.manufacturer || null,
+        model: row?.model || null,
+        is_active: row?.is_active ?? null,
+        validation_status: row?.validation_status || null,
+      }))
+    return { mode, rows }
+  }
+
+  if (name === 'get_maintenance_attention_queue') {
+    const limit = cappedLimit(args.limit)
+    const assetIds = new Set<string>()
+    for (const collection of [
+      context.pending_operational_reviews,
+      context.observed_conditions_90d,
+      context.preventive_hour_status,
+      context.operational_work_orders,
+      context.closure_readiness,
+    ]) {
+      for (const row of collection || []) {
+        const assetId = String(row?.canonical_asset_id || '')
+        if (assetId) assetIds.add(assetId)
+      }
+    }
+
+    const assetById = new Map((context.assets || []).map((row) => [String(row?.id || ''), row]))
+    const rows = Array.from(assetIds)
+      .map((canonicalAssetId) => {
+        const asset = assetById.get(canonicalAssetId)
+        const attention = attentionScore(canonicalAssetId, context)
+        return {
+          canonical_asset_id: canonicalAssetId,
+          asset_code: asset?.asset_code || null,
+          asset_name: asset?.name || null,
+          ...attention,
+        }
+      })
+      .filter((row) => row.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit)
+
+    return {
+      mode,
+      rows,
+      semantics: 'Score operacional determinístico para ordenar revisión humana; NO es probabilidad de falla, criticidad OEM ni diagnóstico.',
+    }
+  }
 
   if (name === 'get_asset_context') {
     const canonicalAssetId = requireAssetId(args)
@@ -210,7 +336,7 @@ export function executeMaintenanceSeniorTool(
     return {
       mode,
       rows: byAsset(context.operational_work_orders, canonicalAssetId).filter((row) =>
-        !['closed', 'cerrada', 'cerrado', 'cancelled', 'cancelada', 'cancelado'].includes(String(row?.status || '').trim().toLowerCase())
+        !['closed', 'cerrada', 'cerrado', 'completed', 'completada', 'completado', 'cancelled', 'cancelada', 'cancelado'].includes(normalizedText(row?.status))
       ),
       authority: 'La herramienta no crea, modifica, prioriza ni cierra OT.',
     }
