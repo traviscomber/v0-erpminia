@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
-import { MaintenanceSeniorAssistant } from '@/components/maintenance/maintenance-senior-assistant';
 
 type ActionItem = { id:string; kind:string; priority:number; title:string; description:string; evidence:string; href:string; assetHref?:string|null };
 type Response = {
@@ -83,7 +82,5 @@ export default function MantenimientoPage(){
       <Link className="hover:text-foreground" href="/dashboard/mantenimiento/confiabilidad">Confiabilidad</Link>
       <Link className="hover:text-foreground" href="/dashboard/mantenimiento/horometros">Horómetros</Link>
     </div>
-
-    <MaintenanceSeniorAssistant />
   </div>;
 }
