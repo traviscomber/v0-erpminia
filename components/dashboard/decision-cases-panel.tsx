@@ -1,8 +1,9 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import useSWR from 'swr';
-import { Archive, CheckCircle2, Plus, RefreshCw, Route, ShieldCheck } from 'lucide-react';
+import { Archive, ArrowRight, CheckCircle2, Plus, RefreshCw, Route, ShieldCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +33,13 @@ type Response = {
   policy?: string;
 };
 
+type ParsedCaseSections = {
+  uncertainty: string | null;
+  contradictions: string[];
+  missingEvidence: string[];
+  nextHumanAction: string | null;
+};
+
 const labels: Record<string, string> = {
   executive: 'Centro Ejecutivo',
   inventory: 'Inventario',
@@ -42,6 +50,18 @@ const labels: Record<string, string> = {
   data_health: 'Calidad de Datos',
   maintenance: 'Mantención',
   geology: 'Geología',
+};
+
+const domainHref: Record<string, string> = {
+  executive: '/dashboard/decisiones',
+  inventory: '/dashboard/inventario',
+  procurement: '/dashboard/compras',
+  production: '/dashboard/produccion',
+  finance: '/dashboard/finanzas',
+  documents: '/dashboard/documentos',
+  data_health: '/dashboard/calidad-datos',
+  maintenance: '/dashboard/mantenimiento',
+  geology: '/dashboard/produccion/geologia',
 };
 
 const sourceDomains = ['executive', 'inventory', 'procurement', 'production', 'finance', 'documents', 'data_health'] as const;
@@ -61,6 +81,32 @@ function shortSummary(value: string) {
 
 function evidenceLabel(ref: SourceRef) {
   return ref.tool || ref.source || 'Fuente';
+}
+
+function parseExplicitCaseSections(summary: string): ParsedCaseSections {
+  const parsed: ParsedCaseSections = {
+    uncertainty: null,
+    contradictions: [],
+    missingEvidence: [],
+    nextHumanAction: null,
+  };
+
+  for (const rawLine of String(summary || '').split(/\r?\n/)) {
+    const line = rawLine.replace(/^[-*•\s]+/, '').trim();
+    if (!line) continue;
+    const match = line.match(/^(incertidumbre|contradicciones?|evidencia faltante|evidencia que falta|siguiente validaci[oó]n humana|siguiente acci[oó]n humana|acci[oó]n humana recomendada)\s*[:：-]\s*(.+)$/i);
+    if (!match) continue;
+    const key = match[1].toLowerCase();
+    const value = match[2].trim();
+    if (!value) continue;
+
+    if (key.startsWith('incertidumbre')) parsed.uncertainty = parsed.uncertainty || value;
+    else if (key.startsWith('contradic')) parsed.contradictions.push(value);
+    else if (key.startsWith('evidencia')) parsed.missingEvidence.push(value);
+    else parsed.nextHumanAction = parsed.nextHumanAction || value;
+  }
+
+  return parsed;
 }
 
 export function DecisionCasesPanel() {
@@ -176,7 +222,16 @@ export function DecisionCasesPanel() {
       <div className="grid gap-3 xl:grid-cols-2">
         {cases.slice(0, 8).map((item) => {
           const evidence = Array.isArray(item.evidence_refs) ? item.evidence_refs : [];
-          const missing = Array.isArray(item.missing_evidence) ? item.missing_evidence : [];
+          const explicit = parseExplicitCaseSections(item.summary);
+          const missing = Array.isArray(item.missing_evidence) && item.missing_evidence.length
+            ? item.missing_evidence
+            : explicit.missingEvidence;
+          const contradictions = Array.isArray(item.contradictions) && item.contradictions.length
+            ? item.contradictions
+            : explicit.contradictions;
+          const uncertainty = item.uncertainty || explicit.uncertainty;
+          const nextHumanAction = item.recommended_human_action || explicit.nextHumanAction;
+          const targetHref = domainHref[item.target_domain] || '/dashboard/decisiones';
           return (
             <Card key={item.id}>
               <CardHeader className="space-y-3 pb-3">
@@ -203,12 +258,19 @@ export function DecisionCasesPanel() {
                   {evidence.length > 6 ? <span className="rounded-full border px-2 py-1 text-[10px] text-muted-foreground">+{evidence.length - 6} fuentes</span> : null}
                 </div>
 
-                {item.uncertainty ? <p className="text-xs leading-5"><span className="font-medium">Incertidumbre:</span> {item.uncertainty}</p> : null}
+                {uncertainty ? <p className="text-xs leading-5"><span className="font-medium">Incertidumbre:</span> {uncertainty}</p> : null}
+                {contradictions.length ? <p className="text-xs leading-5"><span className="font-medium">Contradicciones:</span> {contradictions.slice(0, 3).join(' · ')}</p> : null}
                 {missing.length ? <p className="text-xs leading-5"><span className="font-medium">Evidencia faltante:</span> {missing.slice(0, 3).join(' · ')}</p> : null}
-                {item.recommended_human_action ? <p className="text-xs leading-5"><span className="font-medium">Siguiente validación humana:</span> {item.recommended_human_action}</p> : null}
+                {nextHumanAction ? <p className="text-xs leading-5"><span className="font-medium">Siguiente validación humana:</span> {nextHumanAction}</p> : null}
                 {item.recommended_workflow_key ? <p className="text-[11px] text-muted-foreground">Workflow disponible: {item.recommended_workflow_key}</p> : null}
 
                 <div className="flex flex-wrap gap-2 border-t pt-3">
+                  <Button asChild type="button" variant="default" size="sm">
+                    <Link href={targetHref}>
+                      Abrir {labels[item.target_domain] || 'especialista'}
+                      <ArrowRight className="ml-2 size-4" />
+                    </Link>
+                  </Button>
                   <Button type="button" variant="outline" size="sm" onClick={() => void updateCase(item.id, 'acknowledge')}>
                     <CheckCircle2 className="mr-2 size-4" />Reconocer
                   </Button>
