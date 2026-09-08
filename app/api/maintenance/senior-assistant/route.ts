@@ -560,7 +560,7 @@ export async function POST(request: NextRequest) {
       message: assistantMessage,
       learned,
       decisionCaseRefs: advisoryHandoffs.map((row) => row.id),
-      policy: 'Copiloto explicable con herramientas READ/PREPARE_ONLY: evidencia canónica → interpretación → hipótesis → acción humana. Memoria laboral y Decision Cases separados de la verdad operacional.',
+      policy: 'Copiloto explicable con herramientas READ/PREPARE_ONLY: evidencia canónica → interpretación → hipótesis → acción humana. Memoria laboral separada de la verdad operacional; Decision Cases también permanecen como contexto no canónico.',
     });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error ?? 'unknown');
