@@ -6,7 +6,9 @@ const routeUrl = new URL('../app/api/produccion/geologia/assistant/route.ts', im
 const organizationContextUrl = new URL('../lib/api/organization-context.ts', import.meta.url);
 const contextUrl = new URL('../lib/geology-ai/canonical-context.ts', import.meta.url);
 const promptUrl = new URL('../lib/geology-ai/prompt.ts', import.meta.url);
-const chatUrl = new URL('../components/production/geologia-ai-floating-chat.tsx', import.meta.url);
+const widgetUrl = new URL('../components/intelligence/senior-assistant-widget.tsx', import.meta.url);
+const bodyUrl = new URL('../components/intelligence/specialist-assistant-body.tsx', import.meta.url);
+const assistantContextUrl = new URL('../lib/intelligence/assistant-context.ts', import.meta.url);
 const shellUrl = new URL('../components/production/geologia-workspace-shell.tsx', import.meta.url);
 const migrationUrl = new URL('../supabase/migrations/20260904173000_add_geology_ai_conversations.sql', import.meta.url);
 
@@ -27,33 +29,32 @@ test('geology assistant POST is a scoped self-service write, not a production op
   assert.match(orgContext, /Forbidden: production write role required/);
 });
 
-test('floating geology chat is fixed, transparent, alive, accessible and never exposes the OpenAI key', async () => {
-  const [chat, shell] = await Promise.all([readFile(chatUrl, 'utf8'), readFile(shellUrl, 'utf8')]);
-  assert.match(chat, /fixed bottom-4 right-4/);
-  assert.match(chat, /bg-transparent/);
-  assert.match(chat, /border-0/);
-  assert.match(chat, /geology-ai-launcher/);
-  assert.match(chat, /geology-ai-alive/);
-  assert.match(chat, /geology-ai-aura/);
-  assert.match(chat, /aria-label="Abrir Asistente Senior de Geología"/);
-  assert.match(chat, /GeologyAiIcon/);
-  assert.match(chat, /\/api\/produccion\/geologia\/assistant/);
-  assert.doesNotMatch(chat, /OPENAI_API_KEY/);
-  assert.doesNotMatch(shell, /GEOLOGY_CHAT_ICON|data:image\/webp|background-image/);
-  assert.match(shell, /GeologiaAiFloatingChat/);
+test('global assistant is the single geology launcher and keeps the specialist runtime', async () => {
+  const [widget, shell, assistantContext] = await Promise.all([
+    readFile(widgetUrl, 'utf8'),
+    readFile(shellUrl, 'utf8'),
+    readFile(assistantContextUrl, 'utf8'),
+  ]);
+  assert.match(widget, /\/api\/produccion\/geologia\/assistant/);
+  assert.match(widget, /SeniorAssistantMark/);
+  assert.match(widget, /resolveAssistantContext/);
+  assert.match(assistantContext, /\/dashboard\/produccion\/geologia/);
+  assert.match(assistantContext, /Asistente de Geología/);
+  assert.doesNotMatch(widget, /OPENAI_API_KEY/);
+  assert.doesNotMatch(shell, /GeologiaAiFloatingChat|GEOLOGY_CHAT_ICON|data:image\/webp|background-image/);
 });
 
 test('conversation UI stays bounded while full history remains archived', async () => {
-  const [route, chat] = await Promise.all([readFile(routeUrl, 'utf8'), readFile(chatUrl, 'utf8')]);
+  const [route, body] = await Promise.all([readFile(routeUrl, 'utf8'), readFile(bodyUrl, 'utf8')]);
   assert.match(route, /const UI_MESSAGE_LIMIT = 20/);
   assert.match(route, /const SESSION_IDLE_MS = 8 \* 60 \* 60 \* 1000/);
   assert.match(route, /status: 'archived'/);
   assert.match(route, /body\?\.action === 'archive'/);
   assert.match(route, /query\.lt\('created_at', before\)/);
   assert.match(route, /oldestMessageAt/);
-  assert.match(chat, /Cargar anteriores/);
-  assert.match(chat, /action: 'archive'/);
-  assert.match(chat, /8 horas sin actividad/);
+  assert.match(body, /Ver mensajes anteriores/);
+  assert.match(body, /action: 'archive'/);
+  assert.match(body, /Nueva conversación/);
   assert.match(route, /\.neq\('id', userMessage\.id\)/);
 });
 
