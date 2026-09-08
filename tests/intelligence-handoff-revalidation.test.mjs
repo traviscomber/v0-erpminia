@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const persistentUrl = new URL('../lib/intelligence/persistent-operational-domain-assistant.ts', import.meta.url);
 const helperUrl = new URL('../lib/intelligence/advisory-handoff-context.ts', import.meta.url);
+const migrationUrl = new URL('../supabase/migrations/20260908153000_add_decision_case_revalidation_metadata.sql', import.meta.url);
 const read = (url) => readFile(url, 'utf8');
 
 test('Core specialists load only open advisory handoffs scoped to the current tenant user and target domain', async () => {
@@ -25,10 +26,26 @@ test('handoff content is explicitly non canonical and can only define what to re
   assert.match(runtime, /Si el caso ya no está respaldado o contradice la evidencia operacional actual, dilo explícitamente/);
 });
 
-test('handoff review remains read only and does not mutate Decision Cases or operational tables', async () => {
+test('successful grounded specialist answers may update advisory revalidation metadata only', async () => {
+  const [runtime, helper, migration] = await Promise.all([read(persistentUrl), read(helperUrl), read(migrationUrl)]);
+  assert.match(runtime, /const evidenceRefs = refsFromPayload\(payload\)/);
+  assert.match(runtime, /persistedMessage && advisoryHandoffs\.length && evidenceRefs\.length/);
+  assert.match(runtime, /recordSupportAdvisoryRevalidation/);
+  assert.match(helper, /last_revalidated_at/);
+  assert.match(helper, /last_revalidated_by_user_id/);
+  assert.match(helper, /last_revalidation_evidence_refs/);
+  assert.match(migration, /Advisory metadata only/);
+  assert.match(migration, /never a replacement for canonical source data/i);
+});
+
+test('revalidation metadata remains scoped and never mutates operational sources', async () => {
   const [runtime, helper] = await Promise.all([read(persistentUrl), read(helperUrl)]);
+  assert.match(helper, /\.eq\('organization_id', context\.organizationId\)/);
+  assert.match(helper, /\.eq\('created_by_user_id', context\.userId\)/);
+  assert.match(helper, /\.eq\('target_domain', targetDomain\)/);
+  assert.match(helper, /\.eq\('status', 'open'\)/);
+  assert.match(helper, /\.in\('id', caseIds\)/);
   const source = `${runtime}\n${helper}`;
-  assert.doesNotMatch(source, /motil_ai_decision_cases[\s\S]{0,260}\.(insert|update|delete)\(/);
   assert.doesNotMatch(source, /maintenance_work_orders[\s\S]{0,260}\.(insert|update|delete)\(/);
   assert.doesNotMatch(source, /canonical_purchase_orders_current[\s\S]{0,260}\.(insert|update|delete)\(/);
   assert.doesNotMatch(source, /canonical_inventory_current[\s\S]{0,260}\.(insert|update|delete)\(/);
@@ -37,7 +54,7 @@ test('handoff review remains read only and does not mutate Decision Cases or ope
 test('Decision Case references never become canonical source refs', async () => {
   const source = await read(persistentUrl);
   assert.match(source, /decisionCaseRefs: advisoryHandoffs\.map\(\(row\) => row\.id\)/);
-  assert.match(source, /sourceRefs: refsFromPayload\(payload\)/);
+  assert.match(source, /sourceRefs: evidenceRefs/);
   assert.doesNotMatch(source, /sourceRefs:\s*advisoryHandoffs/);
   assert.match(source, /El historial y los Decision Cases son contexto no canónico/);
 });

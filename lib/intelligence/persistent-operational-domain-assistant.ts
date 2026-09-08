@@ -16,6 +16,7 @@ import {
 } from '@/lib/intelligence/operational-domain-assistant';
 import {
   loadSupportAdvisoryHandoffs,
+  recordSupportAdvisoryRevalidation,
   supportAdvisoryHandoffPrompt,
 } from '@/lib/intelligence/advisory-handoff-context';
 
@@ -204,15 +205,33 @@ export async function handlePersistentOperationalDomainAssistant(args: HandlerAr
       });
     }
 
+    const evidenceRefs = refsFromPayload(payload);
     let persistedMessage = null;
     if (typeof payload.answer === 'string' && payload.answer.trim()) {
       persistedMessage = await appendCoreMessage(context.supabase, scope, {
         conversationId: conversation.id,
         role: 'assistant',
         content: payload.answer.trim(),
-        sourceRefs: refsFromPayload(payload),
+        sourceRefs: evidenceRefs,
         model: typeof payload.model === 'string' ? payload.model : null,
       });
+    }
+
+    let decisionCaseRevalidation = { updated: 0, at: null as string | null };
+    if (persistedMessage && advisoryHandoffs.length && evidenceRefs.length) {
+      try {
+        decisionCaseRevalidation = await recordSupportAdvisoryRevalidation(
+          context,
+          domain,
+          advisoryHandoffs,
+          evidenceRefs,
+        );
+      } catch (error) {
+        console.warn('[persistent-operational-assistant] advisory revalidation metadata skipped', {
+          domain,
+          detail: error instanceof Error ? error.message : String(error ?? 'unknown'),
+        });
+      }
     }
 
     return NextResponse.json({
@@ -220,6 +239,7 @@ export async function handlePersistentOperationalDomainAssistant(args: HandlerAr
       message: persistedMessage || payload.message || null,
       conversationId: conversation.id,
       decisionCaseRefs: advisoryHandoffs.map((row) => row.id),
+      decisionCaseRevalidation,
       persistence: 'core_continuity_v1',
       continuityPolicy: 'El historial y los Decision Cases son contexto no canónico. Sólo resuelven referencias o definen qué revalidar; la evidencia operacional sigue proviniendo del runtime canónico autorizado.',
     });

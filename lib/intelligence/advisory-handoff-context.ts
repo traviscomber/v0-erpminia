@@ -20,6 +20,10 @@ export type AdvisoryHandoffContext = {
   created_at: string;
 };
 
+export type AdvisoryRevalidationSourceRef =
+  | { source: string }
+  | { tool: string; mode?: string };
+
 type ScopedContext = {
   organizationId: string;
   userId: string;
@@ -44,6 +48,38 @@ export async function loadSupportAdvisoryHandoffs(
     .limit(3);
   if (error) throw error;
   return (data || []) as AdvisoryHandoffContext[];
+}
+
+export async function recordSupportAdvisoryRevalidation(
+  context: ScopedContext,
+  targetDomain: SupportHandoffTarget,
+  handoffs: AdvisoryHandoffContext[],
+  evidenceRefs: AdvisoryRevalidationSourceRef[],
+) {
+  const caseIds = Array.from(new Set(handoffs.map((row) => row.id).filter(Boolean)));
+  const refs = evidenceRefs.filter((ref) => {
+    if ('source' in ref) return typeof ref.source === 'string' && ref.source.trim().length > 0;
+    return typeof ref.tool === 'string' && ref.tool.trim().length > 0;
+  });
+  if (!caseIds.length || !refs.length) return { updated: 0, at: null as string | null };
+
+  const at = new Date().toISOString();
+  const { data, error } = await context.supabase
+    .from('motil_ai_decision_cases')
+    .update({
+      last_revalidated_at: at,
+      last_revalidated_by_user_id: context.userId,
+      last_revalidation_evidence_refs: refs,
+      updated_at: at,
+    })
+    .eq('organization_id', context.organizationId)
+    .eq('created_by_user_id', context.userId)
+    .eq('target_domain', targetDomain)
+    .eq('status', 'open')
+    .in('id', caseIds)
+    .select('id');
+  if (error) throw error;
+  return { updated: (data || []).length, at };
 }
 
 export function supportAdvisoryHandoffPrompt(
