@@ -4,7 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { resolveDataHealthAccess } from '@/lib/intelligence/data-health-access';
 import { routeOperationalQuery } from '@/lib/intelligence/query-router';
-import { loadSupportAdvisoryHandoffs, supportAdvisoryHandoffPrompt } from '@/lib/intelligence/advisory-handoff-context';
+import {
+  loadSupportAdvisoryHandoffs,
+  recordSupportAdvisoryRevalidation,
+  supportAdvisoryHandoffPrompt,
+} from '@/lib/intelligence/advisory-handoff-context';
 import {
   appendCoreMessage,
   archiveCoreConversation,
@@ -249,14 +253,31 @@ export async function POST(request: NextRequest) {
     );
     const sources = refs.filter((ref): ref is { source: string } => 'source' in ref).map((ref) => ref.source);
     const toolsUsed = refs.filter((ref): ref is { tool: string; mode: 'read' } => 'tool' in ref).map((ref) => ({ name: ref.tool, mode: ref.mode }));
+    const canonicalRefs = dataHealthSourceRefs(refs);
 
     const persisted = await appendCoreMessage(context.supabase, scope, {
       conversationId: conversation.id,
       role: 'assistant',
       content: result.text,
-      sourceRefs: dataHealthSourceRefs(refs),
+      sourceRefs: canonicalRefs,
       model: result.model,
     });
+
+    let decisionCaseRevalidation = { updated: 0, at: null as string | null };
+    if (persisted && advisoryHandoffs.length && canonicalRefs.length) {
+      try {
+        decisionCaseRevalidation = await recordSupportAdvisoryRevalidation(
+          context,
+          'data_health',
+          advisoryHandoffs,
+          canonicalRefs,
+        );
+      } catch (error) {
+        console.warn('[data-quality-assistant] advisory revalidation metadata skipped', {
+          detail: error instanceof Error ? error.message : String(error ?? 'unknown'),
+        });
+      }
+    }
 
     return NextResponse.json({
       answer: result.text,
@@ -267,6 +288,7 @@ export async function POST(request: NextRequest) {
       toolsUsed,
       conversationId: conversation.id,
       decisionCaseRefs: advisoryHandoffs.map((row) => row.id),
+      decisionCaseRevalidation,
       route,
       authorizedDomains: access.domains,
       persistence: 'core_continuity_v1',
