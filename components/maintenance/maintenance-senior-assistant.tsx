@@ -1,15 +1,21 @@
 'use client';
 
 import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from 'react';
-import { Database, RotateCcw, Send, X } from 'lucide-react';
+import { Database, RotateCcw, SearchCheck, Send, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+
+type SourceRef = {
+  source?: string;
+  tool?: string;
+  mode?: 'read' | 'prepare_only' | string;
+};
 
 type ChatMessage = {
   id?: string;
   role: 'user' | 'assistant';
   content: string;
-  source_refs?: Array<{ source?: string }>;
+  source_refs?: SourceRef[];
   model?: string | null;
   created_at?: string;
 };
@@ -23,6 +29,17 @@ type ChatState = {
   memoryCount?: number;
   cargo?: string | null;
   agent?: string;
+};
+
+const toolCopy: Record<string, string> = {
+  search_assets: 'Activos',
+  get_maintenance_attention_queue: 'Cola de atención',
+  get_asset_context: 'Contexto del activo',
+  get_open_work_orders: 'Órdenes abiertas',
+  get_maintenance_plan: 'Plan preventivo',
+  get_observed_condition_history: 'Condición observada',
+  get_closure_readiness: 'Preparación de cierre',
+  prepare_maintenance_decision_case: 'Caso preparado',
 };
 
 function MaintenanceAiMark() {
@@ -79,6 +96,16 @@ const starters = [
   '¿Qué preventivos están vencidos y con qué evidencia?',
   '¿Qué dato faltante tendría más valor para decidir mejor?',
 ];
+
+function uniqueToolRefs(refs: SourceRef[]) {
+  const unique = new Map<string, SourceRef>();
+  for (const ref of refs) {
+    if (!ref?.tool) continue;
+    const key = `${ref.tool}:${ref.mode || 'read'}`;
+    if (!unique.has(key)) unique.set(key, ref);
+  }
+  return Array.from(unique.values());
+}
 
 export function MaintenanceSeniorAssistant() {
   const [open, setOpen] = useState(false);
@@ -186,10 +213,14 @@ export function MaintenanceSeniorAssistant() {
       if (payload?.message) {
         setMessages((current) => [...current, payload.message]);
       } else if (payload?.answer) {
+        const sourceRefs: SourceRef[] = [
+          ...(Array.isArray(payload?.sources) ? payload.sources.map((source: string) => ({ source })) : []),
+          ...(Array.isArray(payload?.toolsUsed) ? payload.toolsUsed.map((tool: { name?: string; mode?: string }) => ({ tool: tool?.name, mode: tool?.mode })) : []),
+        ];
         setMessages((current) => [...current, {
           role: 'assistant',
           content: payload.answer,
-          source_refs: Array.isArray(payload?.sources) ? payload.sources.map((source: string) => ({ source })) : [],
+          source_refs: sourceRefs,
           model: payload?.model || null,
         }]);
       }
@@ -285,21 +316,33 @@ export function MaintenanceSeniorAssistant() {
 
         <div className="space-y-5">
           {messages.map((item, index) => {
-            const sources = (item.source_refs || []).map((ref) => ref?.source).filter(Boolean) as string[];
+            const refs = item.source_refs || [];
+            const sources = refs.map((ref) => ref?.source).filter(Boolean) as string[];
+            const tools = uniqueToolRefs(refs);
             const key = item.id || `${item.role}-${item.created_at || index}-${index}`;
             return <article key={key} className={cn('text-sm leading-relaxed', item.role === 'user' ? 'ml-8 border-l-2 border-primary/30 pl-3' : 'mr-2')}>
               <p className="mb-1 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">{item.role === 'user' ? 'Tú' : 'Asistente Senior'}</p>
               <div className="whitespace-pre-wrap">{item.content}</div>
-              {item.role === 'assistant' && sources.length ? <details className="mt-3 text-[11px] text-muted-foreground">
-                <summary className="cursor-pointer select-none">{sources.length} fuentes canónicas</summary>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {sources.map((source) => <span key={source} className="rounded-full border px-2 py-1 font-mono text-[9px]">{source}</span>)}
-                </div>
+              {item.role === 'assistant' && (sources.length || tools.length) ? <details className="mt-3 rounded-md border bg-background px-3 py-2 text-[11px] text-muted-foreground">
+                <summary className="cursor-pointer select-none font-medium text-foreground">Evidencia consultada{tools.length ? ` · ${tools.length} consulta(s)` : ''}</summary>
+                {tools.length ? <div className="mt-2 space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-[0.1em]">Consultas operacionales</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {tools.map((tool) => <span key={`${tool.tool}:${tool.mode}`} className="inline-flex items-center gap-1 rounded-full border px-2 py-1"><SearchCheck className="h-3 w-3"/>{toolCopy[tool.tool || ''] || tool.tool}{tool.mode === 'prepare_only' ? ' · borrador' : ''}</span>)}
+                  </div>
+                </div> : null}
+                {sources.length ? <div className="mt-2 space-y-1.5">
+                  <p className="text-[10px] uppercase tracking-[0.1em]">Fuentes canónicas</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {sources.map((source) => <span key={source} className="rounded-full border px-2 py-1 font-mono text-[9px]">{source}</span>)}
+                  </div>
+                </div> : null}
+                <p className="mt-2 text-[10px]">Las consultas son de lectura o preparación. La decisión y ejecución permanecen humanas.</p>
               </details> : null}
               {item.role === 'assistant' && item.model ? <p className="mt-2 text-[10px] text-muted-foreground">Modelo: {item.model}</p> : null}
             </article>;
           })}
-          {sending ? <p className="text-sm text-muted-foreground">Analizando evidencia canónica…</p> : null}
+          {sending ? <div className="flex items-center gap-2 text-sm text-muted-foreground"><SearchCheck className="h-4 w-4"/><span>Consultando evidencia canónica y contrastando señales…</span></div> : null}
           {error ? <p className="text-sm text-destructive">{error}</p> : null}
           <div ref={bottomRef} />
         </div>
