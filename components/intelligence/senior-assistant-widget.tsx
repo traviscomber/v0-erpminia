@@ -77,6 +77,14 @@ const documentsToolCopy: Record<string, string> = {
   read_contracts: 'Contratos',
 };
 
+const executiveToolCopy: Record<string, string> = {
+  read_executive_production: 'Producción',
+  read_executive_maintenance: 'Mantención',
+  read_executive_inventory: 'Inventario',
+  read_executive_procurement: 'Compras',
+  read_executive_finance: 'Finanzas',
+};
+
 const specialistConfig = {
   maintenance: {
     endpoint: '/api/maintenance/senior-assistant',
@@ -133,6 +141,13 @@ const specialistConfig = {
     emptyCopy: 'Pregunta qué fuentes están atrasadas, incompletas o en conflicto y cómo limita eso una decisión. Sólo se analizan dominios que puedes leer.',
     placeholder: 'Pregunta al Asistente de Calidad de Datos…',
     toolCopy: dataHealthToolCopy,
+  },
+  executive: {
+    endpoint: '/api/intelligence/executive-assistant',
+    loadingCopy: 'Construyendo contexto ejecutivo autorizado…',
+    emptyCopy: 'Pregunta qué requiere atención de gerencia. La síntesis usa sólo dominios autorizados, mantiene fechas de corte separadas y prioriza máximo tres asuntos.',
+    placeholder: 'Pregunta al Asistente Senior MOTIL…',
+    toolCopy: executiveToolCopy,
   },
 } as const;
 
