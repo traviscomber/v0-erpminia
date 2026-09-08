@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { resolveDataHealthAccess } from '@/lib/intelligence/data-health-access';
 import { routeOperationalQuery } from '@/lib/intelligence/query-router';
+import { loadSupportAdvisoryHandoffs, supportAdvisoryHandoffPrompt } from '@/lib/intelligence/advisory-handoff-context';
 import {
   appendCoreMessage,
   archiveCoreConversation,
@@ -234,11 +235,17 @@ export async function POST(request: NextRequest) {
       refs.push({ source: 'purchase_order_quality' }, { source: 'supplier_reconciliation_v1' }, { tool: 'read_data_health_procurement', mode: 'read' });
     }
 
-    const instructions = `Eres el especialista de Calidad de Datos dentro de MOTIL Intelligence Core. Tu función es explicar si una conclusión operacional puede confiar en sus fuentes y qué evidencia falta para mejorarla.\n\nREGLAS:\n1. Usa sólo EVIDENCIA MOTIL y sólo los dominios autorizados presentes para afirmar calidad, frescura, cobertura, conciliación o inconsistencia.\n2. HISTORIAL CONVERSACIONAL es contexto NO CANÓNICO. Puede ayudarte a entender qué fuente, problema o comparación quiere revisar el usuario, pero una advertencia o diagnóstico previo nunca representa el estado actual sin nueva evidencia MOTIL.\n3. Diferencia calidad, frescura, cobertura, conciliación e inconsistencia. No conviertas ausencia de datos en una conclusión operacional.\n4. Una fuente atrasada puede seguir siendo válida históricamente, pero no representa el estado actual. Declara las fechas de corte cuando sean relevantes.\n5. Un warning, excepción o cola de revisión no es automáticamente un error operativo ni una causa raíz.\n6. Nunca expongas datos de dominios no incluidos en EVIDENCIA MOTIL ni insinúes que conoces su estado.\n7. No corrijas ni modifiques datos, no fusiones registros y no cierres revisiones. Recomienda la validación humana mínima necesaria.\n8. Responde en formato operativo: Dato canónico → impacto en confiabilidad → evidencia faltante → siguiente validación.\n9. Mantén la respuesta breve y específica. No muestres JSON crudo.`;
+    const advisoryHandoffs = await loadSupportAdvisoryHandoffs(context, 'data_health', message);
+    const advisoryContext = supportAdvisoryHandoffPrompt(
+      advisoryHandoffs,
+      'Una advertencia, inconsistencia o diagnóstico previo nunca representa la calidad, frescura, cobertura o conciliación actual. Si las fuentes actuales contradicen el caso, indícalo y prioriza la evidencia actual.',
+    );
+
+    const instructions = `Eres el especialista de Calidad de Datos dentro de MOTIL Intelligence Core. Tu función es explicar si una conclusión operacional puede confiar en sus fuentes y qué evidencia falta para mejorarla.\n\nREGLAS:\n1. Usa sólo EVIDENCIA MOTIL y sólo los dominios autorizados presentes para afirmar calidad, frescura, cobertura, conciliación o inconsistencia.\n2. HISTORIAL CONVERSACIONAL es contexto NO CANÓNICO. Puede ayudarte a entender qué fuente, problema o comparación quiere revisar el usuario, pero una advertencia o diagnóstico previo nunca representa el estado actual sin nueva evidencia MOTIL.\n3. HANDOFF ADVISORY es contexto NO CANÓNICO: sólo define qué revalidar. Nunca transforma un warning, diagnóstico o inconsistencia previa en estado actual.\n4. Diferencia calidad, frescura, cobertura, conciliación e inconsistencia. No conviertas ausencia de datos en una conclusión operacional.\n5. Una fuente atrasada puede seguir siendo válida históricamente, pero no representa el estado actual. Declara las fechas de corte cuando sean relevantes.\n6. Un warning, excepción o cola de revisión no es automáticamente un error operativo ni una causa raíz.\n7. Nunca expongas datos de dominios no incluidos en EVIDENCIA MOTIL ni insinúes que conoces su estado.\n8. No corrijas ni modifiques datos, no fusiones registros y no cierres revisiones. Recomienda la validación humana mínima necesaria.\n9. Responde en formato operativo: Dato canónico → impacto en confiabilidad → evidencia faltante → siguiente validación.\n10. Mantén la respuesta breve y específica. No muestres JSON crudo.`;
 
     const result = await callModel(
       instructions,
-      `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nHISTORIAL CONVERSACIONAL NO CANÓNICO\n${conversationTranscript(history)}\n\nEVIDENCIA MOTIL CANÓNICA/AUTORIZADA\n${JSON.stringify(evidence)}\n\nPREGUNTA\n${message}`,
+      `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nHISTORIAL CONVERSACIONAL NO CANÓNICO\n${conversationTranscript(history)}\n\n${advisoryContext}\n\nEVIDENCIA MOTIL CANÓNICA/AUTORIZADA\n${JSON.stringify(evidence)}\n\nPREGUNTA\n${message}`,
     );
     const sources = refs.filter((ref): ref is { source: string } => 'source' in ref).map((ref) => ref.source);
     const toolsUsed = refs.filter((ref): ref is { tool: string; mode: 'read' } => 'tool' in ref).map((ref) => ({ name: ref.tool, mode: ref.mode }));
@@ -259,10 +266,11 @@ export async function POST(request: NextRequest) {
       sources,
       toolsUsed,
       conversationId: conversation.id,
+      decisionCaseRefs: advisoryHandoffs.map((row) => row.id),
       route,
       authorizedDomains: access.domains,
       persistence: 'core_continuity_v1',
-      policy: 'READ_ONLY + permission-aware: calidad/frescura/cobertura sólo sobre dominios que el usuario puede leer. Historial no canónico separado de evidencia.',
+      policy: 'READ_ONLY + permission-aware: calidad/frescura/cobertura sólo sobre dominios que el usuario puede leer. Historial y Decision Cases son contexto no canónico separado de evidencia.',
     });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error ?? 'unknown');
