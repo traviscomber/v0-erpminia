@@ -7,7 +7,7 @@ const shell = readFileSync(new URL('../components/layout/dashboard-shell.tsx', i
 
 test('senior assistant follows the MOTIL semantic color contract', () => {
   assert.match(widget, /fill-primary/);
-  assert.match(widget, /fill-secondary/);
+  assert.match(widget, /stroke-secondary/);
   assert.match(widget, /bg-card/);
   assert.doesNotMatch(widget, /gradient|blue-|purple-|violet-|#[0-9a-f]{3,8}/i);
 });
