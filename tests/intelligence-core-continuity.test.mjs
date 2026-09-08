@@ -16,11 +16,36 @@ test('Intelligence Core continuity is isolated by organization, user and domain'
   assert.match(source, /motil_ai_messages/);
 });
 
-test('core continuity v1 persists transcript but does not learn durable memory automatically', async () => {
+test('core durable memory is controlled, scoped and explicitly non-canonical', async () => {
   const source = await read(continuityUrl);
-  assert.match(source, /memoryCount: 0/);
-  assert.doesNotMatch(source, /from\('motil_ai_user_memory'\)/);
-  assert.doesNotMatch(source, /memory_type:/);
+  assert.match(source, /from\('motil_ai_user_memory'\)/);
+  assert.match(source, /MEMORIA CONTROLADA NO CANÓNICA/);
+  assert.match(source, /memoryCount: memories\.length/);
+  assert.match(source, /ALLOWED_MEMORY_TYPES/);
+  for (const type of ['preference', 'responsibility', 'terminology', 'working_context']) {
+    assert.match(source, new RegExp(`'${type}'`));
+  }
+  assert.doesNotMatch(source, /ALLOWED_MEMORY_TYPES = new Set\(\[[\s\S]*?'decision_rule'/);
+  assert.doesNotMatch(source, /ALLOWED_MEMORY_TYPES = new Set\(\[[\s\S]*?'observation'/);
+});
+
+test('core memory extraction forbids operational facts and sensitive context', async () => {
+  const source = await read(continuityUrl);
+  assert.match(source, /PROHIBIDO guardar hechos operacionales/);
+  assert.match(source, /activos, fallas, causas, stocks, precios, cantidades, prioridades/);
+  assert.match(source, /PROHIBIDO guardar secretos, credenciales, tokens, datos médicos o atributos sensibles/);
+  assert.match(source, /No infieras/);
+  assert.match(source, /No conviertas conversación previa en evidencia/);
+});
+
+test('core memory is persisted inside the request and remains separate from operational source refs', async () => {
+  const source = await read(continuityUrl);
+  assert.match(source, /if \(args\.role === 'user'\) \{\s*await learnCoreMemory/);
+  assert.match(source, /source_message_id: sourceMessageId/);
+  assert.match(source, /organization_id: scope\.organizationId/);
+  assert.match(source, /user_id: scope\.userId/);
+  assert.match(source, /domain: scope\.domain/);
+  assert.doesNotMatch(source, /source_refs:\s*.*memory/i);
 });
 
 test('Executive assistant separates non-canonical transcript from canonical evidence', async () => {
