@@ -4,6 +4,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { resolveDataHealthAccess } from '@/lib/intelligence/data-health-access';
 import { routeOperationalQuery } from '@/lib/intelligence/query-router';
+import {
+  appendCoreMessage,
+  archiveCoreConversation,
+  conversationTranscript,
+  getCoreConversationHistory,
+  getCoreConversationState,
+  resolveCoreConversation,
+  type CoreConversationScope,
+  type CoreSourceRef,
+} from '@/lib/intelligence/core-conversation';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const MAX_MESSAGE_CHARS = 12000;
@@ -51,20 +61,42 @@ async function callModel(instructions: string, input: string) {
 
 type SourceRef = { source: string } | { tool: string; mode: 'read' };
 
+function dataHealthScope(context: Extract<Awaited<ReturnType<typeof getOrganizationContext>>, { ok: true }>): CoreConversationScope {
+  return {
+    organizationId: context.organizationId,
+    userId: context.userId,
+    domain: 'data_health',
+  };
+}
+
+function dataHealthSourceRefs(refs: SourceRef[]): CoreSourceRef[] {
+  return refs.map((ref) => ('source' in ref ? { source: ref.source } : { tool: ref.tool, mode: ref.mode }));
+}
+
 export async function GET(request: NextRequest) {
   const access = await resolveDataHealthAccess(request);
   if (!access.ok) return access.response;
-  return NextResponse.json({
-    conversation: null,
-    messages: [],
-    hasMore: false,
-    oldestMessageAt: null,
-    sessionIdleHours: null,
-    memoryCount: 0,
-    cargo: null,
-    persistence: 'stateless_v1',
-    authorizedDomains: access.domains,
-  });
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const state = await getCoreConversationState(context.supabase, dataHealthScope(context), {
+      conversationId: request.nextUrl.searchParams.get('conversationId'),
+      before: request.nextUrl.searchParams.get('before'),
+    });
+    return NextResponse.json({
+      ...state,
+      sessionIdleHours: null,
+      cargo: null,
+      persistence: 'core_continuity_v1',
+      authorizedDomains: access.domains,
+    });
+  } catch (error) {
+    console.error('[data-quality-assistant] continuity load failed', {
+      detail: error instanceof Error ? error.message : String(error ?? 'unknown'),
+    });
+    return NextResponse.json({ error: 'No fue posible abrir la conversación de calidad de datos.' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -72,27 +104,62 @@ export async function POST(request: NextRequest) {
   if (!access.ok) return access.response;
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
+  const scope = dataHealthScope(context);
 
   const body = await request.json().catch(() => null);
-  if (body?.action === 'archive') return NextResponse.json({ archived: false, conversationId: null });
+  if (body?.action === 'archive') {
+    const conversationId = typeof body?.conversationId === 'string' ? body.conversationId.trim() : '';
+    if (conversationId) {
+      try {
+        await archiveCoreConversation(context.supabase, scope, conversationId);
+      } catch (error) {
+        console.error('[data-quality-assistant] archive failed', {
+          detail: error instanceof Error ? error.message : String(error ?? 'unknown'),
+        });
+        return NextResponse.json({ error: 'No fue posible cerrar la conversación de calidad de datos.' }, { status: 500 });
+      }
+    }
+    return NextResponse.json({ archived: Boolean(conversationId), conversationId: null, persistence: 'core_continuity_v1' });
+  }
+
   const message = typeof body?.message === 'string' ? body.message.trim() : '';
   if (!message) return NextResponse.json({ error: 'Escribe una consulta de calidad de datos.' }, { status: 400 });
   if (message.length > MAX_MESSAGE_CHARS) return NextResponse.json({ error: 'La consulta es demasiado extensa.' }, { status: 400 });
 
   const route = routeOperationalQuery(message, { domain: 'data_health' });
-  if (route.mode === 'action' || route.requiresExplicitAuthorization) {
-    return NextResponse.json({
-      answer: 'Puedo explicar la calidad, frescura y cobertura de los datos, pero este asistente no corrige, concilia ni modifica fuentes. La resolución debe realizarse en el flujo humano autorizado.',
-      model: null,
-      sources: [],
-      toolsUsed: [],
-      conversationId: null,
-      route,
-      policy: 'READ_ONLY: Data Health nunca modifica la fuente canónica.',
-    });
-  }
 
   try {
+    const conversation = await resolveCoreConversation(context.supabase, scope, {
+      conversationId: typeof body?.conversationId === 'string' ? body.conversationId : null,
+      firstMessage: message,
+    });
+    const history = await getCoreConversationHistory(context.supabase, scope, conversation.id);
+    await appendCoreMessage(context.supabase, scope, {
+      conversationId: conversation.id,
+      role: 'user',
+      content: message,
+    });
+
+    if (route.mode === 'action' || route.requiresExplicitAuthorization) {
+      const answer = 'Puedo explicar la calidad, frescura y cobertura de los datos, pero este asistente no corrige, concilia ni modifica fuentes. La resolución debe realizarse en el flujo humano autorizado.';
+      const persisted = await appendCoreMessage(context.supabase, scope, {
+        conversationId: conversation.id,
+        role: 'assistant',
+        content: answer,
+      });
+      return NextResponse.json({
+        answer,
+        message: persisted,
+        model: null,
+        sources: [],
+        toolsUsed: [],
+        conversationId: conversation.id,
+        route,
+        persistence: 'core_continuity_v1',
+        policy: 'READ_ONLY: Data Health nunca modifica la fuente canónica. El historial es contexto no canónico.',
+      });
+    }
+
     const org = context.organizationId;
     const evidence: Record<string, unknown> = {};
     const refs: SourceRef[] = [];
@@ -167,23 +234,35 @@ export async function POST(request: NextRequest) {
       refs.push({ source: 'purchase_order_quality' }, { source: 'supplier_reconciliation_v1' }, { tool: 'read_data_health_procurement', mode: 'read' });
     }
 
-    const instructions = `Eres el especialista de Calidad de Datos dentro de MOTIL Intelligence Core. Tu función es explicar si una conclusión operacional puede confiar en sus fuentes y qué evidencia falta para mejorarla.\n\nREGLAS:\n1. Usa sólo EVIDENCIA MOTIL y sólo los dominios autorizados presentes.\n2. Diferencia calidad, frescura, cobertura, conciliación e inconsistencia. No conviertas ausencia de datos en una conclusión operacional.\n3. Una fuente atrasada puede seguir siendo válida históricamente, pero no representa el estado actual. Declara las fechas de corte cuando sean relevantes.\n4. Un warning, excepción o cola de revisión no es automáticamente un error operativo ni una causa raíz.\n5. Nunca expongas datos de dominios no incluidos en EVIDENCIA MOTIL ni insinúes que conoces su estado.\n6. No corrijas ni modifiques datos, no fusiones registros y no cierres revisiones. Recomienda la validación humana mínima necesaria.\n7. Responde en formato operativo: Dato canónico → impacto en confiabilidad → evidencia faltante → siguiente validación.\n8. Mantén la respuesta breve y específica. No muestres JSON crudo.`;
+    const instructions = `Eres el especialista de Calidad de Datos dentro de MOTIL Intelligence Core. Tu función es explicar si una conclusión operacional puede confiar en sus fuentes y qué evidencia falta para mejorarla.\n\nREGLAS:\n1. Usa sólo EVIDENCIA MOTIL y sólo los dominios autorizados presentes para afirmar calidad, frescura, cobertura, conciliación o inconsistencia.\n2. HISTORIAL CONVERSACIONAL es contexto NO CANÓNICO. Puede ayudarte a entender qué fuente, problema o comparación quiere revisar el usuario, pero una advertencia o diagnóstico previo nunca representa el estado actual sin nueva evidencia MOTIL.\n3. Diferencia calidad, frescura, cobertura, conciliación e inconsistencia. No conviertas ausencia de datos en una conclusión operacional.\n4. Una fuente atrasada puede seguir siendo válida históricamente, pero no representa el estado actual. Declara las fechas de corte cuando sean relevantes.\n5. Un warning, excepción o cola de revisión no es automáticamente un error operativo ni una causa raíz.\n6. Nunca expongas datos de dominios no incluidos en EVIDENCIA MOTIL ni insinúes que conoces su estado.\n7. No corrijas ni modifiques datos, no fusiones registros y no cierres revisiones. Recomienda la validación humana mínima necesaria.\n8. Responde en formato operativo: Dato canónico → impacto en confiabilidad → evidencia faltante → siguiente validación.\n9. Mantén la respuesta breve y específica. No muestres JSON crudo.`;
 
-    const result = await callModel(instructions, `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nEVIDENCIA MOTIL\n${JSON.stringify(evidence)}\n\nPREGUNTA\n${message}`);
+    const result = await callModel(
+      instructions,
+      `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nHISTORIAL CONVERSACIONAL NO CANÓNICO\n${conversationTranscript(history)}\n\nEVIDENCIA MOTIL CANÓNICA/AUTORIZADA\n${JSON.stringify(evidence)}\n\nPREGUNTA\n${message}`,
+    );
     const sources = refs.filter((ref): ref is { source: string } => 'source' in ref).map((ref) => ref.source);
     const toolsUsed = refs.filter((ref): ref is { tool: string; mode: 'read' } => 'tool' in ref).map((ref) => ({ name: ref.tool, mode: ref.mode }));
 
+    const persisted = await appendCoreMessage(context.supabase, scope, {
+      conversationId: conversation.id,
+      role: 'assistant',
+      content: result.text,
+      sourceRefs: dataHealthSourceRefs(refs),
+      model: result.model,
+    });
+
     return NextResponse.json({
       answer: result.text,
+      message: persisted,
       model: result.model,
       responseId: result.responseId,
       sources,
       toolsUsed,
-      conversationId: null,
+      conversationId: conversation.id,
       route,
       authorizedDomains: access.domains,
-      persistence: 'stateless_v1',
-      policy: 'READ_ONLY + permission-aware: calidad/frescura/cobertura sólo sobre dominios que el usuario puede leer.',
+      persistence: 'core_continuity_v1',
+      policy: 'READ_ONLY + permission-aware: calidad/frescura/cobertura sólo sobre dominios que el usuario puede leer. Historial no canónico separado de evidencia.',
     });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error ?? 'unknown');
