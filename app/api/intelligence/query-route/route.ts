@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
-import { isAssistantDomain, resolveAssistantContext } from '@/lib/intelligence/assistant-context';
+import { resolveAssistantContext } from '@/lib/intelligence/assistant-context';
 import { routeOperationalQuery } from '@/lib/intelligence/query-router';
 
 export async function POST(request: NextRequest) {
@@ -14,13 +14,12 @@ export async function POST(request: NextRequest) {
     const query = typeof body?.query === 'string' ? body.query : '';
     const pathname = typeof body?.context?.pathname === 'string' ? body.context.pathname : '';
     const resolvedContext = resolveAssistantContext(pathname);
-    const requestedDomain = isAssistantDomain(body?.context?.domain) ? body.context.domain : resolvedContext.domain;
 
     if (!query.trim()) {
       return NextResponse.json({ error: 'query es requerido' }, { status: 400 });
     }
 
-    const route = routeOperationalQuery(query, { domain: requestedDomain, pathname });
+    const route = routeOperationalQuery(query, { domain: resolvedContext.domain, pathname });
 
     return NextResponse.json({
       route,
