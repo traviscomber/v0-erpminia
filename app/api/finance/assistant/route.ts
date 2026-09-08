@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
-import { handleOperationalDomainAssistant } from '@/lib/intelligence/operational-domain-assistant';
+import { handlePersistentOperationalDomainAssistant } from '@/lib/intelligence/persistent-operational-domain-assistant';
 
 async function handle(request: NextRequest) {
   const financeAccess = await requireModuleAccess(request, MODULE_KEYS.FIN_FINANZAS);
@@ -22,7 +22,7 @@ async function handle(request: NextRequest) {
   if (procurementAccess.authorized) allowedDomains.push('procurement');
   if (productionAccess.authorized) allowedDomains.push('production');
 
-  return handleOperationalDomainAssistant({
+  return handlePersistentOperationalDomainAssistant({
     request,
     context,
     domain: 'finance',
