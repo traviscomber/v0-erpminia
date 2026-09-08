@@ -3,6 +3,7 @@ export type MaintenanceSeniorToolMode = 'read' | 'prepare_only'
 export type MaintenanceSeniorToolName =
   | 'search_assets'
   | 'get_maintenance_attention_queue'
+  | 'get_maintenance_attention_context'
   | 'get_asset_context'
   | 'get_asset_context_batch'
   | 'get_open_work_orders'
@@ -58,6 +59,7 @@ export type MaintenancePreparedDecisionCase = {
 const toolModes: Record<MaintenanceSeniorToolName, MaintenanceSeniorToolMode> = {
   search_assets: 'read',
   get_maintenance_attention_queue: 'read',
+  get_maintenance_attention_context: 'read',
   get_asset_context: 'read',
   get_asset_context_batch: 'read',
   get_open_work_orders: 'read',
@@ -96,6 +98,20 @@ export const maintenanceSeniorTools: MaintenanceSeniorToolDefinition[] = [
       type: 'object',
       properties: {
         limit: { type: 'integer', minimum: 1, maximum: 20, description: 'Cantidad máxima de activos o señales a devolver.' },
+      },
+      required: ['limit'],
+      additionalProperties: false,
+    },
+  },
+  {
+    type: 'function',
+    name: 'get_maintenance_attention_context',
+    description: 'READ. Devuelve en una sola llamada la cola operacional y el contexto canónico de hasta 8 activos seleccionados por esa cola. PREFIERE esta herramienta para preguntas multi-activo sobre qué requiere atención primero. No modifica datos, no diagnostica y no autoriza prioridad.',
+    strict: true,
+    parameters: {
+      type: 'object',
+      properties: {
+        limit: { type: 'integer', minimum: 1, maximum: 8, description: 'Cantidad máxima de activos con cola + contexto canónico a devolver.' },
       },
       required: ['limit'],
       additionalProperties: false,
@@ -291,6 +307,38 @@ function attentionScore(assetId: string, context: MaintenanceCanonicalToolContex
   }
 }
 
+function maintenanceAttentionRows(limit: number, context: MaintenanceCanonicalToolContext) {
+  const assetIds = new Set<string>()
+  for (const collection of [
+    context.pending_operational_reviews,
+    context.observed_conditions_90d,
+    context.preventive_hour_status,
+    context.operational_work_orders,
+    context.closure_readiness,
+  ]) {
+    for (const row of collection || []) {
+      const assetId = String(row?.canonical_asset_id || '')
+      if (assetId) assetIds.add(assetId)
+    }
+  }
+
+  const assetById = new Map((context.assets || []).map((row) => [String(row?.id || ''), row]))
+  return Array.from(assetIds)
+    .map((canonicalAssetId) => {
+      const asset = assetById.get(canonicalAssetId)
+      const attention = attentionScore(canonicalAssetId, context)
+      return {
+        canonical_asset_id: canonicalAssetId,
+        asset_code: asset?.asset_code || null,
+        asset_name: asset?.name || null,
+        ...attention,
+      }
+    })
+    .filter((row) => row.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit)
+}
+
 export function executeMaintenanceSeniorTool(
   name: string,
   rawArgs: unknown,
@@ -324,40 +372,23 @@ export function executeMaintenanceSeniorTool(
 
   if (name === 'get_maintenance_attention_queue') {
     const limit = cappedLimit(args.limit)
-    const assetIds = new Set<string>()
-    for (const collection of [
-      context.pending_operational_reviews,
-      context.observed_conditions_90d,
-      context.preventive_hour_status,
-      context.operational_work_orders,
-      context.closure_readiness,
-    ]) {
-      for (const row of collection || []) {
-        const assetId = String(row?.canonical_asset_id || '')
-        if (assetId) assetIds.add(assetId)
-      }
-    }
-
-    const assetById = new Map((context.assets || []).map((row) => [String(row?.id || ''), row]))
-    const rows = Array.from(assetIds)
-      .map((canonicalAssetId) => {
-        const asset = assetById.get(canonicalAssetId)
-        const attention = attentionScore(canonicalAssetId, context)
-        return {
-          canonical_asset_id: canonicalAssetId,
-          asset_code: asset?.asset_code || null,
-          asset_name: asset?.name || null,
-          ...attention,
-        }
-      })
-      .filter((row) => row.score > 0)
-      .sort((a, b) => b.score - a.score)
-      .slice(0, limit)
-
     return {
       mode,
-      rows,
+      rows: maintenanceAttentionRows(limit, context),
       semantics: 'Score operacional determinístico para ordenar revisión humana; NO es probabilidad de falla, criticidad OEM ni diagnóstico.',
+    }
+  }
+
+  if (name === 'get_maintenance_attention_context') {
+    const limit = Math.min(8, cappedLimit(args.limit, 6))
+    const rows = maintenanceAttentionRows(limit, context)
+    return {
+      mode,
+      rows: rows.map((attention) => ({
+        attention,
+        context: assetContext(attention.canonical_asset_id, context),
+      })),
+      semantics: 'Lectura compuesta y acotada de cola + evidencia canónica. El score sólo ordena revisión humana; NO es probabilidad de falla, diagnóstico, criticidad OEM ni autorización de prioridad.',
     }
   }
 
