@@ -5,7 +5,8 @@ import {
 } from '@/lib/maintenance/senior-assistant-tools'
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses'
-const MAX_TOOL_ROUNDS = 4
+const MAX_TOOL_ROUNDS = 8
+const MAX_TOOL_CALLS = 12
 
 function extractResponseText(payload: any) {
   for (const item of payload?.output || []) {
@@ -66,7 +67,9 @@ export async function runMaintenanceOpenAIToolLoop(args: {
 }) {
   let input: any[] = [{ role: 'user', content: args.input }]
   let lastPayload: any = null
+  let totalToolCalls = 0
   const toolAudit: Array<{ name: string; mode: string; call_id: string }> = []
+  const resultCache = new Map<string, { result: unknown; mode: string }>()
 
   for (let round = 0; round <= MAX_TOOL_ROUNDS; round += 1) {
     const payload = await createResponse({
@@ -91,14 +94,20 @@ export async function runMaintenanceOpenAIToolLoop(args: {
     }
 
     if (round === MAX_TOOL_ROUNDS) throw new Error('El asistente excedió el límite seguro de rondas de herramientas')
+    if (totalToolCalls + calls.length > MAX_TOOL_CALLS) throw new Error('El asistente excedió el límite seguro de llamadas a herramientas')
 
     // Preserve every output item, including reasoning items, before returning tool results.
     input = [...input, ...(payload.output || [])]
 
     for (const call of calls) {
+      totalToolCalls += 1
       const parsedArgs = JSON.parse(call.arguments || '{}')
-      const result = executeMaintenanceSeniorTool(call.name, parsedArgs, args.context)
-      const mode = result && typeof result === 'object' && 'mode' in result ? String((result as any).mode) : 'read'
+      const cacheKey = `${String(call.name)}:${JSON.stringify(parsedArgs)}`
+      const cached = resultCache.get(cacheKey)
+      const result = cached?.result ?? executeMaintenanceSeniorTool(call.name, parsedArgs, args.context)
+      const mode = cached?.mode ?? (result && typeof result === 'object' && 'mode' in result ? String((result as any).mode) : 'read')
+      if (!cached) resultCache.set(cacheKey, { result, mode })
+
       toolAudit.push({ name: String(call.name), mode, call_id: String(call.call_id) })
       input.push({
         type: 'function_call_output',
