@@ -2,8 +2,13 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { resolveDataHealthAccess } from '@/lib/intelligence/data-health-access';
 
 type HealthStatus = 'healthy' | 'watch' | 'critical' | 'unknown';
+
+type QueryResult = { data: any; error: any; count?: number | null };
+const emptyRows = (): Promise<QueryResult> => Promise.resolve({ data: [], error: null, count: 0 });
+const emptyOne = (): Promise<QueryResult> => Promise.resolve({ data: null, error: null });
 
 function daysOld(value?: string | null) {
   if (!value) return null;
@@ -21,11 +26,19 @@ function freshnessStatus(days: number | null): HealthStatus {
 }
 
 export async function GET(request: NextRequest) {
+  const access = await resolveDataHealthAccess(request);
+  if (!access.ok) return access.response;
+
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
   try {
     const org = context.organizationId;
+    const productionAllowed = access.canRead('production');
+    const maintenanceAllowed = access.canRead('maintenance');
+    const inventoryAllowed = access.canRead('inventory');
+    const procurementAllowed = access.canRead('procurement');
+
     const [
       productionChecks,
       transportLatest,
@@ -39,76 +52,44 @@ export async function GET(request: NextRequest) {
       procurementExceptions,
       exceptionCenter,
     ] = await Promise.all([
-      context.supabase.from('production_canonical_package_quality_v1').select('status').eq('organization_id', org),
-      context.supabase.from('production_material_movements').select('movement_date').eq('organization_id', org).order('movement_date', { ascending: false }).limit(1),
-      context.supabase.from('production_metallurgy_deterministic_v2').select('operation_date').eq('organization_id', org).order('operation_date', { ascending: false }).limit(1),
-      context.supabase.from('production_drilling_source_reports').select('operation_date').eq('organization_id', org).order('operation_date', { ascending: false }).limit(1),
-      context.supabase.from('production_drill_hole_location_review_queue_v5').select('drill_hole_id', { count: 'exact', head: true }).eq('organization_id', org),
-      context.supabase.from('inventory_intelligence_overview_v1').select('*').eq('organization_id', org).maybeSingle(),
-      context.supabase.from('canonical_inventory_current').select('snapshot_date').eq('organization_id', org).order('snapshot_date', { ascending: false }).limit(1),
-      context.supabase.from('maintenance_work_orders').select('status, canonical_asset_id').eq('organization_id', org),
-      context.supabase.from('purchase_order_quality').select('quality_status').eq('organization_id', org),
-      context.supabase.from('procurement_match_exceptions').select('status').eq('organization_id', org),
-      context.supabase.from('operational_exception_center_summary_v1').select('*').eq('organization_id', org).maybeSingle(),
-    ]);
+      productionAllowed ? context.supabase.from('production_canonical_package_quality_v1').select('status').eq('organization_id', org) : emptyRows(),
+      productionAllowed ? context.supabase.from('production_material_movements').select('movement_date').eq('organization_id', org).order('movement_date', { ascending: false }).limit(1) : emptyRows(),
+      productionAllowed ? context.supabase.from('production_metallurgy_deterministic_v2').select('operation_date').eq('organization_id', org).order('operation_date', { ascending: false }).limit(1) : emptyRows(),
+      productionAllowed ? context.supabase.from('production_drilling_source_reports').select('operation_date').eq('organization_id', org).order('operation_date', { ascending: false }).limit(1) : emptyRows(),
+      productionAllowed ? context.supabase.from('production_drill_hole_location_review_queue_v5').select('drill_hole_id', { count: 'exact', head: true }).eq('organization_id', org) : emptyRows(),
+      inventoryAllowed ? context.supabase.from('inventory_intelligence_overview_v1').select('*').eq('organization_id', org).maybeSingle() : emptyOne(),
+      inventoryAllowed ? context.supabase.from('canonical_inventory_current').select('snapshot_date').eq('organization_id', org).order('snapshot_date', { ascending: false }).limit(1) : emptyRows(),
+      maintenanceAllowed ? context.supabase.from('maintenance_work_orders').select('status, canonical_asset_id').eq('organization_id', org) : emptyRows(),
+      procurementAllowed ? context.supabase.from('purchase_order_quality').select('quality_status').eq('organization_id', org) : emptyRows(),
+      procurementAllowed ? context.supabase.from('procurement_match_exceptions').select('status').eq('organization_id', org) : emptyRows(),
+      maintenanceAllowed ? context.supabase.from('operational_exception_center_summary_v1').select('*').eq('organization_id', org).maybeSingle() : emptyOne(),
+    ] as Promise<QueryResult>[]);
 
     const failures = [productionChecks, transportLatest, metallurgyLatest, drillingLatest, drillingQueue, inventoryOverview, inventorySnapshot, workOrders, poQuality, procurementExceptions, exceptionCenter]
-      .map((result: any) => result.error)
+      .map((result: QueryResult) => result.error)
       .filter(Boolean);
     if (failures.length) throw failures[0];
 
-    const transportDate = transportLatest.data?.[0]?.movement_date || null;
-    const metallurgyDate = metallurgyLatest.data?.[0]?.operation_date || null;
-    const drillingDate = drillingLatest.data?.[0]?.operation_date || null;
-    const inventoryDate = inventorySnapshot.data?.[0]?.snapshot_date || null;
+    const domains: any[] = [];
 
-    const prodChecks = productionChecks.data || [];
-    const productionFailed = prodChecks.filter((row: any) => !['PASS', 'pass'].includes(String(row.status))).length;
-    const productionFreshness = [transportDate, metallurgyDate, drillingDate].map(daysOld);
-    const productionAges = productionFreshness.filter((value): value is number => value !== null);
-    const productionWorstAge = productionAges.length ? Math.max(...productionAges) : null;
-    const productionMissingFreshness = productionFreshness.some((value) => value === null);
-    const productionHasEvidence = prodChecks.length > 0 && !productionMissingFreshness;
-    const productionStatus: HealthStatus = productionFailed > 0
-      ? 'critical'
-      : !productionHasEvidence
-        ? 'unknown'
-        : freshnessStatus(productionWorstAge);
-
-    const inventory = inventoryOverview.data as any;
-    const inventoryHasOverview = Boolean(inventory);
-    const negativeStock = inventoryHasOverview ? Number(inventory?.negative_stock_products || 0) : 0;
-    const inventoryAge = daysOld(inventoryDate);
-    const inventoryStatus: HealthStatus = negativeStock > 0
-      ? 'critical'
-      : !inventoryHasOverview || inventoryAge === null
-        ? 'unknown'
-        : freshnessStatus(inventoryAge);
-
-    const closedStatuses = new Set(['completed', 'closed', 'cancelled', 'canceled']);
-    const allWorkOrders = workOrders.data || [];
-    const openWorkOrders = allWorkOrders.filter((row: any) => !closedStatuses.has(String(row.status || '').toLowerCase()));
-    const openMissingAsset = openWorkOrders.filter((row: any) => !row.canonical_asset_id).length;
-    const historicalMissingAsset = allWorkOrders.filter((row: any) => !row.canonical_asset_id).length;
-    const maintenanceStatus: HealthStatus = openMissingAsset > 0
-      ? 'critical'
-      : allWorkOrders.length === 0
-        ? 'unknown'
-        : 'healthy';
-
-    const poRows = poQuality.data || [];
-    const poWarnings = poRows.filter((row: any) => String(row.quality_status).toLowerCase() !== 'valid').length;
-    const openProcurementExceptions = (procurementExceptions.data || []).filter((row: any) => !['resolved', 'closed', 'ignored'].includes(String(row.status || '').toLowerCase())).length;
-    const procurementStatus: HealthStatus = openProcurementExceptions > 0
-      ? 'critical'
-      : poWarnings > 0
-        ? 'watch'
-        : poRows.length === 0
+    if (productionAllowed) {
+      const transportDate = transportLatest.data?.[0]?.movement_date || null;
+      const metallurgyDate = metallurgyLatest.data?.[0]?.operation_date || null;
+      const drillingDate = drillingLatest.data?.[0]?.operation_date || null;
+      const prodChecks = productionChecks.data || [];
+      const productionFailed = prodChecks.filter((row: any) => !['PASS', 'pass'].includes(String(row.status))).length;
+      const productionFreshness = [transportDate, metallurgyDate, drillingDate].map(daysOld);
+      const productionAges = productionFreshness.filter((value): value is number => value !== null);
+      const productionWorstAge = productionAges.length ? Math.max(...productionAges) : null;
+      const productionMissingFreshness = productionFreshness.some((value) => value === null);
+      const productionHasEvidence = prodChecks.length > 0 && !productionMissingFreshness;
+      const productionStatus: HealthStatus = productionFailed > 0
+        ? 'critical'
+        : !productionHasEvidence
           ? 'unknown'
-          : 'healthy';
+          : freshnessStatus(productionWorstAge);
 
-    const domains = [
-      {
+      domains.push({
         key: 'production',
         label: 'Producción',
         status: productionStatus,
@@ -133,8 +114,18 @@ export async function GET(request: NextRequest) {
               ? 'Actualizar las fuentes operacionales atrasadas.'
               : 'Sin acción de calidad prioritaria.',
         href: '/dashboard/produccion/inteligencia',
-      },
-      {
+      });
+    }
+
+    if (maintenanceAllowed) {
+      const closedStatuses = new Set(['completed', 'closed', 'cancelled', 'canceled']);
+      const allWorkOrders = workOrders.data || [];
+      const openWorkOrders = allWorkOrders.filter((row: any) => !closedStatuses.has(String(row.status || '').toLowerCase()));
+      const openMissingAsset = openWorkOrders.filter((row: any) => !row.canonical_asset_id).length;
+      const historicalMissingAsset = allWorkOrders.filter((row: any) => !row.canonical_asset_id).length;
+      const maintenanceStatus: HealthStatus = openMissingAsset > 0 ? 'critical' : allWorkOrders.length === 0 ? 'unknown' : 'healthy';
+
+      domains.push({
         key: 'maintenance',
         label: 'Mantención',
         status: maintenanceStatus,
@@ -155,8 +146,18 @@ export async function GET(request: NextRequest) {
             ? 'Recuperar evidencia de OT antes de declarar la identidad de activos confiable.'
             : 'Mantener conciliación de activos en nuevas OT.',
         href: '/dashboard/mantenimiento/inteligencia',
-      },
-      {
+      });
+    }
+
+    if (inventoryAllowed) {
+      const inventoryDate = inventorySnapshot.data?.[0]?.snapshot_date || null;
+      const inventory = inventoryOverview.data as any;
+      const inventoryHasOverview = Boolean(inventory);
+      const negativeStock = inventoryHasOverview ? Number(inventory?.negative_stock_products || 0) : 0;
+      const inventoryAge = daysOld(inventoryDate);
+      const inventoryStatus: HealthStatus = negativeStock > 0 ? 'critical' : !inventoryHasOverview || inventoryAge === null ? 'unknown' : freshnessStatus(inventoryAge);
+
+      domains.push({
         key: 'inventory',
         label: 'Inventario',
         status: inventoryStatus,
@@ -179,8 +180,16 @@ export async function GET(request: NextRequest) {
               ? 'Actualizar snapshot de inventario.'
               : 'Sin acción de calidad prioritaria.',
         href: '/dashboard/bodega',
-      },
-      {
+      });
+    }
+
+    if (procurementAllowed) {
+      const poRows = poQuality.data || [];
+      const poWarnings = poRows.filter((row: any) => String(row.quality_status).toLowerCase() !== 'valid').length;
+      const openProcurementExceptions = (procurementExceptions.data || []).filter((row: any) => !['resolved', 'closed', 'ignored'].includes(String(row.status || '').toLowerCase())).length;
+      const procurementStatus: HealthStatus = openProcurementExceptions > 0 ? 'critical' : poWarnings > 0 ? 'watch' : poRows.length === 0 ? 'unknown' : 'healthy';
+
+      domains.push({
         key: 'procurement',
         label: 'Compras',
         status: procurementStatus,
@@ -205,13 +214,23 @@ export async function GET(request: NextRequest) {
               ? 'Recuperar evidencia de OC antes de declarar Compras confiable.'
               : 'Sin acción de calidad prioritaria.',
         href: '/dashboard/compras',
-      },
-    ];
+      });
+    }
 
     const rank: Record<HealthStatus, number> = { critical: 3, watch: 2, unknown: 1, healthy: 0 };
     const overall = domains.reduce<HealthStatus>((worst, domain) => rank[domain.status as HealthStatus] > rank[worst] ? domain.status as HealthStatus : worst, 'healthy');
 
-    return NextResponse.json({ overall, domains, generatedAt: new Date().toISOString(), policy: { freshnessWatchDays: 7, freshnessCriticalDays: 14 } });
+    return NextResponse.json({
+      overall,
+      domains,
+      authorizedDomains: access.domains,
+      generatedAt: new Date().toISOString(),
+      policy: {
+        freshnessWatchDays: 7,
+        freshnessCriticalDays: 14,
+        authorization: 'Sólo se consultan y exponen dominios que el usuario puede leer según role_matrix.',
+      },
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo calcular la salud de datos';
     return NextResponse.json({ error: message }, { status: 500 });
