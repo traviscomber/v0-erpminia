@@ -37,6 +37,20 @@ const procurementToolCopy: Record<string, string> = {
   read_inventory_freshness: 'Frescura de inventario',
 };
 
+const productionToolCopy: Record<string, string> = {
+  read_production_daily_fine: 'Cobre fino diario',
+  read_production_flow: 'Flujo de producción',
+  read_production_metallurgy: 'Metalurgia determinística',
+  read_production_drilling_summary: 'Resumen de perforación',
+  read_production_fidelity: 'Fidelidad de fuentes',
+  read_inventory_overview: 'Resumen de inventario',
+  read_inventory_attention: 'Excepciones de stock',
+  read_inventory_freshness: 'Frescura de inventario',
+  read_procurement_overview: 'Resumen de compras',
+  read_recent_purchase_orders: 'Órdenes recientes',
+  read_procurement_quality: 'Calidad de compras',
+};
+
 const specialistConfig = {
   maintenance: {
     endpoint: '/api/maintenance/senior-assistant',
@@ -65,6 +79,13 @@ const specialistConfig = {
     emptyCopy: 'Pregunta por órdenes, proveedores, montos, estados y dependencias de inventario. No se infieren recepciones o entregas sin evidencia.',
     placeholder: 'Pregunta al Asistente de Compras…',
     toolCopy: procurementToolCopy,
+  },
+  production: {
+    endpoint: '/api/production/assistant',
+    loadingCopy: 'Cargando evidencia canónica de producción…',
+    emptyCopy: 'Pregunta por tratamiento, cobre fino, recuperación, flujo, perforación y excepciones de fuente. El asistente separa valores reportados de cálculos determinísticos.',
+    placeholder: 'Pregunta al Asistente de Producción…',
+    toolCopy: productionToolCopy,
   },
 } as const;
 
