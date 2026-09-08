@@ -14,11 +14,14 @@ import {
   handleOperationalDomainAssistant,
   type OperationalAssistantDomain,
 } from '@/lib/intelligence/operational-domain-assistant';
+import {
+  loadSupportAdvisoryHandoffs,
+  supportAdvisoryHandoffPrompt,
+} from '@/lib/intelligence/advisory-handoff-context';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const MAX_MESSAGE_CHARS = 12000;
 const FOLLOW_UP_HINT = /(^|[\s¿¡])(y\s+(el|la|los|las)|eso|ese|esa|esos|esas|anterior|mismo|misma|segundo|segunda|tercero|tercera|profundiza|detalle|también|además)(\s|$|[?¿!¡.,;:])/i;
-const HANDOFF_REVIEW_HINT = /(decision\s*case|caso|handoff|derivad|escalad|prioridad|pendiente|revis|revalid|anterior|eso|ese|esa|qué requiere atención|que requiere atencion)/i;
 
 type PersistentOperationalDomain = OperationalAssistantDomain;
 
@@ -27,15 +30,6 @@ type HandlerArgs = {
   context: OrganizationSuccessContext;
   domain: PersistentOperationalDomain;
   allowedDomains: OperationalAssistantDomain[];
-};
-
-type AdvisoryHandoff = {
-  id: string;
-  source_domain: string;
-  target_domain: string;
-  title: string;
-  summary: string;
-  created_at: string;
 };
 
 function scopeFor(context: OrganizationSuccessContext, domain: PersistentOperationalDomain): CoreConversationScope {
@@ -113,37 +107,6 @@ async function rewriteFollowUp(message: string, history: any[]) {
   return message;
 }
 
-async function loadAdvisoryHandoffs(
-  context: OrganizationSuccessContext,
-  domain: PersistentOperationalDomain,
-  message: string,
-) {
-  if (!HANDOFF_REVIEW_HINT.test(message)) return [] as AdvisoryHandoff[];
-
-  const { data, error } = await context.supabase
-    .from('motil_ai_decision_cases')
-    .select('id,source_domain,target_domain,title,summary,created_at')
-    .eq('organization_id', context.organizationId)
-    .eq('created_by_user_id', context.userId)
-    .eq('target_domain', domain)
-    .eq('status', 'open')
-    .order('created_at', { ascending: false })
-    .limit(3);
-  if (error) throw error;
-  return (data || []) as AdvisoryHandoff[];
-}
-
-function questionWithAdvisoryHandoffs(message: string, handoffs: AdvisoryHandoff[]) {
-  if (!handoffs.length) return message;
-  const context = handoffs
-    .map((row, index) => {
-      const summary = String(row.summary || '').replace(/\s+/g, ' ').trim().slice(0, 1800);
-      return `${index + 1}. CASE ${row.id} · origen ${row.source_domain} · creado ${row.created_at}\nTítulo: ${row.title}\nResumen previo NO CANÓNICO: ${summary}`;
-    })
-    .join('\n\n');
-  return `${message}\n\nHANDOFF ADVISORY NO CANÓNICO — SÓLO DEFINE QUÉ REVALIDAR\n${context}\n\nREGLA DE REVALIDACIÓN: no uses cifras, estados, causas ni prioridades del handoff como hechos. Vuelve a comprobarlos únicamente contra EVIDENCIA MOTIL actual. Si el caso ya no está respaldado o contradice la evidencia actual, dilo explícitamente.`;
-}
-
 function forwardedRequest(request: NextRequest, message: string) {
   const headers = new Headers(request.headers);
   headers.delete('content-length');
@@ -212,8 +175,14 @@ export async function handlePersistentOperationalDomainAssistant(args: HandlerAr
     });
     const history = await getCoreConversationHistory(context.supabase, scope, conversation.id);
     const standaloneMessage = await rewriteFollowUp(message, history);
-    const advisoryHandoffs = await loadAdvisoryHandoffs(context, domain, message);
-    const groundedQuestion = questionWithAdvisoryHandoffs(standaloneMessage, advisoryHandoffs);
+    const advisoryHandoffs = await loadSupportAdvisoryHandoffs(context, domain, message);
+    const advisoryContext = supportAdvisoryHandoffPrompt(
+      advisoryHandoffs,
+      'Si el caso ya no está respaldado o contradice la evidencia operacional actual, dilo explícitamente. No mantengas cifras, estados, causas, severidad ni prioridad sólo porque aparezcan en el handoff.',
+    );
+    const groundedQuestion = advisoryHandoffs.length
+      ? `${standaloneMessage}\n\n${advisoryContext}`
+      : standaloneMessage;
 
     await appendCoreMessage(context.supabase, scope, {
       conversationId: conversation.id,
