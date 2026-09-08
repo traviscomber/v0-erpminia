@@ -4,6 +4,16 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { resolveDocumentAccess } from '@/lib/intelligence/document-access';
 import { routeOperationalQuery } from '@/lib/intelligence/query-router';
+import {
+  appendCoreMessage,
+  archiveCoreConversation,
+  conversationTranscript,
+  getCoreConversationHistory,
+  getCoreConversationState,
+  resolveCoreConversation,
+  type CoreConversationScope,
+  type CoreSourceRef,
+} from '@/lib/intelligence/core-conversation';
 
 const OPENAI_RESPONSES_URL = 'https://api.openai.com/v1/responses';
 const MAX_MESSAGE_CHARS = 12000;
@@ -49,20 +59,45 @@ async function callModel(instructions: string, input: string) {
   throw new Error(lastError);
 }
 
+function documentScope(context: Extract<Awaited<ReturnType<typeof getOrganizationContext>>, { ok: true }>): CoreConversationScope {
+  return {
+    organizationId: context.organizationId,
+    userId: context.userId,
+    domain: 'documents',
+  };
+}
+
+function documentSourceRefs(sources: string[], toolsUsed: Array<{ name: string; mode: 'read' }>): CoreSourceRef[] {
+  return [
+    ...Array.from(new Set(sources)).map((source) => ({ source })),
+    ...toolsUsed.map((tool) => ({ tool: tool.name, mode: tool.mode })),
+  ];
+}
+
 export async function GET(request: NextRequest) {
   const access = await resolveDocumentAccess(request);
   if (!access.ok) return access.response;
-  return NextResponse.json({
-    conversation: null,
-    messages: [],
-    hasMore: false,
-    oldestMessageAt: null,
-    sessionIdleHours: null,
-    memoryCount: 0,
-    cargo: null,
-    persistence: 'stateless_v1',
-    authorizedDomains: access.domains,
-  });
+  const context = await getOrganizationContext(request);
+  if (!context.ok) return context.response;
+
+  try {
+    const state = await getCoreConversationState(context.supabase, documentScope(context), {
+      conversationId: request.nextUrl.searchParams.get('conversationId'),
+      before: request.nextUrl.searchParams.get('before'),
+    });
+    return NextResponse.json({
+      ...state,
+      sessionIdleHours: null,
+      cargo: null,
+      persistence: 'core_continuity_v1',
+      authorizedDomains: access.domains,
+    });
+  } catch (error) {
+    console.error('[documents-assistant] continuity load failed', {
+      detail: error instanceof Error ? error.message : String(error ?? 'unknown'),
+    });
+    return NextResponse.json({ error: 'No fue posible abrir la conversación documental.' }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -70,27 +105,62 @@ export async function POST(request: NextRequest) {
   if (!access.ok) return access.response;
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
+  const scope = documentScope(context);
 
   const body = await request.json().catch(() => null);
-  if (body?.action === 'archive') return NextResponse.json({ archived: false, conversationId: null });
+  if (body?.action === 'archive') {
+    const conversationId = typeof body?.conversationId === 'string' ? body.conversationId.trim() : '';
+    if (conversationId) {
+      try {
+        await archiveCoreConversation(context.supabase, scope, conversationId);
+      } catch (error) {
+        console.error('[documents-assistant] archive failed', {
+          detail: error instanceof Error ? error.message : String(error ?? 'unknown'),
+        });
+        return NextResponse.json({ error: 'No fue posible cerrar la conversación documental.' }, { status: 500 });
+      }
+    }
+    return NextResponse.json({ archived: Boolean(conversationId), conversationId: null, persistence: 'core_continuity_v1' });
+  }
+
   const message = typeof body?.message === 'string' ? body.message.trim() : '';
   if (!message) return NextResponse.json({ error: 'Escribe una consulta documental.' }, { status: 400 });
   if (message.length > MAX_MESSAGE_CHARS) return NextResponse.json({ error: 'La consulta es demasiado extensa.' }, { status: 400 });
 
   const route = routeOperationalQuery(message, { domain: 'documents' });
-  if (route.mode === 'action' || route.requiresExplicitAuthorization) {
-    return NextResponse.json({
-      answer: 'Puedo identificar documentos, vencimientos y evidencia faltante, pero este asistente no aprueba, reemplaza, sube ni modifica documentos. Usa el flujo autorizado del módulo para cualquier cambio.',
-      model: null,
-      sources: [],
-      toolsUsed: [],
-      conversationId: null,
-      route,
-      policy: 'READ_ONLY: el asistente documental no modifica archivos ni estados.',
-    });
-  }
 
   try {
+    const conversation = await resolveCoreConversation(context.supabase, scope, {
+      conversationId: typeof body?.conversationId === 'string' ? body.conversationId : null,
+      firstMessage: message,
+    });
+    const history = await getCoreConversationHistory(context.supabase, scope, conversation.id);
+    await appendCoreMessage(context.supabase, scope, {
+      conversationId: conversation.id,
+      role: 'user',
+      content: message,
+    });
+
+    if (route.mode === 'action' || route.requiresExplicitAuthorization) {
+      const answer = 'Puedo identificar documentos, vencimientos y evidencia faltante, pero este asistente no aprueba, reemplaza, sube ni modifica documentos. Usa el flujo autorizado del módulo para cualquier cambio.';
+      const persisted = await appendCoreMessage(context.supabase, scope, {
+        conversationId: conversation.id,
+        role: 'assistant',
+        content: answer,
+      });
+      return NextResponse.json({
+        answer,
+        message: persisted,
+        model: null,
+        sources: [],
+        toolsUsed: [],
+        conversationId: conversation.id,
+        route,
+        persistence: 'core_continuity_v1',
+        policy: 'READ_ONLY: el asistente documental no modifica archivos ni estados. El historial es contexto no canónico.',
+      });
+    }
+
     const org = context.organizationId;
     const evidence: Record<string, unknown> = {};
     const sources: string[] = [];
@@ -137,21 +207,33 @@ export async function POST(request: NextRequest) {
       evidence.unavailable_tenant_safe_document_domains = unsupported;
     }
 
-    const instructions = `Eres el especialista de Documentos dentro de MOTIL Intelligence Core.\n\nREGLAS:\n1. Usa sólo EVIDENCIA MOTIL y únicamente dominios autorizados.\n2. Separa documento vigente, próximo a vencer, vencido, en revisión y evidencia faltante según campos explícitos.\n3. Nunca infieras cumplimiento contractual, aprobación, renovación o vigencia cuando la fuente no lo acredita.\n4. Declara fechas exactas cuando hables de vencimientos o revisiones.\n5. Si un dominio aparece como unavailable_tenant_safe_document_domains, explica que no se incluyó porque no existe una fuente tenant-safe confirmada; no lo presentes como ausencia de documentos.\n6. No expongas URLs privadas, rutas de almacenamiento ni datos personales innecesarios.\n7. No modifiques archivos ni estados. Recomienda la validación humana mínima necesaria.\n8. Responde de forma ejecutiva: Dato canónico → riesgo/impacto documental → evidencia faltante → siguiente acción.\n9. No muestres JSON crudo.`;
+    const instructions = `Eres el especialista de Documentos dentro de MOTIL Intelligence Core.\n\nREGLAS:\n1. Usa sólo EVIDENCIA MOTIL y únicamente dominios autorizados para afirmar presencia, estado, vigencia, vencimiento, aprobación, contrato o cumplimiento.\n2. HISTORIAL CONVERSACIONAL es contexto NO CANÓNICO. Puede ayudarte a entender a qué documento, contrato o tema se refiere el usuario, pero una mención previa nunca prueba que un documento exista ni cuál sea su estado actual.\n3. Separa documento vigente, próximo a vencer, vencido, en revisión y evidencia faltante según campos explícitos.\n4. Nunca infieras cumplimiento contractual, aprobación, renovación o vigencia cuando la fuente no lo acredita.\n5. Declara fechas exactas cuando hables de vencimientos o revisiones.\n6. Si un dominio aparece como unavailable_tenant_safe_document_domains, explica que no se incluyó porque no existe una fuente tenant-safe confirmada; no lo presentes como ausencia de documentos.\n7. No expongas URLs privadas, rutas de almacenamiento ni datos personales innecesarios.\n8. No modifiques archivos ni estados. Recomienda la validación humana mínima necesaria.\n9. Responde de forma ejecutiva: Dato canónico → riesgo/impacto documental → evidencia faltante → siguiente acción.\n10. No muestres JSON crudo.`;
 
-    const result = await callModel(instructions, `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nEVIDENCIA MOTIL\n${JSON.stringify(evidence)}\n\nPREGUNTA\n${message}`);
+    const result = await callModel(
+      instructions,
+      `DOMINIOS AUTORIZADOS\n${JSON.stringify(access.domains)}\n\nHISTORIAL CONVERSACIONAL NO CANÓNICO\n${conversationTranscript(history)}\n\nEVIDENCIA MOTIL CANÓNICA/AUTORIZADA\n${JSON.stringify(evidence)}\n\nPREGUNTA\n${message}`,
+    );
+
+    const persisted = await appendCoreMessage(context.supabase, scope, {
+      conversationId: conversation.id,
+      role: 'assistant',
+      content: result.text,
+      sourceRefs: documentSourceRefs(sources, toolsUsed),
+      model: result.model,
+    });
 
     return NextResponse.json({
       answer: result.text,
+      message: persisted,
       model: result.model,
       responseId: result.responseId,
       sources: Array.from(new Set(sources)),
       toolsUsed,
-      conversationId: null,
+      conversationId: conversation.id,
       route,
       authorizedDomains: access.domains,
-      persistence: 'stateless_v1',
-      policy: 'READ_ONLY + tenant-safe: sólo documentos con organización explícita y permisos confirmados.',
+      persistence: 'core_continuity_v1',
+      policy: 'READ_ONLY + tenant-safe: sólo documentos con organización explícita y permisos confirmados. Historial no canónico separado de evidencia.',
     });
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error ?? 'unknown');
