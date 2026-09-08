@@ -64,6 +64,13 @@ const financeToolCopy: Record<string, string> = {
   read_production_metallurgy: 'Metalurgia determinística',
 };
 
+const dataHealthToolCopy: Record<string, string> = {
+  read_data_health_production: 'Calidad de Producción',
+  read_data_health_maintenance: 'Calidad de Mantención',
+  read_data_health_inventory: 'Calidad de Inventario',
+  read_data_health_procurement: 'Calidad de Compras',
+};
+
 const specialistConfig = {
   maintenance: {
     endpoint: '/api/maintenance/senior-assistant',
@@ -106,6 +113,13 @@ const specialistConfig = {
     emptyCopy: 'Pregunta por compromisos, costos y centros de costo. El asistente conserva la fecha de corte de cada fuente y no mezcla compromiso, gasto reconocido ni pago.',
     placeholder: 'Pregunta al Asistente de Finanzas…',
     toolCopy: financeToolCopy,
+  },
+  data_health: {
+    endpoint: '/api/data-quality/assistant',
+    loadingCopy: 'Cargando salud y cobertura de fuentes autorizadas…',
+    emptyCopy: 'Pregunta qué fuentes están atrasadas, incompletas o en conflicto y cómo limita eso una decisión. Sólo se analizan dominios que puedes leer.',
+    placeholder: 'Pregunta al Asistente de Calidad de Datos…',
+    toolCopy: dataHealthToolCopy,
   },
 } as const;
 
