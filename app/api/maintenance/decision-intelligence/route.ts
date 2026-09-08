@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
+import { buildMaintenanceDecisionCase } from '@/lib/maintenance/decision-case';
 
 type DecisionRow = {
   id: string;
@@ -217,6 +218,7 @@ export async function GET(request: NextRequest) {
 
     const rank = { critical: 0, high: 1, medium: 2, low: 3 } as const;
     rows.sort((a, b) => rank[a.urgency] - rank[b.urgency] || a.canonical_fact.localeCompare(b.canonical_fact, 'es'));
+    const cases = rows.map((row) => buildMaintenanceDecisionCase(row));
 
     return NextResponse.json({
       summary: {
@@ -227,8 +229,17 @@ export async function GET(request: NextRequest) {
         operationalEvidenceAssets: (operationalEvidence.data || []).length,
         reliabilityClosuresEligibleForLearning: eligibleReliability.length,
         reliabilityClosuresExcludedAsSyntheticOrNonOperational: Math.max(0, (reliabilityBase.data || []).length - eligibleReliability.length),
+        awaitingHumanReview: cases.length,
+        evidenceGaps: cases.filter((decisionCase) => decisionCase.evidence_status === 'evidence_gap').length,
+        impactMeasured: cases.filter((decisionCase) => decisionCase.impact.status !== 'not_measured').length,
       },
       rows,
+      cases,
+      decision_case_policy: {
+        execution: 'human_only',
+        persistence: 'derived_from_canonical_signals',
+        impact: 'No operational benefit is claimed until an observed outcome is recorded by an authorized workflow.',
+      },
       learning_policy: {
         operational_reports: 'Eligible as observed operational evidence; repeated degraded states are patterns, not failure probabilities.',
         work_orders: 'Only Motil operational work orders are eligible. Imported history and explicit UAT/simulated closures are excluded from learning.',
