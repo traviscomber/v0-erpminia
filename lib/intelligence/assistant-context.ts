@@ -24,13 +24,13 @@ export type AssistantContext = {
 const CONTEXTS: Array<AssistantContext & { prefixes: string[] }> = [
   {
     domain: 'geology',
-    prefixes: ['/dashboard/geologia'],
+    prefixes: ['/dashboard/produccion/geologia', '/dashboard/geologia'],
     label: 'Geología',
     title: 'Asistente de Geología',
     scopeHint: 'Parte desde Geología y amplía el análisis sólo cuando la pregunta requiere evidencia de otros dominios.',
-    capabilities: [],
+    capabilities: ['geology'],
     suggestedPrompts: [
-      '¿Qué evidencia geológica requiere revisión hoy?',
+      '¿Qué está pasando hoy en Geología y qué debería priorizar?',
       '¿Qué observaciones tienen información incompleta?',
       '¿Qué hipótesis requieren validación humana antes de concluir?',
     ],
