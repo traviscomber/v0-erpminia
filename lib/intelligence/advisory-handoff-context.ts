@@ -1,6 +1,15 @@
 const HANDOFF_REVIEW_HINT = /(decision\s*case|caso|handoff|derivad|escalad|prioridad|pendiente|revis|revalid|anterior|eso|ese|esa|qué requiere atención|que requiere atencion)/i;
 
-export type SupportHandoffTarget = 'documents' | 'data_health' | 'executive' | 'maintenance' | 'geology';
+export type SupportHandoffTarget =
+  | 'inventory'
+  | 'procurement'
+  | 'production'
+  | 'finance'
+  | 'documents'
+  | 'data_health'
+  | 'executive'
+  | 'maintenance'
+  | 'geology';
 
 export type AdvisoryHandoffContext = {
   id: string;
