@@ -30,10 +30,10 @@ test('root cause intelligence uses the tenant-scoped canonical procurement intak
 test('executive escalations converts only statement timeout into explicit unavailable state', async () => {
   const source = await readFile(escalationRoutePath, 'utf8');
 
-  assert.match(source, /error\.code === '57014'/);
+  assert.match(source, /sourceError\.code === '57014'/);
   assert.match(source, /available: false/);
   assert.match(source, /summary: null/);
-  assert.match(source, /reason: 'source_timeout'/);
+  assert.match(source, /unavailable\('source_timeout'\)/);
   assert.match(source, /status: 500/);
   assert.match(source, /available: true/);
 });
