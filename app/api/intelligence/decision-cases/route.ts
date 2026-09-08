@@ -11,6 +11,15 @@ import {
 
 const MAX_TEXT = 12000;
 const MAX_LIST = 12;
+const CORE_SOURCE_DOMAINS = new Set<DecisionCaseDomain>([
+  'executive',
+  'inventory',
+  'procurement',
+  'production',
+  'finance',
+  'documents',
+  'data_health',
+]);
 
 const WORKFLOW_DOMAIN: Partial<Record<DecisionCaseDomain, string>> = {
   production: 'plant',
@@ -64,6 +73,42 @@ async function availableHumanWorkflows(
     .limit(12);
   if (error) throw error;
   return data || [];
+}
+
+async function latestGroundedCoreMessage(
+  db: any,
+  organizationId: string,
+  userId: string,
+  sourceDomain: DecisionCaseDomain,
+) {
+  if (!CORE_SOURCE_DOMAINS.has(sourceDomain)) return null;
+
+  const { data: conversation, error: conversationError } = await db
+    .from('motil_ai_conversations')
+    .select('id,domain,last_message_at')
+    .eq('organization_id', organizationId)
+    .eq('user_id', userId)
+    .eq('domain', sourceDomain)
+    .eq('status', 'active')
+    .order('last_message_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (conversationError) throw conversationError;
+  if (!conversation) return null;
+
+  const { data: messages, error: messagesError } = await db
+    .from('motil_ai_messages')
+    .select('id,conversation_id,domain,role,content,source_refs,model,created_at')
+    .eq('conversation_id', conversation.id)
+    .eq('organization_id', organizationId)
+    .eq('user_id', userId)
+    .eq('domain', sourceDomain)
+    .eq('role', 'assistant')
+    .order('created_at', { ascending: false })
+    .limit(20);
+  if (messagesError) throw messagesError;
+
+  return (messages || []).find((row: any) => Array.isArray(row.source_refs) && row.source_refs.length > 0) || null;
 }
 
 export async function GET(request: NextRequest) {
@@ -124,27 +169,60 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ case: data, authority: 'advisory_only' });
   }
 
-  if (action !== 'create') return NextResponse.json({ error: 'Acción no soportada.' }, { status: 400 });
-
-  const sourceConversationId = cleanText(body?.sourceConversationId, 80);
-  const sourceMessageId = cleanText(body?.sourceMessageId, 80);
-  const targetDomain = body?.targetDomain;
-  if (!sourceConversationId || !sourceMessageId || !isDecisionCaseDomain(targetDomain)) {
-    return NextResponse.json({ error: 'sourceConversationId, sourceMessageId y targetDomain válidos son requeridos.' }, { status: 400 });
+  if (action !== 'create' && action !== 'create_latest') {
+    return NextResponse.json({ error: 'Acción no soportada.' }, { status: 400 });
   }
 
-  const { data: message, error: messageError } = await context.supabase
-    .from('motil_ai_messages')
-    .select('id,conversation_id,domain,role,content,source_refs,model,created_at')
-    .eq('id', sourceMessageId)
-    .eq('conversation_id', sourceConversationId)
-    .eq('organization_id', context.organizationId)
-    .eq('user_id', context.userId)
-    .eq('role', 'assistant')
-    .maybeSingle();
-  if (messageError) return NextResponse.json({ error: messageError.message }, { status: 500 });
-  if (!message || !isDecisionCaseDomain(message.domain)) {
-    return NextResponse.json({ error: 'El mensaje fuente no pertenece a una conversación MOTIL accesible.' }, { status: 404 });
+  const targetDomain = body?.targetDomain;
+  if (!isDecisionCaseDomain(targetDomain)) {
+    return NextResponse.json({ error: 'targetDomain válido es requerido.' }, { status: 400 });
+  }
+
+  let sourceConversationId = cleanText(body?.sourceConversationId, 80);
+  let sourceMessageId = cleanText(body?.sourceMessageId, 80);
+  let message: any = null;
+
+  if (action === 'create_latest') {
+    const sourceDomain = body?.sourceDomain;
+    if (!isDecisionCaseDomain(sourceDomain) || !CORE_SOURCE_DOMAINS.has(sourceDomain)) {
+      return NextResponse.json({ error: 'sourceDomain debe ser un dominio del Intelligence Core con continuidad.' }, { status: 400 });
+    }
+    const sourceAllowed = await canAccessDecisionCaseDomain(request, sourceDomain);
+    if (!sourceAllowed) return NextResponse.json({ error: 'No tienes permisos actuales para el dominio origen.' }, { status: 403 });
+
+    message = await latestGroundedCoreMessage(
+      context.supabase,
+      context.organizationId,
+      context.userId,
+      sourceDomain,
+    );
+    if (!message) {
+      return NextResponse.json({ error: 'No existe una respuesta reciente con evidencia persistida en ese dominio. Consulta primero al asistente correspondiente.' }, { status: 404 });
+    }
+    sourceConversationId = message.conversation_id;
+    sourceMessageId = message.id;
+  } else {
+    if (!sourceConversationId || !sourceMessageId) {
+      return NextResponse.json({ error: 'sourceConversationId y sourceMessageId son requeridos.' }, { status: 400 });
+    }
+  }
+
+  if (!message) {
+    const { data, error: messageError } = await context.supabase
+      .from('motil_ai_messages')
+      .select('id,conversation_id,domain,role,content,source_refs,model,created_at')
+      .eq('id', sourceMessageId)
+      .eq('conversation_id', sourceConversationId)
+      .eq('organization_id', context.organizationId)
+      .eq('user_id', context.userId)
+      .eq('role', 'assistant')
+      .maybeSingle();
+    if (messageError) return NextResponse.json({ error: messageError.message }, { status: 500 });
+    message = data;
+  }
+
+  if (!message || !isDecisionCaseDomain(message.domain) || !CORE_SOURCE_DOMAINS.has(message.domain)) {
+    return NextResponse.json({ error: 'El mensaje fuente no pertenece a una conversación Core accesible.' }, { status: 404 });
   }
 
   const evidenceRefs = Array.isArray(message.source_refs) ? message.source_refs : [];
@@ -158,6 +236,27 @@ export async function POST(request: NextRequest) {
   ]);
   if (!sourceAllowed || !targetAllowed) {
     return NextResponse.json({ error: 'No tienes permisos actuales para el origen o destino del handoff.' }, { status: 403 });
+  }
+
+  const { data: existing, error: existingError } = await context.supabase
+    .from('motil_ai_decision_cases')
+    .select('id,source_domain,target_domain,title,summary,evidence_refs,authority,status,created_at')
+    .eq('organization_id', context.organizationId)
+    .eq('created_by_user_id', context.userId)
+    .eq('source_message_id', message.id)
+    .eq('target_domain', targetDomain)
+    .eq('status', 'open')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 });
+  if (existing) {
+    return NextResponse.json({
+      case: existing,
+      duplicate: true,
+      authority: 'advisory_only',
+      handoff: { sourceDomain: message.domain, targetDomain, targetPermissionVerified: true, operationalMutationExecuted: false },
+    });
   }
 
   const workflows = await availableHumanWorkflows(
