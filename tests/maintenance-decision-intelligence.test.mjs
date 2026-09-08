@@ -5,11 +5,24 @@ import { readFile } from 'node:fs/promises';
 const routeUrl = new URL('../app/api/maintenance/decision-intelligence/route.ts', import.meta.url);
 const pageUrl = new URL('../app/dashboard/mantenimiento/decision-intelligence/page.tsx', import.meta.url);
 
-test('maintenance decision intelligence is tenant scoped and reads canonical operational evidence', async () => {
+test('maintenance decision intelligence is authorized tenant scoped and reads backend canonical evidence', async () => {
   const route = await readFile(routeUrl, 'utf8');
   assert.match(route, /requireModuleAccess\(request, MODULE_KEYS\.MANT_OPERACIONES\)/);
+  assert.match(route, /getOrganizationContext\(request\)/);
+  assert.match(route, /getSupabaseAdmin/);
+  assert.match(route, /const db = getSupabaseAdmin\(\)/);
   assert.match(route, /eq\('organization_id', context\.organizationId\)/);
+  assert.doesNotMatch(route, /context\.supabase\s*\n\s*\.from/);
   for (const source of ['drilling_maintenance_review_queue_v1','drill_asset_operational_evidence_90d_v1','preventive_maintenance_hour_status_v1','work_order_close_readiness_v2','maintenance_work_orders','maintenance_reliability_base_v1']) assert.match(route, new RegExp(source));
+});
+
+test('maintenance decision intelligence reports the exact failing backend source without weakening access', async () => {
+  const route = await readFile(routeUrl, 'utf8');
+  assert.match(route, /maintenance_decision_intelligence_source_failed/);
+  assert.match(route, /sourceErrors/);
+  assert.match(route, /code: detail\?\.code \|\| null/);
+  assert.match(route, /message: detail\?\.message \|\| null/);
+  assert.doesNotMatch(route, /grant\s+select|security definer/i);
 });
 
 test('maintenance decision intelligence resolves closure asset identity from the canonical asset view', async () => {
