@@ -4,7 +4,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
 import { resolveExecutiveAccess } from '@/lib/intelligence/executive-access';
 import { routeOperationalQuery } from '@/lib/intelligence/query-router';
-import { loadSupportAdvisoryHandoffs, supportAdvisoryHandoffPrompt } from '@/lib/intelligence/advisory-handoff-context';
+import {
+  loadSupportAdvisoryHandoffs,
+  recordSupportAdvisoryRevalidation,
+  supportAdvisoryHandoffPrompt,
+} from '@/lib/intelligence/advisory-handoff-context';
 import {
   appendCoreMessage,
   archiveCoreConversation,
@@ -321,6 +325,22 @@ export async function POST(request: NextRequest) {
       model: result.model,
     });
 
+    let decisionCaseRevalidation = { updated: 0, at: null as string | null };
+    if (persisted && advisoryHandoffs.length && refs.length) {
+      try {
+        decisionCaseRevalidation = await recordSupportAdvisoryRevalidation(
+          context,
+          'executive',
+          advisoryHandoffs,
+          refs,
+        );
+      } catch (error) {
+        console.warn('[executive-assistant] advisory revalidation metadata skipped', {
+          detail: error instanceof Error ? error.message : String(error ?? 'unknown'),
+        });
+      }
+    }
+
     return NextResponse.json({
       answer: result.text,
       message: persisted,
@@ -330,6 +350,7 @@ export async function POST(request: NextRequest) {
       toolsUsed,
       conversationId: conversation.id,
       decisionCaseRefs: advisoryHandoffs.map((row) => row.id),
+      decisionCaseRevalidation,
       route,
       authorizedDomains: access.domains,
       persistence: 'core_continuity_v1',
