@@ -9,13 +9,13 @@ test('maintenance OpenAI tool loop uses only the bounded registry and returns to
 
   assert.match(source, /tools: maintenanceSeniorTools/)
   assert.match(source, /tool_choice: 'auto'/)
-  assert.match(source, /parallel_tool_calls: false/)
+  assert.match(source, /parallel_tool_calls: true/)
   assert.match(source, /executeMaintenanceSeniorTool/)
   assert.match(source, /type: 'function_call_output'/)
   assert.match(source, /call_id: call\.call_id/)
 })
 
-test('reasoning/output items are preserved and multi-step tool use stays bounded', async () => {
+test('reasoning/output items are preserved and parallel multi-step tool use stays bounded', async () => {
   const source = await readFile(loopPath, 'utf8')
 
   assert.match(source, /Preserve every output item, including reasoning items/)
@@ -24,6 +24,7 @@ test('reasoning/output items are preserved and multi-step tool use stays bounded
   assert.match(source, /MAX_TOOL_CALLS = 12/)
   assert.match(source, /totalToolCalls \+ calls\.length > MAX_TOOL_CALLS/)
   assert.match(source, /resultCache/)
+  assert.match(source, /Multiple bounded READ\/PREPARE_ONLY calls may be requested in one model round/)
 })
 
 test('tool loop does not expose an autonomous write path', async () => {
