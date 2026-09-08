@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { resolveDataHealthAccess } from '@/lib/intelligence/data-health-access';
 
 type Issue = {
   issue_key: string;
@@ -62,6 +63,14 @@ function duplicateIssues(rows: any[], entityType: Issue['entity_type'], idField:
 }
 
 export async function GET(request: NextRequest) {
+  const access = await resolveDataHealthAccess(request);
+  if (!access.ok) return access.response;
+  if (!access.admin) {
+    return NextResponse.json({
+      error: 'La conciliación transversal está restringida a administradores hasta que exista un permiso RRHH/Data Governance explícito.',
+    }, { status: 403 });
+  }
+
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
   const canonical = context.supabase.schema('canonical');
@@ -156,28 +165,15 @@ export async function GET(request: NextRequest) {
     };
 
     enriched.sort((a: any, b: any) => (a.review?.status === 'resolved' ? 1 : 0) - (b.review?.status === 'resolved' ? 1 : 0) || ({ critical: 0, warning: 1, observation: 2 } as any)[a.severity] - ({ critical: 0, warning: 1, observation: 2 } as any)[b.severity]);
-    return NextResponse.json({ counts, issues: enriched.slice(0, 1500), source: 'canonical', generatedAt: new Date().toISOString() });
+    return NextResponse.json({
+      counts,
+      issues: enriched.slice(0, 1500),
+      source: 'canonical',
+      generatedAt: new Date().toISOString(),
+      policy: 'Admin-only transitional boundary: this endpoint includes cross-domain operational data and personnel identity fields. Replace with an explicit Data Governance/RRHH permission before delegating access.',
+    });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo evaluar la calidad de datos.' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'No se pudo construir la conciliación de datos';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-}
-
-export async function PATCH(request: NextRequest) {
-  const context = await getOrganizationContext(request);
-  if (!context.ok) return context.response;
-  const body = await request.json().catch(() => null);
-  const issueKey = text(body?.issueKey);
-  const entityType = text(body?.entityType);
-  const entityId = text(body?.entityId) || null;
-  const issueType = text(body?.issueType);
-  const fieldName = text(body?.fieldName) || null;
-  const status = text(body?.status);
-  const resolutionNote = text(body?.resolutionNote);
-  const evidenceReference = text(body?.evidenceReference) || null;
-  if (!issueKey || !['product','supplier','asset','person','inventory','work_order'].includes(entityType) || !issueType || !['open','accepted','resolved','ignored'].includes(status)) return NextResponse.json({ error: 'Revisión inválida.' }, { status: 400 });
-  if (status !== 'open' && !resolutionNote) return NextResponse.json({ error: 'Describe la decisión tomada antes de cerrar la revisión.' }, { status: 400 });
-  const now = new Date().toISOString();
-  const { error } = await context.supabase.from('data_reconciliation_reviews').upsert({ organization_id: context.organizationId, issue_key: issueKey, entity_type: entityType, entity_id: entityId, issue_type: issueType, field_name: fieldName, status, resolution_note: resolutionNote || null, evidence_reference: evidenceReference, reviewed_by: context.userId, reviewed_at: now, updated_at: now }, { onConflict: 'organization_id,issue_key' });
-  if (error) return NextResponse.json({ error: 'No se pudo guardar la revisión.' }, { status: 500 });
-  return NextResponse.json({ ok: true, status, reviewedAt: now });
 }
