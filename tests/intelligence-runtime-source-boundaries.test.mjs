@@ -15,13 +15,12 @@ test('dashboard snapshot unwraps Supabase response data before array operations'
   assert.match(source, /workOrders\.filter/);
 });
 
-test('root cause intelligence reads server-only procurement flow after tenant resolution', async () => {
+test('root cause intelligence uses the tenant-scoped canonical procurement intake table', async () => {
   const source = await readFile(rootCausePath, 'utf8');
 
   assert.match(source, /getOrganizationContext\(request\)/);
-  assert.match(source, /getSupabaseAdmin/);
-  assert.match(source, /const db = getSupabaseAdmin\(\)/);
-  assert.match(source, /db\.from\('procurement_intake_flow'\)/);
+  assert.match(source, /context\.supabase\.from\('procurement_intake_requests'\)/);
   assert.match(source, /\.eq\('organization_id', context\.organizationId\)/);
-  assert.doesNotMatch(source, /context\.supabase\.from\('procurement_intake_flow'\)/);
+  assert.doesNotMatch(source, /procurement_intake_flow/);
+  assert.doesNotMatch(source, /getSupabaseAdmin/);
 });
