@@ -35,6 +35,7 @@ const toolCopy: Record<string, string> = {
   search_assets: 'Activos',
   get_maintenance_attention_queue: 'Cola de atención',
   get_asset_context: 'Contexto del activo',
+  get_asset_context_batch: 'Contexto de activos',
   get_open_work_orders: 'Órdenes abiertas',
   get_maintenance_plan: 'Plan preventivo',
   get_observed_condition_history: 'Condición observada',
