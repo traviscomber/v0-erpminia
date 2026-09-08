@@ -5,6 +5,8 @@ import { readFile } from 'node:fs/promises';
 const accessUrl = new URL('../lib/intelligence/data-health-access.ts', import.meta.url);
 const healthUrl = new URL('../app/api/data-quality/health/route.ts', import.meta.url);
 const reconciliationUrl = new URL('../app/api/data-quality/reconciliation/route.ts', import.meta.url);
+const assistantUrl = new URL('../app/api/data-quality/assistant/route.ts', import.meta.url);
+const widgetUrl = new URL('../components/intelligence/senior-assistant-widget.tsx', import.meta.url);
 
 test('data health scope is derived from existing operational permissions', async () => {
   const source = await readFile(accessUrl, 'utf8');
@@ -33,4 +35,21 @@ test('cross-domain reconciliation remains admin-only until governance permission
   assert.match(source, /if \(!access\.admin\)/);
   assert.match(source, /RRHH\/Data Governance explícito/);
   assert.match(source, /people.*rut.*email/s);
+});
+
+test('data health assistant is read-only and permission-aware', async () => {
+  const [assistant, widget] = await Promise.all([
+    readFile(assistantUrl, 'utf8'),
+    readFile(widgetUrl, 'utf8'),
+  ]);
+  assert.match(assistant, /resolveDataHealthAccess/);
+  assert.match(assistant, /routeOperationalQuery\(message, \{ domain: 'data_health' \}\)/);
+  assert.match(assistant, /access\.canRead\('production'\)/);
+  assert.match(assistant, /access\.canRead\('maintenance'\)/);
+  assert.match(assistant, /access\.canRead\('inventory'\)/);
+  assert.match(assistant, /access\.canRead\('procurement'\)/);
+  assert.match(assistant, /READ_ONLY/);
+  assert.match(assistant, /no corrige, concilia ni modifica fuentes|no corrige.*modifica/i);
+  assert.match(widget, /\/api\/data-quality\/assistant/);
+  assert.match(widget, /dataHealthToolCopy/);
 });
