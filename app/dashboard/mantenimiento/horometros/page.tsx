@@ -47,7 +47,7 @@ export default function RuntimeReadingsPage() {
       const payload = await response.json().catch(() => null);
       if (!response.ok) throw new Error(payload?.error || 'No se pudo registrar la lectura');
       setMeterHours(''); setNotes('');
-      setActionMessage(payload?.resetDetected ? 'Lectura guardada. Se detectó una baja de horómetro; ese tramo queda identificado como reinicio y no se usa para tasas.' : 'Lectura observada guardada.');
+      setActionMessage(payload?.resetDetected ? 'Lectura guardada. Se detectó una baja de horómetro; ese tramo queda identificado como reinicio y no se usará para tasas.' : 'Lectura observada guardada.');
       await mutate();
     } catch (cause) {
       setActionMessage(cause instanceof Error ? cause.message : 'No se pudo registrar la lectura');
