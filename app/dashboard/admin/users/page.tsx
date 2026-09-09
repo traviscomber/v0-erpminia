@@ -1,19 +1,16 @@
 'use client';
 
-import { AlertCircle, Upload, Users } from 'lucide-react';
+import { AlertCircle, Users } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '@/hooks/use-auth';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { CreateUserForm } from '@/components/admin/create-user-form';
-import { UsersImportXls } from '@/components/admin/users-import-xls';
 import { UsersList } from '@/components/admin/users-list';
-import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
+import { PageHeader, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 
 export default function AdminUsersPage() {
   const { user, loading, role } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
-  const [showImport, setShowImport] = useState(false);
 
   if (loading) return <div className="flex min-h-[50vh] items-center justify-center"><div className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-b-primary" /></div>;
 
@@ -27,16 +24,9 @@ export default function AdminUsersPage() {
         <PageHeaderContent>
           <PageHeaderEyebrow>Administración</PageHeaderEyebrow>
           <PageHeaderTitle>Usuarios</PageHeaderTitle>
-          <PageHeaderDescription>Crea cuentas y revisa quién tiene acceso. El cargo y los permisos se administran después desde Roles y cargos.</PageHeaderDescription>
+          <PageHeaderDescription>Crea cuentas con una identidad de acceso real y un cargo canónico. Los permisos se administran después desde Roles y cargos.</PageHeaderDescription>
         </PageHeaderContent>
-        <PageHeaderActions>
-          <Button variant="outline" size="sm" onClick={() => setShowImport((value) => !value)}>
-            <Upload className="h-4 w-4" />{showImport ? 'Cerrar importación' : 'Importar usuarios'}
-          </Button>
-        </PageHeaderActions>
       </PageHeader>
-
-      {showImport ? <UsersImportXls onImportComplete={() => { setRefreshKey((prev) => prev + 1); setShowImport(false); }} /> : null}
 
       <section className="grid gap-5 xl:grid-cols-[minmax(320px,.7fr)_minmax(0,1.3fr)]">
         <div className="space-y-3">
