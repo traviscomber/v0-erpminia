@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { StatePanel } from '@/components/ui/state-panel';
 
 type Asset = { id: string; asset_code: string; asset_name: string; asset_type?: string | null; location?: string | null };
 type Schedule = { id: string; asset_id: string; task_name: string; description?: string | null; frequency_days?: number | null; frequency_hours?: number | null; next_scheduled_date?: string | null; estimated_duration_hours?: number | null; priority?: string | null; enabled: boolean; generated_work_order_id?: string | null; asset?: Asset | null };
@@ -17,9 +18,9 @@ type Response = { schedules: Schedule[]; assets: Asset[]; summary: { total: numb
 
 const fetcher = async (url: string): Promise<Response> => {
   const response = await apiFetch(url);
-  const payload = await response.json();
-  if (!response.ok) throw new Error(payload.error || 'No se pudo cargar la planificación preventiva.');
-  return payload;
+  const payload = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar la planificación preventiva.');
+  return payload as Response;
 };
 
 function dueState(date?: string | null) {
@@ -41,14 +42,16 @@ export function PreventivePlanBoard() {
   const [form, setForm] = useState({ assetId: '', taskName: '', description: '', frequencyDays: '', frequencyHours: '', nextScheduledDate: '', estimatedDurationHours: '', priority: 'medium' });
 
   const schedules = data?.schedules || [];
+  const summary = data?.summary || null;
   const ordered = useMemo(() => [...schedules].sort((a, b) => String(a.next_scheduled_date || '9999').localeCompare(String(b.next_scheduled_date || '9999'))), [schedules]);
+  const metricValue = (value: number | undefined) => isLoading || error || !summary || value == null ? '—' : value.toLocaleString('es-CL');
 
   async function submit() {
     setSaving(true); setMessage('');
     try {
       const response = await apiFetch('/api/maintenance/preventive', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || 'No se pudo crear el plan.');
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'No se pudo crear el plan.');
       setForm({ assetId: '', taskName: '', description: '', frequencyDays: '', frequencyHours: '', nextScheduledDate: '', estimatedDurationHours: '', priority: 'medium' });
       setShowForm(false); setMessage('Plan preventivo creado.'); await mutate();
     } catch (cause) { setMessage(cause instanceof Error ? cause.message : 'No se pudo crear el plan.'); }
@@ -59,8 +62,8 @@ export function PreventivePlanBoard() {
     setMessage('');
     try {
       const response = await apiFetch('/api/maintenance/preventive', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ scheduleId, action }) });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || 'No se pudo actualizar el plan.');
+      const payload = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(payload?.error || 'No se pudo actualizar el plan.');
       setMessage(action === 'generate' ? 'Orden de trabajo creada desde el plan.' : 'Estado actualizado.');
       await mutate();
     } catch (cause) { setMessage(cause instanceof Error ? cause.message : 'No se pudo actualizar el plan.'); }
@@ -69,11 +72,11 @@ export function PreventivePlanBoard() {
   return <main className="space-y-6">
     <header className="flex flex-wrap items-end justify-between gap-4 border-b pb-5">
       <div><p className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Mantenimiento</p><h1 className="mt-1 text-2xl font-semibold">Planificación preventiva</h1><p className="mt-1 text-sm text-muted-foreground">Planes reales por equipo, vencimientos y generación controlada de órdenes.</p></div>
-      <div className="flex gap-2"><Button variant="outline" onClick={() => void mutate()}><RefreshCw className="h-4 w-4"/>Actualizar</Button><Button onClick={() => setShowForm((value) => !value)}><Plus className="h-4 w-4"/>Nuevo plan</Button></div>
+      <div className="flex gap-2"><Button variant="outline" onClick={() => void mutate()} disabled={isLoading}><RefreshCw className="h-4 w-4"/>Actualizar</Button><Button onClick={() => setShowForm((value) => !value)} disabled={isLoading || Boolean(error)}><Plus className="h-4 w-4"/>Nuevo plan</Button></div>
     </header>
 
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">{[
-      ['Planes', data?.summary.total || 0], ['Vencidos', data?.summary.overdue || 0], ['Próximos 30 días', data?.summary.dueSoon || 0], ['Pausados', data?.summary.disabled || 0], ['OT generadas', data?.summary.generated || 0],
+      ['Planes', metricValue(summary?.total)], ['Vencidos', metricValue(summary?.overdue)], ['Próximos 30 días', metricValue(summary?.dueSoon)], ['Pausados', metricValue(summary?.disabled)], ['OT generadas', metricValue(summary?.generated)],
     ].map(([label, value]) => <Card key={String(label)} className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 text-2xl font-semibold">{value}</p></CardContent></Card>)}</section>
 
     {showForm && <Card className="shadow-none"><CardHeader><CardTitle className="text-base">Nuevo plan preventivo</CardTitle></CardHeader><CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -89,9 +92,9 @@ export function PreventivePlanBoard() {
     </CardContent></Card>}
 
     {message && <p className="rounded-lg border p-3 text-sm">{message}</p>}
-    {error && <p className="rounded-lg border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">{error.message}</p>}
-    {isLoading ? <div className="h-40 animate-pulse rounded-lg bg-muted"/> : ordered.length === 0 ? <Card className="border-dashed shadow-none"><CardContent className="p-10 text-center text-sm text-muted-foreground">No existen planes preventivos registrados. Crea el primero desde “Nuevo plan”.</CardContent></Card> : <div className="space-y-3">{ordered.map((schedule) => { const state = dueState(schedule.next_scheduled_date); return <Card key={schedule.id} className="shadow-none"><CardContent className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_180px_170px_auto] lg:items-center">
-      <div><div className="flex flex-wrap gap-2"><Badge variant={state.tone}>{state.label}</Badge><Badge variant="outline">{schedule.priority || 'medium'}</Badge>{!schedule.enabled && <Badge variant="secondary">Pausado</Badge>}</div><p className="mt-2 font-medium">{schedule.task_name}</p><p className="text-sm text-muted-foreground">{schedule.asset?.asset_code || 'Sin código'} · {schedule.asset?.asset_name || 'Equipo no disponible'}</p>{schedule.description && <p className="mt-1 text-sm text-muted-foreground">{schedule.description}</p>}</div>
+    {error ? <StatePanel tone="error" title="Planificación preventiva no disponible" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} className="min-h-0" /> : null}
+    {isLoading ? <div className="h-40 animate-pulse rounded-lg bg-muted"/> : error ? null : ordered.length === 0 ? <Card className="border-dashed shadow-none"><CardContent className="p-10 text-center text-sm text-muted-foreground">No existen planes preventivos registrados. Crea el primero desde “Nuevo plan”.</CardContent></Card> : <div className="space-y-3">{ordered.map((schedule) => { const state = dueState(schedule.next_scheduled_date); return <Card key={schedule.id} className="shadow-none"><CardContent className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_180px_170px_auto] lg:items-center">
+      <div><div className="flex flex-wrap gap-2"><Badge variant={state.tone}>{state.label}</Badge><Badge variant="outline">{schedule.priority || 'Sin prioridad'}</Badge>{!schedule.enabled && <Badge variant="secondary">Pausado</Badge>}</div><p className="mt-2 font-medium">{schedule.task_name}</p><p className="text-sm text-muted-foreground">{schedule.asset?.asset_code || 'Sin código'} · {schedule.asset?.asset_name || 'Equipo no disponible'}</p>{schedule.description && <p className="mt-1 text-sm text-muted-foreground">{schedule.description}</p>}</div>
       <div><p className="text-xs text-muted-foreground">Frecuencia</p><p className="text-sm">{schedule.frequency_days ? `Cada ${schedule.frequency_days} días` : schedule.frequency_hours ? `Cada ${schedule.frequency_hours} horas` : 'No definida'}</p></div>
       <div><p className="text-xs text-muted-foreground">Orden relacionada</p>{schedule.generated_work_order_id ? <Button asChild variant="link" className="h-auto p-0"><Link href={`/dashboard/mantenimiento/ordenes-trabajo/${schedule.generated_work_order_id}`}><CheckCircle2 className="h-4 w-4"/>Abrir OT</Link></Button> : <p className="text-sm text-muted-foreground">Aún no generada</p>}</div>
       <div className="flex flex-wrap justify-end gap-2"><Button size="sm" variant="outline" onClick={() => void act(schedule.id, 'toggle')}>{schedule.enabled ? <PauseCircle className="h-4 w-4"/> : <PlayCircle className="h-4 w-4"/>}{schedule.enabled ? 'Pausar' : 'Activar'}</Button><Button size="sm" disabled={!schedule.enabled || Boolean(schedule.generated_work_order_id)} onClick={() => void act(schedule.id, 'generate')}><Wrench className="h-4 w-4"/>Crear OT</Button></div>
