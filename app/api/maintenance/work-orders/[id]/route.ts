@@ -44,6 +44,16 @@ async function loadCostCenters(context: Awaited<ReturnType<typeof getOrganizatio
   return data || [];
 }
 
+async function loadCloseReadiness(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, workOrderId: string) {
+  const { data, error } = await context.supabase.from('work_order_close_readiness_v2')
+    .select('ready_to_close,next_action,missing_asset,missing_root_cause,missing_preventive_actions,missing_actual_hours,missing_runtime_evidence,runtime_evidence_status,runtime_unavailable_reason,open_procurement_orders,pending_parts,unmet_material_requirements,pending_external_services,open_labor_entries,standard_plan_steps_pending')
+    .eq('organization_id', context.organizationId)
+    .eq('work_order_id', workOrderId)
+    .maybeSingle();
+  if (error) throw error;
+  return data || null;
+}
+
 async function validateCostCenter(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, costCenterId: string) {
   const { data, error } = await context.supabase.from('cost_centers').select('id,code,name,status').eq('organization_id', context.organizationId).eq('id', costCenterId).maybeSingle();
   if (error) throw error;
@@ -87,9 +97,14 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { data, error } = await context.supabase.from('maintenance_work_orders').select('*').eq('id', id).eq('organization_id', context.organizationId).maybeSingle();
     if (error) throw error;
     if (!data) return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
-    const [asset, costSummary, costCenters] = await Promise.all([loadCanonicalAsset(context, data.canonical_asset_id || null), loadCostSummary(context, id), loadCostCenters(context)]);
+    const [asset, costSummary, costCenters, closeReadiness] = await Promise.all([
+      loadCanonicalAsset(context, data.canonical_asset_id || null),
+      loadCostSummary(context, id),
+      loadCostCenters(context),
+      loadCloseReadiness(context, id),
+    ]);
     const recordScope = data.created_by ? 'operational' : 'historical';
-    return NextResponse.json({ data: mapWorkOrder(data, asset, costSummary), costCenters, canEdit: access.canWrite && recordScope === 'operational', record_scope: recordScope, canonical: true });
+    return NextResponse.json({ data: mapWorkOrder(data, asset, costSummary), costCenters, closeReadiness, canEdit: access.canWrite && recordScope === 'operational', record_scope: recordScope, canonical: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
