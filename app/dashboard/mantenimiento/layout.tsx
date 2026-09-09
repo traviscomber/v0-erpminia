@@ -9,11 +9,12 @@ import { cn } from '@/lib/utils';
 const flowItems = [
   { href: '/dashboard/mantenimiento/planificacion', label: 'Planificar', step: 1 },
   { href: '/dashboard/mantenimiento/ordenes-trabajo', label: 'Órdenes', step: 2 },
-  { href: '/dashboard/mantenimiento/ordenes-trabajo/imputacion', label: 'Imputación', step: 3 },
+  { href: '/dashboard/mantenimiento/ordenes-trabajo/cierre', label: 'Cierre', step: 3 },
 ];
 
 const supportItems = [
   { href: '/dashboard/mantenimiento', label: 'Resumen' },
+  { href: '/dashboard/mantenimiento/ordenes-trabajo/imputacion', label: 'Imputación' },
   { href: '/dashboard/mantenimiento/equipos', label: 'Activos' },
   { href: '/dashboard/mantenimiento/maestranza', label: 'Maestranza' },
   { href: '/dashboard/mantenimiento/personal', label: 'Personal' },
@@ -51,7 +52,11 @@ function isFlowActive(pathname: string, href: string) {
     return pathname === href || pathname.startsWith(`${href}/`) || planningPrefixes.some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
   }
   if (href === '/dashboard/mantenimiento/ordenes-trabajo') {
-    return (pathname === href || pathname.startsWith(`${href}/`)) && !pathname.startsWith('/dashboard/mantenimiento/ordenes-trabajo/imputacion');
+    return (
+      (pathname === href || pathname.startsWith(`${href}/`)) &&
+      !pathname.startsWith('/dashboard/mantenimiento/ordenes-trabajo/imputacion') &&
+      !pathname.startsWith('/dashboard/mantenimiento/ordenes-trabajo/cierre')
+    );
   }
   return pathname === href || pathname.startsWith(`${href}/`);
 }
