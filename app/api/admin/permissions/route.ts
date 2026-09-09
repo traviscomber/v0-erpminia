@@ -2,11 +2,15 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api/guard';
-import {
-  grantUserPermission,
-  listUserPermissions,
-  revokeUserPermission,
-} from '@/lib/api/admin-data';
+import { listUserPermissions } from '@/lib/api/admin-data';
+
+const disabledMutation = () => NextResponse.json(
+  {
+    error: 'Los permisos individuales legacy están deshabilitados. Gestiona el acceso mediante Roles y cargos y su flujo de aprobación.',
+    code: 'LEGACY_INDIVIDUAL_PERMISSIONS_DISABLED',
+  },
+  { status: 410 },
+);
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
@@ -25,7 +29,7 @@ export async function GET(request: NextRequest) {
       userId,
     });
 
-    return NextResponse.json({ permissions });
+    return NextResponse.json({ permissions, legacy: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron cargar los permisos';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -37,33 +41,7 @@ export async function POST(request: NextRequest) {
   if (!auth.authorized || !auth.user || !auth.organizationId) {
     return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
-
-  try {
-    const body = await request.json();
-    const { user_id, role, module, action, expires_at } = body;
-
-    if (!user_id || !module || !action) {
-      return NextResponse.json(
-        { error: 'user_id, módulo y acción son obligatorios' },
-        { status: 400 }
-      );
-    }
-
-    const permission = await grantUserPermission({
-      organizationId: auth.organizationId,
-      userId: user_id,
-      role,
-      module,
-      action,
-      expiresAt: expires_at || null,
-      grantedBy: auth.user.id,
-    });
-
-    return NextResponse.json({ permission }, { status: 201 });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo otorgar el permiso';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  return disabledMutation();
 }
 
 export async function DELETE(request: NextRequest) {
@@ -71,23 +49,5 @@ export async function DELETE(request: NextRequest) {
   if (!auth.authorized || !auth.user || !auth.organizationId) {
     return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
   }
-
-  try {
-    const body = await request.json();
-    const { permission_id } = body;
-
-    if (!permission_id) {
-      return NextResponse.json({ error: 'permission_id es obligatorio' }, { status: 400 });
-    }
-
-    await revokeUserPermission({
-      organizationId: auth.organizationId,
-      permissionId: permission_id,
-    });
-
-    return NextResponse.json({ message: 'Permiso revocado' });
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo revocar el permiso';
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
+  return disabledMutation();
 }
