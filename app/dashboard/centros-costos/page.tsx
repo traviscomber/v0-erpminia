@@ -1,4 +1,4 @@
-import { CostCentersDashboard } from '@/components/dashboard/cost-centers-dashboard';
+import { CostCentersWorkspace } from '@/components/dashboard/cost-centers-workspace';
 import {
   PageHeader,
   PageHeaderContent,
@@ -20,11 +20,11 @@ export default function CostCentersPage() {
           <PageHeaderEyebrow>Control transversal</PageHeaderEyebrow>
           <PageHeaderTitle>Centros de costos</PageHeaderTitle>
           <PageHeaderDescription>
-            Estructura real de imputación para consultar costos, compras y actividad operacional por unidad responsable.
+            Consulta la estructura canónica vigente por código, nombre y unidad responsable. La importación queda separada como herramienta administrativa secundaria.
           </PageHeaderDescription>
         </PageHeaderContent>
       </PageHeader>
-      <CostCentersDashboard />
+      <CostCentersWorkspace />
     </div>
   );
 }
