@@ -48,5 +48,6 @@ test('preventive hours UI exposes real source, honest alert semantics and data-d
   assert.match(page, /Procedimientos estándar disponibles/);
   assert.match(page, /standardPlans\.approved>0/);
   assert.doesNotMatch(page, /hoy no existen planes estándar aprobados/);
-  assert.match(runtimePage, /preventivo-horas/);
+  assert.match(runtimePage, /\/dashboard\/mantenimiento\/planificacion/);
+  assert.match(runtimePage, /Qué requiere reconciliación/);
 });
