@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
   if (!context.ok) return context.response;
 
   try {
-    const [summaryResult, readingsResult, assetsResult] = await Promise.all([
+    const [summaryResult, readingsResult, assetsResult, hourStatusResult] = await Promise.all([
       context.supabase
         .from('maintenance_runtime_cost_intelligence_v1')
         .select('*')
@@ -32,15 +32,67 @@ export async function GET(request: NextRequest) {
         .eq('organization_id', context.organizationId)
         .order('asset_code', { ascending: true })
         .limit(5000),
+      context.supabase
+        .from('preventive_maintenance_hour_status_v1')
+        .select('schedule_id,canonical_asset_id,asset_code,asset_name,task_name,last_executed_meter,source_meter_snapshot,latest_runtime_meter,effective_current_meter,meter_evidence_source,hour_status,remaining_hours,alert_due,source_reference')
+        .eq('organization_id', context.organizationId)
+        .order('remaining_hours', { ascending: true, nullsFirst: false })
+        .limit(500),
     ]);
 
-    const error = summaryResult.error || readingsResult.error || assetsResult.error;
+    const error = summaryResult.error || readingsResult.error || assetsResult.error || hourStatusResult.error;
     if (error) throw error;
+
+    const reconciliationByAsset = new Map<string, {
+      canonical_asset_id: string;
+      asset_code: string | null;
+      asset_name: string | null;
+      source_meter_snapshot: number | null;
+      last_executed_meter: number | null;
+      latest_runtime_meter: number | null;
+      source_reference: string | null;
+      affected_tasks: string[];
+      reason: 'meter_below_last_execution' | 'no_runtime_reading';
+    }>();
+
+    for (const row of hourStatusResult.data || []) {
+      const current = row.effective_current_meter == null ? null : Number(row.effective_current_meter);
+      const lastExecuted = row.last_executed_meter == null ? null : Number(row.last_executed_meter);
+      const hasRuntime = row.latest_runtime_meter != null;
+      const meterBelowLastExecution = current != null && lastExecuted != null && current < lastExecuted;
+      const noRuntimeReading = !hasRuntime && row.meter_evidence_source === 'schedule_snapshot';
+      if (!meterBelowLastExecution && !noRuntimeReading) continue;
+
+      const existing = reconciliationByAsset.get(row.canonical_asset_id);
+      if (existing) {
+        if (!existing.affected_tasks.includes(row.task_name)) existing.affected_tasks.push(row.task_name);
+        if (meterBelowLastExecution) existing.reason = 'meter_below_last_execution';
+        continue;
+      }
+
+      reconciliationByAsset.set(row.canonical_asset_id, {
+        canonical_asset_id: row.canonical_asset_id,
+        asset_code: row.asset_code || null,
+        asset_name: row.asset_name || null,
+        source_meter_snapshot: row.source_meter_snapshot == null ? null : Number(row.source_meter_snapshot),
+        last_executed_meter: row.last_executed_meter == null ? null : Number(row.last_executed_meter),
+        latest_runtime_meter: row.latest_runtime_meter == null ? null : Number(row.latest_runtime_meter),
+        source_reference: row.source_reference || null,
+        affected_tasks: [row.task_name],
+        reason: meterBelowLastExecution ? 'meter_below_last_execution' : 'no_runtime_reading',
+      });
+    }
+
+    const reconciliationQueue = Array.from(reconciliationByAsset.values()).sort((a, b) => {
+      if (a.reason !== b.reason) return a.reason === 'meter_below_last_execution' ? -1 : 1;
+      return String(a.asset_code || a.asset_name || '').localeCompare(String(b.asset_code || b.asset_name || ''));
+    });
 
     return NextResponse.json({
       assets: assetsResult.data || [],
       runtime: summaryResult.data || [],
       readings: readingsResult.data || [],
+      reconciliationQueue,
       canEdit: access.canWrite,
       source: 'asset_runtime_readings',
     });
