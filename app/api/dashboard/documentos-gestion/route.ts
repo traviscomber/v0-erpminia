@@ -31,26 +31,6 @@ const CATEGORY_DEFINITIONS = [
   },
 ] as const;
 
-function createEmptyDashboardPayload() {
-  return {
-    categories: CATEGORY_DEFINITIONS.map((definition) => ({
-      id: definition.id,
-      name: definition.name,
-      description: definition.description,
-      count: 0,
-      pendingApprovals: 0,
-    })),
-    pendingApprovals: [],
-    recentDocuments: [],
-    expiringDocuments: [],
-    stats: {
-      total: 0,
-      pending: 0,
-      expiring: 0,
-    },
-  };
-}
-
 function normalizeText(value: unknown) {
   return String(value || '')
     .toLowerCase()
@@ -201,7 +181,12 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('[v0] Error fetching documentos-gestion data:', error);
-    return NextResponse.json(createEmptyDashboardPayload());
+    console.error('[documentos-gestion] source error', error);
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : 'No fue posible cargar gestión documental',
+      },
+      { status: 500 },
+    );
   }
 }
