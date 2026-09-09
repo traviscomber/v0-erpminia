@@ -6,6 +6,7 @@ const navUrl = new URL('../components/layout/documentation-context-nav.tsx', imp
 const shellUrl = new URL('../components/layout/dashboard-shell.tsx', import.meta.url);
 const libraryUrl = new URL('../app/dashboard/documentos/page.tsx', import.meta.url);
 const controlUrl = new URL('../app/dashboard/documentos-gestion/page.tsx', import.meta.url);
+const controlApiUrl = new URL('../app/api/dashboard/documentos-gestion/route.ts', import.meta.url);
 
 test('Documentación exposes library and control as parallel contexts', async () => {
   const source = await readFile(navUrl, 'utf8');
@@ -27,4 +28,11 @@ test('library and control retain distinct responsibilities', async () => {
   assert.match(library, /\/api\/documents/);
   assert.match(control, /Controla aprobaciones, vencimientos y categorías documentales/);
   assert.match(control, /\/api\/dashboard\/documentos-gestion/);
+});
+
+test('document control source failures never become a successful zero dashboard', async () => {
+  const route = await readFile(controlApiUrl, 'utf8');
+  assert.match(route, /\{ status: 500 \}/);
+  assert.match(route, /No fue posible cargar gestión documental/);
+  assert.doesNotMatch(route, /createEmptyDashboardPayload/);
 });
