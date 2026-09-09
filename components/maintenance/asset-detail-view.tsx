@@ -1,7 +1,7 @@
 'use client';
 
-import { redirect } from 'next/navigation';
-import { useParams } from 'next/navigation';
+import { useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 
 type AssetDetailViewProps = {
   scope?: 'vehiculos' | 'equipos';
@@ -15,6 +15,13 @@ type AssetDetailViewProps = {
  */
 export function AssetDetailView({ scope = 'vehiculos' }: AssetDetailViewProps) {
   const params = useParams<{ id: string }>();
+  const router = useRouter();
   const assetId = decodeURIComponent(String(params.id || ''));
-  redirect(`/dashboard/mantenimiento/${scope}/${encodeURIComponent(assetId)}/ficha`);
+
+  useEffect(() => {
+    if (!assetId) return;
+    router.replace(`/dashboard/mantenimiento/${scope}/${encodeURIComponent(assetId)}/ficha`);
+  }, [assetId, router, scope]);
+
+  return null;
 }
