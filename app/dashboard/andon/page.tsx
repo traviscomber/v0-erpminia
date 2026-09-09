@@ -120,13 +120,14 @@ export default function AndonPage() {
     [data?.data, view],
   );
   const all = data?.data || [];
-  const openCount = all.filter((item) => !['resuelta', 'cerrada'].includes(item.status)).length;
-  const criticalCount = all.filter((item) => item.severity === 'critica' && !['resuelta', 'cerrada'].includes(item.status)).length;
-  const newCount = all.filter((item) => item.status === 'abierta').length;
-  const answered = all.filter((item) => item.acknowledged_at);
+  const summaryReady = !isLoading && !error && Array.isArray(data?.data);
+  const openCount = summaryReady ? all.filter((item) => !['resuelta', 'cerrada'].includes(item.status)).length : null;
+  const criticalCount = summaryReady ? all.filter((item) => item.severity === 'critica' && !['resuelta', 'cerrada'].includes(item.status)).length : null;
+  const newCount = summaryReady ? all.filter((item) => item.status === 'abierta').length : null;
+  const answered = summaryReady ? all.filter((item) => item.acknowledged_at) : [];
   const avgResponse = answered.length
     ? Math.round(answered.reduce((sum, item) => sum + minutesBetween(item.opened_at, item.acknowledged_at), 0) / answered.length)
-    : 0;
+    : null;
 
   const updateEvent = async (event: OperationalAlert, patch: Record<string, unknown>) => {
     setUpdating(true);
@@ -180,10 +181,10 @@ export default function AndonPage() {
 
       <section className="grid divide-y rounded-lg border bg-card sm:grid-cols-4 sm:divide-x sm:divide-y-0">
         {[
-          ['Problemas abiertos', openCount],
-          ['Críticos', criticalCount],
-          ['Nuevos', newCount],
-          ['Tiempo medio de respuesta', `${avgResponse} min`],
+          ['Problemas abiertos', openCount == null ? '—' : openCount],
+          ['Críticos', criticalCount == null ? '—' : criticalCount],
+          ['Nuevos', newCount == null ? '—' : newCount],
+          ['Tiempo medio de respuesta', avgResponse == null ? '—' : `${avgResponse} min`],
         ].map(([label, value]) => (
           <div key={String(label)} className="px-5 py-4">
             <p className="text-xs text-muted-foreground">{label}</p>
@@ -275,38 +276,17 @@ export default function AndonPage() {
             {selected.action_url ? (
               <Button asChild variant="outline"><Link href={selected.action_url}>Abrir registro original</Link></Button>
             ) : null}
-            <Button
-              variant="outline"
-              disabled={updating}
-              onClick={() => void updateEvent(selected, { owner_name: owner, root_cause: cause, countermeasure: preventiveAction })}
-            >
-              Guardar
-            </Button>
+            <Button variant="outline" disabled={updating} onClick={() => void updateEvent(selected, { owner_name: owner, root_cause: cause, countermeasure: preventiveAction })}>Guardar</Button>
             {!['resuelta', 'cerrada'].includes(selected.status) ? (
               <Button
                 disabled={updating || !owner.trim() || !cause.trim() || !preventiveAction.trim()}
-                onClick={() => void updateEvent(selected, {
-                  status: 'resuelta',
-                  owner_name: owner,
-                  root_cause: cause,
-                  countermeasure: preventiveAction,
-                })}
+                onClick={() => void updateEvent(selected, { status: 'resuelta', owner_name: owner, root_cause: cause, countermeasure: preventiveAction })}
               >
                 <AlertTriangle className="h-4 w-4" />Marcar como resuelto
               </Button>
             ) : null}
             {selected.status === 'resuelta' ? (
-              <Button
-                disabled={updating}
-                onClick={() => void updateEvent(selected, {
-                  status: 'cerrada',
-                  owner_name: owner,
-                  root_cause: cause,
-                  countermeasure: preventiveAction,
-                })}
-              >
-                Cerrar seguimiento
-              </Button>
+              <Button disabled={updating} onClick={() => void updateEvent(selected, { status: 'cerrada', owner_name: owner, root_cause: cause, countermeasure: preventiveAction })}>Cerrar seguimiento</Button>
             ) : null}
           </div>
         </section>
