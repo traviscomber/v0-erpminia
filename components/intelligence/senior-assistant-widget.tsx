@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ArrowUpRight, X } from 'lucide-react';
 import { resolveAssistantContext } from '@/lib/intelligence/assistant-context';
 import { SpecialistAssistantBody } from '@/components/intelligence/specialist-assistant-body';
+import { ControlledMemoryPopover } from '@/components/intelligence/controlled-memory-popover';
 
 const maintenanceToolCopy: Record<string, string> = {
   search_assets: 'Activos',
@@ -153,6 +154,16 @@ const specialistConfig = {
 
 type SpecialistDomain = keyof typeof specialistConfig;
 
+const controlledMemoryDomains = new Set<string>([
+  'executive',
+  'inventory',
+  'procurement',
+  'production',
+  'finance',
+  'documents',
+  'data_health',
+]);
+
 export function SeniorAssistantMark({ className = '' }: { className?: string }) {
   return (
     <svg viewBox="0 0 72 72" aria-hidden="true" className={className} focusable="false">
@@ -176,6 +187,7 @@ export function SeniorAssistantWidget() {
   const specialist = Object.prototype.hasOwnProperty.call(specialistConfig, context.domain)
     ? specialistConfig[context.domain as SpecialistDomain]
     : null;
+  const showsControlledMemory = controlledMemoryDomains.has(context.domain);
 
   useEffect(() => {
     if (!open) return;
@@ -203,6 +215,7 @@ export function SeniorAssistantWidget() {
               <p className="font-heading text-sm font-semibold text-foreground">{context.title}</p>
               <p className="mt-0.5 truncate text-xs text-muted-foreground">Contexto: {context.label}</p>
             </div>
+            {showsControlledMemory ? <ControlledMemoryPopover /> : null}
             <button type="button" onClick={() => setOpen(false)} className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary" aria-label={`Cerrar ${context.title}`}>
               <X className="size-4" />
             </button>
