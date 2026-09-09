@@ -45,7 +45,7 @@ const portals: ExecutivePortalConfig[] = [
     areaPath: '/dashboard/produccion',
     actionLabel: 'Abrir producción',
     allowedRoles: ['jefe_planta', 'jefe_produccion'],
-    allowedCargos: ['JEFE PLANTA'],
+    allowedCargos: ['JEFE PLANTA', 'GERENTE OPERACIONES'],
   },
   {
     key: 'sustainability',
