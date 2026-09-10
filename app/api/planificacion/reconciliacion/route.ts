@@ -5,7 +5,8 @@ import { getOrganizationContext } from '@/lib/api/organization-context';
 import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
-const REVIEWABLE_STATUSES = new Set(['unmatched', 'ambiguous', 'review_required']);
+const REVIEWABLE_STATUSES = new Set(['unmatched', 'ambiguous', 'needs_review', 'review_required']);
+const ACTIVE_REVIEW_STATUSES = ['ambiguous', 'needs_review', 'review_required'];
 
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES);
@@ -20,37 +21,41 @@ export async function GET(request: NextRequest) {
         .from('planning_maintenance_source_rows')
         .select('id,source_row,mine_raw,asset_name_raw,meter_unit,interval_mp,last_mp,initial_reading_at,initial_reading,current_reading_at,current_reading,criticality_raw,programming_status_raw,responsible_raw,parts_status_raw,observations,reconciliation_status,reconciliation_notes')
         .eq('organization_id', context.organizationId)
-        .in('reconciliation_status', ['unmatched', 'ambiguous', 'review_required'])
+        .in('reconciliation_status', ACTIVE_REVIEW_STATUSES)
         .order('source_row', { ascending: true })
         .limit(250),
       context.supabase
         .from('maintenance_canonical_assets_v1')
-        .select('id,asset_code,name,asset_type')
+        .select('id,asset_code,name,asset_type,manufacturer,model,license_plate')
         .eq('organization_id', context.organizationId)
+        .eq('is_active', true)
         .order('asset_code', { ascending: true })
         .limit(5000),
       context.supabase
         .from('planning_maintenance_source_rows')
-        .select('reconciliation_status')
+        .select('reconciliation_status,match_method')
         .eq('organization_id', context.organizationId),
     ]);
 
     const error = rowsResult.error || assetsResult.error || countsResult.error;
     if (error) throw error;
 
-    const counts = (countsResult.data || []).reduce<Record<string, number>>((acc, row: any) => {
+    const allRows = countsResult.data || [];
+    const counts = allRows.reduce<Record<string, number>>((acc, row: any) => {
       const key = row.reconciliation_status || 'unknown';
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {});
+    const missingAssets = allRows.filter((row: any) => row.match_method === 'planner_declared_missing_asset').length;
 
     return NextResponse.json({
       rows: rowsResult.data || [],
       assets: (assetsResult.data || []).map((asset: any) => ({ ...asset, location: null })),
       counts,
+      missingAssets,
       canReview: access.canWrite,
       semantics: {
-        authority: 'Ariel, como planificador con permiso de edición, puede aclarar y confirmar identidades. La reconciliación manual no modifica el activo canónico ni inventa datos operacionales.',
+        authority: 'Ariel responde una aclaración a la vez. Puede identificar el mismo equipo, declarar que falta en MOTIL o posponer la respuesta. Ninguna opción modifica el activo canónico.',
         source: 'nuevo_maestro_v11_dj09sep.xlsx preservado como evidencia de Ariel López.',
       },
     });
@@ -66,40 +71,67 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
     const rowId = String(body?.rowId || '').trim();
+    const action = String(body?.action || 'match').trim();
     const canonicalAssetId = String(body?.canonicalAssetId || '').trim();
     const note = String(body?.note || '').trim();
 
-    if (!rowId || !canonicalAssetId) {
-      return NextResponse.json({ error: 'Fila y activo canónico son obligatorios' }, { status: 400 });
+    if (!rowId) return NextResponse.json({ error: 'La fila es obligatoria' }, { status: 400 });
+    if (!['match', 'missing_asset'].includes(action)) {
+      return NextResponse.json({ error: 'Acción de aclaración no válida' }, { status: 400 });
+    }
+    if (action === 'match' && !canonicalAssetId) {
+      return NextResponse.json({ error: 'Selecciona el mismo equipo en MOTIL' }, { status: 400 });
     }
 
     const supabase = getSupabaseServerClient(access.user.id);
+    const { data: row, error: rowError } = await supabase
+      .from('planning_maintenance_source_rows')
+      .select('id,organization_id,import_id,source_row,asset_name_raw,meter_unit,initial_reading_at,initial_reading,current_reading_at,current_reading,reconciliation_status')
+      .eq('id', rowId)
+      .eq('organization_id', access.organizationId)
+      .maybeSingle();
 
-    const [{ data: row, error: rowError }, { data: asset, error: assetError }] = await Promise.all([
-      supabase
-        .from('planning_maintenance_source_rows')
-        .select('id,organization_id,import_id,source_row,asset_name_raw,meter_unit,initial_reading_at,initial_reading,current_reading_at,current_reading,reconciliation_status')
-        .eq('id', rowId)
-        .eq('organization_id', access.organizationId)
-        .maybeSingle(),
-      supabase
-        .from('maintenance_canonical_assets_v1')
-        .select('id,asset_code,name')
-        .eq('id', canonicalAssetId)
-        .eq('organization_id', access.organizationId)
-        .maybeSingle(),
-    ]);
-
-    if (rowError || assetError) throw rowError || assetError;
+    if (rowError) throw rowError;
     if (!row) return NextResponse.json({ error: 'Fila de origen no encontrada' }, { status: 404 });
-    if (!asset) return NextResponse.json({ error: 'Activo canónico no encontrado en la organización' }, { status: 404 });
     if (!REVIEWABLE_STATUSES.has(row.reconciliation_status)) {
-      return NextResponse.json({ error: 'La fila ya fue reconciliada y no se modifica desde este flujo' }, { status: 409 });
+      return NextResponse.json({ error: 'La fila ya fue aclarada y no se modifica desde este flujo' }, { status: 409 });
     }
 
     const reviewedAt = new Date().toISOString();
-    const reconciliationNotes = note || `Reconciliación manual confirmada por planificador: ${row.asset_name_raw} → ${asset.asset_code} · ${asset.name}`;
 
+    if (action === 'missing_asset') {
+      const reconciliationNotes = note || `Ariel/planificador declaró que ${row.asset_name_raw} no tiene todavía un activo canónico identificable en MOTIL.`;
+      const { error: updateError } = await supabase
+        .from('planning_maintenance_source_rows')
+        .update({
+          canonical_asset_id: null,
+          reconciliation_status: 'unmatched',
+          match_method: 'planner_declared_missing_asset',
+          match_score: null,
+          reconciliation_notes: reconciliationNotes,
+          reconciliation_reviewed_by: access.user.id,
+          reconciliation_reviewed_at: reviewedAt,
+          updated_at: reviewedAt,
+        })
+        .eq('id', rowId)
+        .eq('organization_id', access.organizationId)
+        .in('reconciliation_status', ['unmatched', 'ambiguous', 'needs_review', 'review_required']);
+      if (updateError) throw updateError;
+
+      return NextResponse.json({ ok: true, action: 'missing_asset', rowId, reviewedAt });
+    }
+
+    const { data: asset, error: assetError } = await supabase
+      .from('maintenance_canonical_assets_v1')
+      .select('id,asset_code,name')
+      .eq('id', canonicalAssetId)
+      .eq('organization_id', access.organizationId)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (assetError) throw assetError;
+    if (!asset) return NextResponse.json({ error: 'Activo canónico no encontrado en la organización' }, { status: 404 });
+
+    const reconciliationNotes = note || `Reconciliación manual confirmada por planificador: ${row.asset_name_raw} → ${asset.asset_code} · ${asset.name}`;
     const { error: updateError } = await supabase
       .from('planning_maintenance_source_rows')
       .update({
@@ -114,7 +146,7 @@ export async function PATCH(request: NextRequest) {
       })
       .eq('id', rowId)
       .eq('organization_id', access.organizationId)
-      .in('reconciliation_status', ['unmatched', 'ambiguous', 'review_required']);
+      .in('reconciliation_status', ['unmatched', 'ambiguous', 'needs_review', 'review_required']);
     if (updateError) throw updateError;
 
     const unit = String(row.meter_unit || '').trim().toLowerCase();
@@ -151,12 +183,13 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json({
       ok: true,
+      action: 'match',
       rowId,
       canonicalAssetId,
       asset: { id: asset.id, asset_code: asset.asset_code, name: asset.name },
       reviewedAt,
     });
   } catch (error) {
-    return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo reconciliar la fila' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'No se pudo guardar la aclaración' }, { status: 500 });
   }
 }
