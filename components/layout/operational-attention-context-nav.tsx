@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const items = [
+  { href: '/dashboard/planificacion', label: 'Planificación' },
   { href: '/dashboard/alertas', label: 'Alertas' },
   { href: '/dashboard/andon', label: 'Problemas' },
 ];
