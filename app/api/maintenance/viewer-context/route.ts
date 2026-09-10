@@ -39,9 +39,11 @@ export async function GET(request: NextRequest) {
       cargoName = cargo?.name || null;
     }
 
+    const mode = resolveMode(cargoName);
+
     return NextResponse.json({
-      mode: resolveMode(cargoName),
-      cargoName,
+      mode,
+      cargoName: mode === 'general' ? null : cargoName,
       canEdit: access.canWrite,
     });
   } catch (error) {
