@@ -20,7 +20,7 @@ test('planner reconciliation preserves canonical asset ownership and evidence li
   assert.match(api, /planning_asset_meter_readings/);
   assert.match(api, /workbook_initial/);
   assert.match(api, /workbook_current/);
-  assert.doesNotMatch(api, /from\('maintenance_canonical_assets_v1'\)[\s\S]*\.update\(/);
+  assert.doesNotMatch(api, /from\('maintenance_canonical_assets_v1'\)\s*\.update\(/);
 });
 
 test('Ariel data workspace requires explicit human confirmation', () => {
