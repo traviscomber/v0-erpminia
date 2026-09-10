@@ -39,6 +39,8 @@ type Response = {
   assets: Asset[];
   counts: Record<string, number>;
   missingAssets: number;
+  systemResolvedMissingAssets: number;
+  plannerDeclaredMissingAssets: number;
   canReview: boolean;
   semantics: { authority: string; source: string };
 };
@@ -162,7 +164,7 @@ export default function PlanningDataPage() {
       <PageHeaderContent>
         <PageHeaderEyebrow>Planning Intelligence · Gobierno de datos</PageHeaderEyebrow>
         <PageHeaderTitle>Aclaraciones de Ariel</PageHeaderTitle>
-        <PageHeaderDescription>Una pregunta a la vez. Ariel identifica el equipo, indica que falta en MOTIL o sigue con el siguiente.</PageHeaderDescription>
+        <PageHeaderDescription>MOTIL ya resolvió lo demostrable con la data disponible. Aquí Ariel responde únicamente los casos que todavía necesitan conocimiento de terreno.</PageHeaderDescription>
       </PageHeaderContent>
       <PageHeaderActions>
         <Button variant="outline" asChild><Link href="/dashboard/planificacion"><ArrowLeft className="h-4 w-4"/>Planificación</Link></Button>
@@ -172,8 +174,8 @@ export default function PlanningDataPage() {
 
     <section className="grid divide-y rounded-lg border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0">
       <div className="px-5 py-4"><p className="text-xs text-muted-foreground">Identificados</p><p className="mt-1 text-2xl font-semibold">{isLoading ? '—' : matched}</p><p className="mt-1 text-xs text-muted-foreground">de {total || '—'} filas</p></div>
-      <div className="px-5 py-4"><p className="text-xs text-muted-foreground">Por responder</p><p className="mt-1 text-2xl font-semibold">{isLoading ? '—' : rows.length}</p><p className="mt-1 text-xs text-muted-foreground">sólo decisiones pendientes</p></div>
-      <div className="px-5 py-4"><p className="text-xs text-muted-foreground">Faltan en maestro</p><p className="mt-1 text-2xl font-semibold">{isLoading ? '—' : missingAssets}</p><p className="mt-1 text-xs text-muted-foreground">declarados por planificación</p></div>
+      <div className="px-5 py-4"><p className="text-xs text-muted-foreground">Necesitan a Ariel</p><p className="mt-1 text-2xl font-semibold">{isLoading ? '—' : rows.length}</p><p className="mt-1 text-xs text-muted-foreground">ambigüedad real</p></div>
+      <div className="px-5 py-4"><p className="text-xs text-muted-foreground">Faltan en maestro</p><p className="mt-1 text-2xl font-semibold">{isLoading ? '—' : missingAssets}</p><p className="mt-1 text-xs text-muted-foreground">detectados con evidencia</p></div>
     </section>
 
     {message ? <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm">{message}</p> : null}
