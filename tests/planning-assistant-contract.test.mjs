@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { readFile } from 'node:fs/promises';
+
+const api = await readFile(new URL('../app/api/planificacion/asistente/route.ts', import.meta.url), 'utf8');
+const page = await readFile(new URL('../app/dashboard/planificacion/asistente/page.tsx', import.meta.url), 'utf8');
+const nav = await readFile(new URL('../components/layout/operational-attention-context-nav.tsx', import.meta.url), 'utf8');
+
+test('Ariel planning assistant reads real transversal sources and is tenant scoped', () => {
+  for (const source of [
+    'planning_maintenance_priority_v1',
+    'planning_maintenance_source_rows',
+    'operational_attention_global_v1',
+    'preventive_maintenance_hour_status_v1',
+    'production_monthly_plans',
+    'canonical_inventory_current',
+    'canonical_purchase_orders_current',
+  ]) assert.match(api, new RegExp(source));
+  assert.match(api, /\.eq\('organization_id', context\.organizationId\)/);
+});
+
+test('Ariel planning assistant preserves human authority and does not mutate operational data', () => {
+  assert.match(api, /Ariel mantiene autoridad final sobre programación/);
+  assert.match(api, /no ejecuta cambios/i);
+  assert.doesNotMatch(api, /\.insert\(/);
+  assert.doesNotMatch(api, /\.update\(/);
+  assert.doesNotMatch(api, /\.delete\(/);
+});
+
+test('planning assistant UI exposes current-data semantics and stewardship path', () => {
+  assert.match(page, /datos reales de Mantenimiento, Producción, Bodega y Compras/i);
+  assert.match(page, /\/dashboard\/planificacion\/datos/);
+  assert.match(nav, /Asistente Ariel/);
+});
