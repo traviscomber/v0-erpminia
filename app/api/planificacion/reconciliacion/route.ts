@@ -61,7 +61,7 @@ export async function GET(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES, true);
-  if (!access.authorized || !access.user || !access.organizationId) return access.response;
+  if (!access.authorized) return access.response;
 
   try {
     const body = await request.json();
