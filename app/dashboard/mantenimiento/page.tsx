@@ -33,6 +33,14 @@ const kindCopy: Record<string,{label:string; icon:any; variant:'default'|'second
   reliability:{ label:'Confiabilidad', icon:AlertTriangle, variant:'outline' },
 };
 
+const maintenanceFlow = [
+  { step:'01', label:'Planificar', detail:'Vencimientos, criticidad y prioridad', href:'/dashboard/planificacion' },
+  { step:'02', label:'Preparar', detail:'Repuestos disponibles y brechas de compra', href:'/dashboard/bodega' },
+  { step:'03', label:'Ejecutar', detail:'Orden de trabajo y evidencia real', href:'/dashboard/mantenimiento/ordenes-trabajo' },
+  { step:'04', label:'Validar', detail:'Cierre supervisado y trazabilidad', href:'/dashboard/mantenimiento/ordenes-trabajo/cierre' },
+  { step:'05', label:'Aprender', detail:'Historial, confiabilidad y próxima acción', href:'/dashboard/mantenimiento/decision-intelligence' },
+] as const;
+
 export default function MantenimientoPage(){
   const {data,error,isLoading,mutate}=useSWR<Response>('/api/maintenance/control-center',fetcher,{revalidateOnFocus:false});
   const summary=data?.summary;
@@ -62,6 +70,26 @@ export default function MantenimientoPage(){
 
     <section aria-label="Estado de mantenimiento" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {metrics.map(([label,value,detail,href])=><Link key={label} href={href} className="rounded-lg border bg-card px-4 py-4 shadow-none outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-ring"><p className="text-xs text-muted-foreground">{label}</p><div className="mt-2 flex items-end justify-between gap-3"><p className="text-3xl font-semibold tracking-tight">{isLoading?'—':value}</p><p className="text-right text-xs text-muted-foreground">{detail}</p></div></Link>)}
+    </section>
+
+    <section aria-labelledby="maintenance-flow-title" className="border-y border-border py-4">
+      <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Flujo operacional</p>
+          <h2 id="maintenance-flow-title" className="text-lg font-semibold">Planificar → Preparar → Ejecutar → Validar → Aprender</h2>
+        </div>
+        <p className="max-w-xl text-sm text-muted-foreground">Cada etapa usa su fuente canónica. Bodega y Compras preparan recursos; Mantenimiento conserva la ejecución y el cierre.</p>
+      </div>
+      <div className="grid divide-y border border-border bg-card md:grid-cols-5 md:divide-x md:divide-y-0">
+        {maintenanceFlow.map((item)=><Link key={item.step} href={item.href} className="group min-w-0 px-4 py-4 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring">
+          <div className="flex items-center justify-between gap-3"><span className="text-xs tabular-nums text-muted-foreground">{item.step}</span><ArrowRight className="h-4 w-4 text-muted-foreground transition-transform group-hover:translate-x-0.5"/></div>
+          <p className="mt-3 font-medium">{item.label}</p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">{item.detail}</p>
+        </Link>)}
+      </div>
+      <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
+        <span>Producción aporta uso y señales</span><span>·</span><span>Bodega confirma stock</span><span>·</span><Link className="hover:text-foreground" href="/dashboard/compras">Compras cubre brechas</Link><span>·</span><span>Finanzas consume costos reales</span>
+      </div>
     </section>
 
     {!isLoading&&!error&&Number(summary?.outOfServiceOperationalReviews || 0)>0?<StatePanel tone="warning" title={`${summary?.outOfServiceOperationalReviews} equipo(s) fuera de servicio requieren revisión humana`} description="La observación de terreno permanece como evidencia. MOTIL no crea una OT automáticamente ni convierte esta señal en causa raíz." className="min-h-0 py-5"/>:null}
