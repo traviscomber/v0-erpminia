@@ -15,6 +15,26 @@ import {
 } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
 
+type ArielPriority = {
+  source_row_id: string;
+  canonical_asset_id: string;
+  asset_code: string | null;
+  asset_name: string | null;
+  mine_raw: string | null;
+  meter_unit: string | null;
+  current_reading: number | null;
+  remaining_meter: number | null;
+  projected_days: number | null;
+  criticality_raw: string | null;
+  total_score: number | null;
+  priority: string | null;
+  recommended_action: string | null;
+  scheduled_date: string | null;
+  programming_status_raw: string | null;
+  responsible_raw: string | null;
+  parts_status_raw: string | null;
+};
+
 type PlanningResponse = {
   planner?: { name: string; role: string; scope: string[] };
   summary?: {
@@ -45,33 +65,27 @@ type PlanningResponse = {
     asset_code: string | null;
     asset_name: string | null;
     task_name: string | null;
-    due_meter: number | null;
-    effective_current_meter: number | null;
     remaining_hours: number | null;
-    hour_status: string | null;
-    alert_due: boolean | null;
     meter_basis_conflict: boolean | null;
   }>;
+  arielPlanning?: {
+    sourceCoverage: { total_rows: number; matched_rows: number; unmatched_rows: number; matched_percent: number };
+    priorityCounts: Record<string, number>;
+    priorities: ArielPriority[];
+    semantics: { source: string; priority: string; authority: string };
+  };
   productionPlan?: {
     id: string;
     plan_code: string;
     period_start: string;
     period_end: string;
     status: string;
-    prepared_by: string | null;
     total_mineral_to_plant_tons: number | null;
-    total_waste_tons: number | null;
     total_movement_tons: number | null;
     planned_advance_m: number | null;
     planned_drilling_m: number | null;
   } | null;
-  sourceStatus?: {
-    attention: { available: boolean };
-    preventive: { available: boolean };
-    productionPlan: { available: boolean };
-    complete: boolean;
-  };
-  generatedAt?: string;
+  sourceStatus?: Record<string, { available: boolean }> & { complete: boolean };
 };
 
 const fetcher = async (url: string): Promise<PlanningResponse> => {
@@ -80,6 +94,17 @@ const fetcher = async (url: string): Promise<PlanningResponse> => {
   if (!response.ok) throw new Error(payload?.error || 'No fue posible cargar el centro de planificación');
   return payload || {};
 };
+
+function number(value: number | null | undefined, suffix = '') {
+  if (value == null || Number.isNaN(Number(value))) return '—';
+  return `${new Intl.NumberFormat('es-CL', { maximumFractionDigits: 1 }).format(Number(value))}${suffix}`;
+}
+
+function priorityVariant(priority: string | null): 'destructive' | 'outline' | 'secondary' {
+  if (priority?.startsWith('P1')) return 'destructive';
+  if (priority?.startsWith('P2')) return 'secondary';
+  return 'outline';
+}
 
 function domainLabel(domain: string | null) {
   const value = String(domain || '').toLowerCase();
@@ -90,27 +115,14 @@ function domainLabel(domain: string | null) {
   return 'Transversal';
 }
 
-function severityLabel(value: string | null) {
-  const severity = String(value || '').toLowerCase();
-  if (severity === 'critical') return 'Crítica';
-  if (severity === 'warning') return 'Advertencia';
-  return value || 'Informativa';
-}
-
-function number(value: number | null | undefined, suffix = '') {
-  if (value == null || Number.isNaN(Number(value))) return '—';
-  return `${new Intl.NumberFormat('es-CL', { maximumFractionDigits: 0 }).format(Number(value))}${suffix}`;
-}
-
 export default function PlanificacionPage() {
-  const { data, error, isLoading, isValidating, mutate } = useSWR<PlanningResponse>('/api/planificacion', fetcher, {
-    revalidateOnFocus: false,
-  });
-
+  const { data, error, isLoading, isValidating, mutate } = useSWR<PlanningResponse>('/api/planificacion', fetcher, { revalidateOnFocus: false });
   const attention = data?.attention ?? [];
   const preventive = data?.preventive ?? [];
   const plan = data?.productionPlan ?? null;
   const summary = data?.summary ?? null;
+  const ariel = data?.arielPlanning;
+  const priorities = ariel?.priorities ?? [];
   const complete = data?.sourceStatus?.complete === true;
 
   return (
@@ -120,7 +132,7 @@ export default function PlanificacionPage() {
           <PageHeaderEyebrow>Planning Intelligence · Jefe de Planificación</PageHeaderEyebrow>
           <PageHeaderTitle>Centro de planificación</PageHeaderTitle>
           <PageHeaderDescription>
-            Una cola transversal para coordinar mantenimiento, producción, bodega y compras. MOTIL calcula y ordena señales; Ariel confirma prioridades, ventanas y decisiones.
+            Vista operacional de Ariel: plan maestro reconciliado, atención transversal, preventivos y producción. MOTIL calcula; Ariel valida y programa.
           </PageHeaderDescription>
         </PageHeaderContent>
         <PageHeaderActions>
@@ -132,20 +144,15 @@ export default function PlanificacionPage() {
       </PageHeader>
 
       {!complete && data?.sourceStatus ? (
-        <StatePanel
-          tone="warning"
-          title="Vista parcial de planificación"
-          description="Una o más fuentes canónicas no respondieron. MOTIL mantiene visibles los datos disponibles y no interpreta la ausencia como cero."
-          className="min-h-0"
-        />
+        <StatePanel tone="warning" title="Vista parcial de planificación" description="Una o más fuentes no respondieron. Los datos disponibles se mantienen visibles y la ausencia no se interpreta como cero." className="min-h-0" />
       ) : null}
 
       <section className="grid divide-y rounded-lg border border-border bg-card sm:grid-cols-4 sm:divide-x sm:divide-y-0" aria-label="Resumen de planificación">
         {[
-          ['Atención activa', summary ? summary.active_alerts : '—', 'Señales pendientes'],
-          ['Críticas', summary ? summary.critical_alerts : '—', 'Requieren revisión primero'],
+          ['Plan maestro reconciliado', ariel ? `${ariel.sourceCoverage.matched_percent}%` : '—', ariel ? `${ariel.sourceCoverage.matched_rows}/${ariel.sourceCoverage.total_rows} equipos enlazados` : 'Fuente Ariel'],
+          ['P1 vencidos', ariel?.priorityCounts['P1 - VENCIDO'] ?? '—', 'Revisión prioritaria'],
+          ['Atención transversal', summary ? summary.active_alerts : '—', 'Señales pendientes'],
           ['Bloqueos materiales', summary ? summary.material_blockers : '—', 'Dependencias de abastecimiento'],
-          ['Preventivos alertados', preventive.length, complete ? 'Por condición horaria' : 'Entre fuentes disponibles'],
         ].map(([label, value, detail]) => (
           <div key={String(label)} className="px-5 py-4">
             <p className="text-xs text-muted-foreground">{label}</p>
@@ -155,97 +162,82 @@ export default function PlanificacionPage() {
         ))}
       </section>
 
-      {isLoading ? <StatePanel tone="loading" title="Construyendo la vista de planificación" description="Consultando atención operacional, mantenimiento preventivo y programa de producción." /> : null}
+      {isLoading ? <StatePanel tone="loading" title="Construyendo la vista de planificación" description="Consultando plan maestro, atención operacional, mantenimiento preventivo y producción." /> : null}
       {error ? <StatePanel tone="error" title="No fue posible cargar planificación" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} /> : null}
 
       {!isLoading && !error ? (
-        <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,.75fr)]">
+        <>
           <section className="space-y-3">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">01 · Attention</p>
-              <h2 className="mt-1 text-lg font-semibold">Qué requiere decisión de planificación</h2>
-              <p className="mt-1 text-sm text-muted-foreground">Ordenado por prioridad operacional. La recomendación no ejecuta cambios por sí sola.</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">01 · Plan maestro Ariel</p>
+              <h2 className="mt-1 text-lg font-semibold">Qué debe programarse primero</h2>
+              <p className="mt-1 text-sm text-muted-foreground">Prioridad determinística P1–P5 sobre equipos ya reconciliados con el maestro canónico. Los no reconciliados permanecen fuera de esta cola.</p>
             </div>
-
-            {attention.length === 0 ? (
-              <StatePanel tone="neutral" title="Sin señales pendientes en la fuente disponible" description="No se generan decisiones automáticas por ausencia de señales." />
-            ) : (
+            {priorities.length ? (
               <div className="overflow-hidden rounded-lg border border-border bg-card">
                 <div className="divide-y divide-border">
-                  {attention.map((item) => (
-                    <article key={item.alert_key} className="grid gap-4 px-4 py-4 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:px-5">
-                      <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                        {item.material_related ? <Boxes className="h-4 w-4 text-muted-foreground" /> : item.domain?.includes('maintenance') ? <Wrench className="h-4 w-4 text-muted-foreground" /> : <AlertTriangle className="h-4 w-4 text-muted-foreground" />}
-                      </div>
+                  {priorities.slice(0, 12).map((item) => (
+                    <article key={item.source_row_id} className="grid gap-3 px-4 py-4 lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(120px,.45fr))_auto] lg:items-center lg:px-5">
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="text-sm font-semibold">{item.title}</h3>
-                          <Badge variant={item.severity === 'critical' ? 'destructive' : 'outline'}>{severityLabel(item.severity)}</Badge>
-                          <Badge variant="outline">{domainLabel(item.domain)}</Badge>
-                          {item.priority_score != null ? <span className="text-xs text-muted-foreground">Prioridad {item.priority_score}</span> : null}
+                          <h3 className="text-sm font-semibold">{item.asset_code || item.asset_name || 'Equipo'}</h3>
+                          <Badge variant={priorityVariant(item.priority)}>{item.priority || 'Sin clasificar'}</Badge>
                         </div>
-                        {item.evidence_summary ? <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.evidence_summary}</p> : null}
-                        {item.recommended_action ? <p className="mt-2 text-xs text-muted-foreground">Siguiente acción sugerida: <span className="font-medium text-foreground">{item.recommended_action.replaceAll('_', ' ')}</span></p> : null}
+                        <p className="mt-1 text-xs text-muted-foreground">{item.mine_raw || 'Sin mina'} · Criticidad {item.criticality_raw || 'sin validar'}</p>
+                        {item.recommended_action ? <p className="mt-2 text-sm text-muted-foreground">{item.recommended_action}</p> : null}
                       </div>
-                      <Button size="sm" variant="outline" asChild><Link href={item.action_url}>Abrir fuente</Link></Button>
+                      <div><p className="text-xs text-muted-foreground">Lectura</p><p className="mt-1 text-sm font-medium">{number(item.current_reading, item.meter_unit ? ` ${item.meter_unit}` : '')}</p></div>
+                      <div><p className="text-xs text-muted-foreground">Saldo</p><p className="mt-1 text-sm font-medium">{number(item.remaining_meter, item.meter_unit ? ` ${item.meter_unit}` : '')}</p></div>
+                      <div><p className="text-xs text-muted-foreground">Proyección</p><p className="mt-1 text-sm font-medium">{number(item.projected_days, ' días')}</p></div>
+                      <Button size="sm" variant="outline" asChild><Link href="/dashboard/mantenimiento/planificacion">Revisar</Link></Button>
                     </article>
                   ))}
                 </div>
               </div>
-            )}
+            ) : <StatePanel tone="neutral" title="Sin equipos reconciliados para priorizar" description="La fuente de Ariel permanece como evidencia hasta que exista correspondencia segura con un activo canónico." />}
           </section>
 
-          <aside className="space-y-6">
-            <section className="rounded-lg border border-border bg-card p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">02 · Producción</p>
-                  <h2 className="mt-1 text-base font-semibold">Plan activo</h2>
-                </div>
-                <Factory className="h-4 w-4 text-muted-foreground" />
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(320px,.75fr)]">
+            <section className="space-y-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">02 · Atención transversal</p>
+                <h2 className="mt-1 text-lg font-semibold">Qué requiere coordinación</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Señales de mantenimiento, bodega, compras y producción. No ejecutan decisiones automáticamente.</p>
               </div>
-              {plan ? (
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <p className="text-sm font-semibold">{plan.plan_code}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">{plan.period_start} → {plan.period_end}</p>
+              {attention.length === 0 ? <StatePanel tone="neutral" title="Sin señales pendientes" description="No se generan decisiones automáticas por ausencia de señales." /> : (
+                <div className="overflow-hidden rounded-lg border border-border bg-card">
+                  <div className="divide-y divide-border">
+                    {attention.slice(0, 10).map((item) => (
+                      <article key={item.alert_key} className="grid gap-4 px-4 py-4 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:px-5">
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                          {item.material_related ? <Boxes className="h-4 w-4 text-muted-foreground" /> : item.domain?.includes('maintenance') ? <Wrench className="h-4 w-4 text-muted-foreground" /> : <AlertTriangle className="h-4 w-4 text-muted-foreground" />}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-semibold">{item.title}</h3><Badge variant="outline">{domainLabel(item.domain)}</Badge></div>
+                          {item.evidence_summary ? <p className="mt-1 text-sm leading-6 text-muted-foreground">{item.evidence_summary}</p> : null}
+                        </div>
+                        <Button size="sm" variant="outline" asChild><Link href={item.action_url}>Abrir fuente</Link></Button>
+                      </article>
+                    ))}
                   </div>
-                  <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
-                    <div><dt className="text-xs text-muted-foreground">Movimiento</dt><dd className="mt-1 font-medium">{number(plan.total_movement_tons, ' t')}</dd></div>
-                    <div><dt className="text-xs text-muted-foreground">Mineral planta</dt><dd className="mt-1 font-medium">{number(plan.total_mineral_to_plant_tons, ' t')}</dd></div>
-                    <div><dt className="text-xs text-muted-foreground">Avance</dt><dd className="mt-1 font-medium">{number(plan.planned_advance_m, ' m')}</dd></div>
-                    <div><dt className="text-xs text-muted-foreground">Sondaje</dt><dd className="mt-1 font-medium">{number(plan.planned_drilling_m, ' m')}</dd></div>
-                  </dl>
-                  <Button variant="outline" size="sm" asChild><Link href="/dashboard/produccion">Abrir Producción</Link></Button>
                 </div>
-              ) : <p className="mt-4 text-sm text-muted-foreground">No existe un plan de producción activo en la fuente canónica.</p>}
+              )}
             </section>
 
-            <section className="rounded-lg border border-border bg-card p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">03 · Mantenimiento</p>
-                  <h2 className="mt-1 text-base font-semibold">Ventanas por horómetro</h2>
-                </div>
-                <CalendarClock className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <div className="mt-4 space-y-3">
-                {preventive.slice(0, 6).map((item) => (
-                  <div key={item.schedule_id} className="border-t border-border pt-3 first:border-t-0 first:pt-0">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium">{item.asset_code || item.asset_name || 'Equipo'}</p>
-                      <Badge variant={item.remaining_hours != null && item.remaining_hours <= 0 ? 'destructive' : 'outline'}>{number(item.remaining_hours, ' h')}</Badge>
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">{item.task_name || 'Mantenimiento preventivo'}</p>
-                    {item.meter_basis_conflict ? <p className="mt-1 text-xs text-destructive">Lectura con conflicto de base: requiere revisión humana.</p> : null}
-                  </div>
-                ))}
-                {preventive.length === 0 ? <p className="text-sm text-muted-foreground">Sin preventivos alertados en la fuente disponible.</p> : null}
-              </div>
-              <Button className="mt-4" variant="outline" size="sm" asChild><Link href="/dashboard/mantenimiento/planificacion">Abrir planificación de mantenimiento</Link></Button>
-            </section>
-          </aside>
-        </div>
+            <aside className="space-y-6">
+              <section className="rounded-lg border border-border bg-card p-5">
+                <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">03 · Producción</p><h2 className="mt-1 text-base font-semibold">Plan activo</h2></div><Factory className="h-4 w-4 text-muted-foreground" /></div>
+                {plan ? <div className="mt-4 space-y-3"><p className="text-sm font-semibold">{plan.plan_code}</p><p className="text-xs text-muted-foreground">{plan.period_start} → {plan.period_end}</p><dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-xs text-muted-foreground">Movimiento</dt><dd className="mt-1 font-medium">{number(plan.total_movement_tons, ' t')}</dd></div><div><dt className="text-xs text-muted-foreground">Avance</dt><dd className="mt-1 font-medium">{number(plan.planned_advance_m, ' m')}</dd></div></dl><Button variant="outline" size="sm" asChild><Link href="/dashboard/produccion">Abrir Producción</Link></Button></div> : <p className="mt-4 text-sm text-muted-foreground">Sin plan de producción activo en la fuente canónica.</p>}
+              </section>
+
+              <section className="rounded-lg border border-border bg-card p-5">
+                <div className="flex items-start justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">04 · Preventivos</p><h2 className="mt-1 text-base font-semibold">Horómetro canónico</h2></div><CalendarClock className="h-4 w-4 text-muted-foreground" /></div>
+                <div className="mt-4 space-y-3">{preventive.slice(0, 5).map((item) => <div key={item.schedule_id} className="border-t border-border pt-3 first:border-t-0 first:pt-0"><div className="flex items-center justify-between gap-3"><p className="text-sm font-medium">{item.asset_code || item.asset_name || 'Equipo'}</p><Badge variant={item.remaining_hours != null && item.remaining_hours <= 0 ? 'destructive' : 'outline'}>{number(item.remaining_hours, ' h')}</Badge></div>{item.meter_basis_conflict ? <p className="mt-1 text-xs text-destructive">Evidencia de contador en conflicto.</p> : null}</div>)}{preventive.length === 0 ? <p className="text-sm text-muted-foreground">Sin preventivos alertados.</p> : null}</div>
+                <Button className="mt-4" variant="outline" size="sm" asChild><Link href="/dashboard/mantenimiento/planificacion">Abrir mantenimiento</Link></Button>
+              </section>
+            </aside>
+          </div>
+        </>
       ) : null}
     </div>
   );
