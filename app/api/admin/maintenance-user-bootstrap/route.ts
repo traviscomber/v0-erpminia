@@ -4,7 +4,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { requireAdmin } from '@/lib/api/guard';
 
-const ONE_TIME_TOKEN = 'maintenance-20260910-b41f6c8d';
 const ORG_ID = '2bd7fe06-8e4f-4a3a-b261-e3f5d8aa3dee';
 
 const TARGETS = [
@@ -26,20 +25,14 @@ function getServiceSupabase() {
   return createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } });
 }
 
-function hasToken(request: NextRequest) {
-  return request.nextUrl.searchParams.get('token') === ONE_TIME_TOKEN;
-}
-
 export async function GET(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized) return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  if (!hasToken(request)) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
 
-  const html = `<!doctype html><html><head><meta charset="utf-8"><title>MOTIL · Activación usuarios Mantenimiento</title></head><body style="font-family:system-ui;background:#111;color:#eee;padding:32px"><h1>Activando usuarios de Mantenimiento…</h1><pre id="out">Procesando</pre><script>
+  const html = `<!doctype html><html><head><meta charset="utf-8"><title>MOTIL · Activación usuarios Mantenimiento</title></head><body style="font-family:system-ui;background:#111;color:#eee;padding:32px"><h1>Activación usuarios de Mantenimiento</h1><pre id="out">Esperando contraseña en el fragmento de URL.</pre><script>
 const password = decodeURIComponent(location.hash.slice(1));
 const out = document.getElementById('out');
-if (!password) out.textContent = 'Falta la contraseña en el fragmento de URL.';
-else fetch(location.pathname + location.search, { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ password }) })
+if (password) fetch(location.pathname, { method: 'POST', headers: { 'content-type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify({ password }) })
   .then(async r => ({ ok: r.ok, text: await r.text() }))
   .then(({ok,text}) => { out.textContent = text; document.title = ok ? 'MOTIL · Usuarios listos' : 'MOTIL · Error de activación'; history.replaceState(null, '', '/dashboard/admin/users'); })
   .catch(e => { out.textContent = String(e); });
@@ -50,7 +43,6 @@ else fetch(location.pathname + location.search, { method: 'POST', headers: { 'co
 export async function POST(request: NextRequest) {
   const auth = await requireAdmin(request);
   if (!auth.authorized) return auth.response || NextResponse.json({ error: 'No autorizado' }, { status: 401 });
-  if (!hasToken(request)) return NextResponse.json({ error: 'No encontrado' }, { status: 404 });
 
   const body = await request.json().catch(() => null);
   const password = String(body?.password || '');
@@ -83,10 +75,9 @@ export async function POST(request: NextRequest) {
     const userRole = await sb.from('user_roles').upsert({ user_id: target.profileId, organization_id: ORG_ID, role: target.role }, { onConflict: 'user_id,organization_id' });
     if (userRole.error) { results.push({ email: target.email, ok: false, step: 'role', error: userRole.error.message }); continue; }
 
-    const oldLink = await sb.from('auth_profile_identity_links').select('auth_user_id').eq('profile_id', target.profileId).maybeSingle();
-    if (oldLink.data?.auth_user_id && oldLink.data.auth_user_id !== authUser.id) {
-      await sb.from('auth_profile_identity_links').delete().eq('profile_id', target.profileId);
-    }
+    const currentLink = await sb.from('auth_profile_identity_links').select('auth_user_id').eq('profile_id', target.profileId).maybeSingle();
+    if (currentLink.data?.auth_user_id && currentLink.data.auth_user_id !== authUser.id) await sb.from('auth_profile_identity_links').delete().eq('profile_id', target.profileId);
+
     const link = await sb.from('auth_profile_identity_links').upsert({ auth_user_id: authUser.id, profile_id: target.profileId, linked_email: target.email, link_reason: 'maintenance_orgchart_activation_20260910', updated_at: new Date().toISOString() }, { onConflict: 'auth_user_id' });
     if (link.error) { results.push({ email: target.email, ok: false, step: 'identity_link', error: link.error.message }); continue; }
 
