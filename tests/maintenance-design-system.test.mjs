@@ -5,21 +5,31 @@ import fs from 'node:fs/promises';
 const page = await fs.readFile('app/dashboard/mantenimiento/page.tsx', 'utf8');
 const assistant = await fs.readFile('components/maintenance/maintenance-senior-assistant.tsx', 'utf8');
 
-test('maintenance control center keeps four KPI cards maximum per role', () => {
-  const metricsBlock = page.match(/const metrics\s*=\s*mode==='execution'\s*\?\s*\[(.*?)\]\s*as const\s*:\s*\[(.*?)\]\s*as const;/s);
-  assert.ok(metricsBlock, 'role-aware metrics block should exist');
-  const executionCount = (metricsBlock[1].match(/\['/g) || []).length;
-  const defaultCount = (metricsBlock[2].match(/\['/g) || []).length;
-  assert.equal(executionCount, 4);
-  assert.equal(defaultCount, 4);
+test('maintenance workspaces simplify progressively down the role chain', () => {
+  assert.match(page, /leadership:\[/);
+  assert.match(page, /planning:\[/);
+  assert.match(page, /execution:\[/);
+  assert.match(page, /metrics.length===4\?'xl:grid-cols-4':'xl:grid-cols-3'/);
+  assert.match(page, /mode==='execution'\s*\? maintenanceFlow\.slice\(2,4\)/s);
+  assert.match(page, /mode==='planning'\s*\? maintenanceFlow\.slice\(0,3\)/s);
+  assert.match(page, /Órdenes, bloqueos y evidencia\. Nada más\./);
+  assert.match(page, /Planificar → Preparar → Ejecutar/);
+  assert.match(page, /Ejecutar → Validar/);
+});
+
+test('maintenance role queues stay focused on the decisions each level owns', () => {
+  assert.match(page, /executionKinds = new Set\(\['operational_blocker','plan_step','closure_evidence'\]\)/);
+  assert.match(page, /planningKinds = new Set\(\['operational_review','preventive_overdue','meter_review','operational_blocker'\]\)/);
+  assert.match(page, /Cola de ejecución/);
+  assert.match(page, /Cola de planificación/);
 });
 
 test('maintenance header exposes one secondary action and one role-aware primary action', () => {
   const actions = page.match(/<PageHeaderActions>(.*?)<\/PageHeaderActions>/s)?.[1] || '';
   assert.match(actions, /variant="outline"/);
   assert.match(actions, />Actualizar</);
-  assert.match(actions, /mode==='execution'/);
   assert.match(actions, />Ver órdenes</);
+  assert.match(actions, />Planificar</);
   assert.match(actions, />Crear orden</);
   assert.equal((actions.match(/variant="outline"/g) || []).length, 1);
 });
