@@ -25,7 +25,7 @@ test('derived observations remain pending human review and do not create work au
 test('planning warns when source meter is below last executed meter', () => {
   assert.match(api, /effective < lastExecuted/);
   assert.match(ui, /Reconciliar contador/);
-  assert.match(ui, /reset, cambio de contador o error de planilla/);
+  assert.match(ui, /reset, cambio de contador o error de (?:planilla|fuente)/);
   assert.match(ui, /Reconciliar evidencia/);
   assert.match(ui, /\/dashboard\/mantenimiento\/horometros\?asset=/);
 });
