@@ -25,16 +25,19 @@ test('planner reconciliation preserves canonical asset ownership and evidence li
   assert.doesNotMatch(api, /from\('maintenance_canonical_assets_v1'\)\s*\.update\(/);
 });
 
-test('Ariel receives only unresolved decisions after the system evidence pass', () => {
+test('workspace shows only unresolved decisions without redundant user labeling', () => {
   assert.match(page, /MOTIL ya resolvió lo demostrable con la data disponible/);
-  assert.match(page, /Necesitan a Ariel/);
+  assert.match(page, /Aclaraciones pendientes/);
+  assert.match(page, /Pendientes/);
   assert.match(page, /ambigüedad real/);
-  assert.match(page, /Pregunta para Ariel/);
+  assert.match(page, /Identidad pendiente/);
   assert.match(page, /¿Este equipo ya existe en MOTIL\?/);
   assert.match(page, /Sí, es este/);
   assert.match(page, /Falta en MOTIL/);
   assert.match(page, /No sé todavía/);
   assert.match(page, /Buscar otro activo/);
+  assert.doesNotMatch(page, /Pregunta para Ariel/);
+  assert.doesNotMatch(page, /Necesitan a Ariel/);
   assert.match(nav, /Data de Ariel/);
 });
 
