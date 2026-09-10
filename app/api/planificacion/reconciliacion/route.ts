@@ -1,13 +1,16 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
-import { requireAdmin } from '@/lib/api/guard';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { MODULE_KEYS, requireModuleAccess } from '@/lib/api/module-access';
 import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 const REVIEWABLE_STATUSES = new Set(['unmatched', 'ambiguous', 'review_required']);
 
 export async function GET(request: NextRequest) {
+  const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES);
+  if (!access.authorized) return access.response;
+
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
 
@@ -45,9 +48,9 @@ export async function GET(request: NextRequest) {
       rows: rowsResult.data || [],
       assets: assetsResult.data || [],
       counts,
-      canReview: ['admin', 'superadmin', 'super_admin'].includes(String(context.role || '').toLowerCase()),
+      canReview: access.canWrite,
       semantics: {
-        authority: 'La reconciliación manual confirma identidad de equipo; no modifica el activo canónico ni inventa datos operacionales.',
+        authority: 'Ariel, como planificador con permiso de edición, puede aclarar y confirmar identidades. La reconciliación manual no modifica el activo canónico ni inventa datos operacionales.',
         source: 'nuevo_maestro_v11_dj09sep.xlsx preservado como evidencia de Ariel López.',
       },
     });
@@ -57,8 +60,8 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAdmin(request);
-  if (!auth.authorized || !auth.user || !auth.organizationId) return auth.response;
+  const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES, true);
+  if (!access.authorized || !access.user || !access.organizationId) return access.response;
 
   try {
     const body = await request.json();
@@ -70,20 +73,20 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Fila y activo canónico son obligatorios' }, { status: 400 });
     }
 
-    const supabase = getSupabaseServerClient(auth.user.id);
+    const supabase = getSupabaseServerClient(access.user.id);
 
     const [{ data: row, error: rowError }, { data: asset, error: assetError }] = await Promise.all([
       supabase
         .from('planning_maintenance_source_rows')
         .select('id,organization_id,import_id,source_row,asset_name_raw,meter_unit,initial_reading_at,initial_reading,current_reading_at,current_reading,reconciliation_status')
         .eq('id', rowId)
-        .eq('organization_id', auth.organizationId)
+        .eq('organization_id', access.organizationId)
         .maybeSingle(),
       supabase
         .from('maintenance_canonical_assets_v1')
         .select('id,asset_code,name')
         .eq('id', canonicalAssetId)
-        .eq('organization_id', auth.organizationId)
+        .eq('organization_id', access.organizationId)
         .maybeSingle(),
     ]);
 
@@ -105,12 +108,12 @@ export async function PATCH(request: NextRequest) {
         match_method: 'manual_planner_review',
         match_score: 1,
         reconciliation_notes: reconciliationNotes,
-        reconciliation_reviewed_by: auth.user.id,
+        reconciliation_reviewed_by: access.user.id,
         reconciliation_reviewed_at: reviewedAt,
         updated_at: reviewedAt,
       })
       .eq('id', rowId)
-      .eq('organization_id', auth.organizationId)
+      .eq('organization_id', access.organizationId)
       .in('reconciliation_status', ['unmatched', 'ambiguous', 'review_required']);
     if (updateError) throw updateError;
 
@@ -129,7 +132,7 @@ export async function PATCH(request: NextRequest) {
         const { error: readingError } = await supabase
           .from('planning_asset_meter_readings')
           .upsert({
-            organization_id: auth.organizationId,
+            organization_id: access.organizationId,
             canonical_asset_id: canonicalAssetId,
             recorded_at: candidate.recorded_at,
             meter_value: candidate.meter_value,
