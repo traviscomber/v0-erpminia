@@ -39,9 +39,12 @@ test('superadmin is accepted by the administrative guard', () => {
   assert.match(guard, /ADMIN_ROLES = new Set\(\['admin', 'superadmin', 'super_admin'\]\)/);
 });
 
-test('administrative fallback role is scoped to the current organization', () => {
+test('administrative fallback role resolves canonical profile identity and remains organization scoped', () => {
   assert.match(guard, /if \(!auth\.organizationId\)/);
-  assert.match(guard, /\.eq\('user_id', auth\.user\.id\)\s*\.eq\('organization_id', auth\.organizationId\)/s);
+  assert.match(guard, /auth_profile_identity_links/);
+  assert.match(guard, /\.eq\('auth_user_id', auth\.user\.id\)/);
+  assert.match(guard, /const applicationUserId = identityLink\?\.profile_id \|\| auth\.user\.id/);
+  assert.match(guard, /\.eq\('user_id', applicationUserId\)\s*\.eq\('organization_id', auth\.organizationId\)/s);
 });
 
 test('admin user writes use an auditable unique role assignment and compensate auth creation failures', () => {
