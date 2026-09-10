@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/api/guard';
+import { getSupabaseServerClient } from '@/lib/supabase-server';
 import {
   createOrganizationUser,
   deleteOrganizationUser,
@@ -67,22 +68,81 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { userId, role } = body;
+    const { userId, role, full_name, cargo_id, status } = body;
 
-    if (!userId || !role) {
-      return NextResponse.json({ error: 'userId y role son obligatorios' }, { status: 400 });
+    if (!userId) {
+      return NextResponse.json({ error: 'userId es obligatorio' }, { status: 400 });
     }
 
-    const updated = await updateOrganizationUserRole({
-      organizationId: auth.organizationId,
-      userId,
-      role,
-      assignedBy: auth.user.id,
-    });
+    if (status != null && !['active', 'inactive'].includes(String(status))) {
+      return NextResponse.json({ error: 'Estado inválido' }, { status: 400 });
+    }
 
-    return NextResponse.json({ message: 'Rol actualizado', user: updated });
+    const db = getSupabaseServerClient();
+    const { data: existing, error: existingError } = await db
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .eq('organization_id', auth.organizationId)
+      .maybeSingle();
+
+    if (existingError) throw existingError;
+    if (!existing) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 404 });
+
+    if (cargo_id) {
+      const { data: cargo, error: cargoError } = await db
+        .from('cargos')
+        .select('id')
+        .eq('id', cargo_id)
+        .maybeSingle();
+      if (cargoError) throw cargoError;
+      if (!cargo) return NextResponse.json({ error: 'Cargo no válido' }, { status: 400 });
+    }
+
+    const profileUpdate: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (typeof full_name === 'string' && full_name.trim()) {
+      const normalized = full_name.trim();
+      const [firstName, ...lastNameParts] = normalized.split(/\s+/);
+      profileUpdate.full_name = normalized;
+      profileUpdate.first_name = firstName;
+      profileUpdate.last_name = lastNameParts.join(' ') || null;
+    }
+    if (cargo_id) profileUpdate.cargo_id = cargo_id;
+    if (status != null) profileUpdate.status = status;
+
+    if (Object.keys(profileUpdate).length > 1) {
+      const { error: profileError } = await db
+        .from('profiles')
+        .update(profileUpdate)
+        .eq('id', userId)
+        .eq('organization_id', auth.organizationId);
+      if (profileError) throw profileError;
+
+      const peopleUpdate: Record<string, unknown> = { updated_at: new Date().toISOString() };
+      if (profileUpdate.full_name) peopleUpdate.full_name = profileUpdate.full_name;
+      if (status != null) peopleUpdate.employment_status = status === 'active' ? 'active' : 'inactive';
+      if (Object.keys(peopleUpdate).length > 1) {
+        const { error: peopleError } = await db
+          .from('people')
+          .update(peopleUpdate)
+          .eq('profile_id', userId)
+          .eq('organization_id', auth.organizationId);
+        if (peopleError) throw peopleError;
+      }
+    }
+
+    if (role) {
+      await updateOrganizationUserRole({
+        organizationId: auth.organizationId,
+        userId,
+        role,
+        assignedBy: auth.user.id,
+      });
+    }
+
+    return NextResponse.json({ message: 'Usuario actualizado' });
   } catch (error) {
-    const message = error instanceof Error ? error.message : 'No se pudo actualizar el rol';
+    const message = error instanceof Error ? error.message : 'No se pudo actualizar el usuario';
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
