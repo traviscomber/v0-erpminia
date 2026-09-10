@@ -25,9 +25,12 @@ test('planner reconciliation preserves canonical asset ownership and evidence li
   assert.doesNotMatch(api, /from\('maintenance_canonical_assets_v1'\)\s*\.update\(/);
 });
 
-test('Ariel data workspace requires explicit human confirmation', () => {
+test('Ariel data workspace frames unresolved rows as clarification, not errors', () => {
+  assert.match(page, /Esta no es una lista de errores/);
+  assert.match(page, /Por aclarar con Ariel/);
+  assert.match(page, /Ariel mantiene la última palabra/);
   assert.match(page, /Seleccionar sólo si es inequívoco/);
-  assert.match(page, /Confirmar/);
-  assert.match(page, /no modifica el activo ni inventa información operacional/);
+  assert.match(page, /Confirmar identidad/);
+  assert.match(page, /no implica error de fuente/);
   assert.match(nav, /Data de Ariel/);
 });
