@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 
 const items = [
   { href: '/dashboard/planificacion', label: 'Planificación' },
+  { href: '/dashboard/planificacion/asistente', label: 'Asistente Ariel' },
   { href: '/dashboard/planificacion/datos', label: 'Data de Ariel' },
   { href: '/dashboard/alertas', label: 'Alertas' },
   { href: '/dashboard/andon', label: 'Problemas' },
