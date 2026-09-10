@@ -163,8 +163,8 @@ export default function PlanningDataPage() {
     <PageHeader>
       <PageHeaderContent>
         <PageHeaderEyebrow>Planning Intelligence · Gobierno de datos</PageHeaderEyebrow>
-        <PageHeaderTitle>Aclaraciones de Ariel</PageHeaderTitle>
-        <PageHeaderDescription>MOTIL ya resolvió lo demostrable con la data disponible. Aquí Ariel responde únicamente los casos que todavía necesitan conocimiento de terreno.</PageHeaderDescription>
+        <PageHeaderTitle>Aclaraciones pendientes</PageHeaderTitle>
+        <PageHeaderDescription>MOTIL ya resolvió lo demostrable con la data disponible. Quedan únicamente los casos que necesitan conocimiento de terreno.</PageHeaderDescription>
       </PageHeaderContent>
       <PageHeaderActions>
         <Button variant="outline" asChild><Link href="/dashboard/planificacion"><ArrowLeft className="h-4 w-4"/>Planificación</Link></Button>
@@ -174,19 +174,19 @@ export default function PlanningDataPage() {
 
     <section className="grid divide-y rounded-lg border border-border bg-card sm:grid-cols-3 sm:divide-x sm:divide-y-0">
       <div className="px-5 py-4"><p className="text-xs text-muted-foreground">Identificados</p><p className="mt-1 text-2xl font-semibold">{isLoading ? '—' : matched}</p><p className="mt-1 text-xs text-muted-foreground">de {total || '—'} filas</p></div>
-      <div className="px-5 py-4"><p className="text-xs text-muted-foreground">Necesitan a Ariel</p><p className="mt-1 text-2xl font-semibold">{isLoading ? '—' : rows.length}</p><p className="mt-1 text-xs text-muted-foreground">ambigüedad real</p></div>
+      <div className="px-5 py-4"><p className="text-xs text-muted-foreground">Pendientes</p><p className="mt-1 text-2xl font-semibold">{isLoading ? '—' : rows.length}</p><p className="mt-1 text-xs text-muted-foreground">ambigüedad real</p></div>
       <div className="px-5 py-4"><p className="text-xs text-muted-foreground">Faltan en maestro</p><p className="mt-1 text-2xl font-semibold">{isLoading ? '—' : missingAssets}</p><p className="mt-1 text-xs text-muted-foreground">detectados con evidencia</p></div>
     </section>
 
     {message ? <p className="rounded-lg border border-border bg-card px-4 py-3 text-sm">{message}</p> : null}
-    {error ? <StatePanel tone="error" title="No se pudo cargar la data de Ariel" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} className="min-h-0"/> : null}
-    {isLoading ? <StatePanel tone="loading" title="Preparando la siguiente pregunta" description="Consultando evidencia de Ariel y maestro canónico de activos." className="min-h-0"/> : null}
+    {error ? <StatePanel tone="error" title="No se pudo cargar la revisión" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} className="min-h-0"/> : null}
+    {isLoading ? <StatePanel tone="loading" title="Preparando el siguiente caso" description="Consultando el Programa Maestro y el maestro canónico de activos." className="min-h-0"/> : null}
 
     {!isLoading && !error && !row ? <StatePanel tone="neutral" title="No quedan respuestas pendientes" description="Todas las filas fueron identificadas o clasificadas. Los activos marcados como faltantes quedan separados para incorporarlos al maestro con evidencia." className="min-h-0"/> : null}
 
     {!isLoading && !error && row ? <section className="mx-auto max-w-4xl space-y-4">
       <div className="flex items-center justify-between gap-4 text-sm text-muted-foreground">
-        <span>Pregunta {safeCursor + 1} de {rows.length}</span>
+        <span>Caso {safeCursor + 1} de {rows.length}</span>
         <span>{total ? Math.round(((matched + missingAssets) / total) * 100) : 0}% clasificado</span>
       </div>
       <div className="h-1 overflow-hidden bg-muted"><div className="h-full bg-primary transition-all" style={{ width: `${rows.length ? ((safeCursor + 1) / rows.length) * 100 : 100}%` }}/></div>
@@ -204,7 +204,7 @@ export default function PlanningDataPage() {
 
         <div className="space-y-5 px-5 py-5 sm:px-7 sm:py-6">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Pregunta para Ariel</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Identidad pendiente</p>
             <h3 className="mt-1 text-lg font-semibold">¿Este equipo ya existe en MOTIL?</h3>
             <p className="mt-1 text-sm text-muted-foreground">Elige sólo si es el mismo equipo físico. Si no aparece, indícalo y seguimos.</p>
           </div>
