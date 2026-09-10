@@ -7,6 +7,7 @@ import { getSupabaseServerClient } from '@/lib/supabase-server';
 
 const REVIEWABLE_STATUSES = new Set(['unmatched', 'ambiguous', 'needs_review', 'review_required']);
 const ACTIVE_REVIEW_STATUSES = ['ambiguous', 'needs_review', 'review_required'];
+const MISSING_ASSET_METHODS = new Set(['planner_declared_missing_asset', 'system_verified_missing_asset']);
 
 export async function GET(request: NextRequest) {
   const access = await requireModuleAccess(request, MODULE_KEYS.MANT_OPERACIONES);
@@ -46,16 +47,20 @@ export async function GET(request: NextRequest) {
       acc[key] = (acc[key] || 0) + 1;
       return acc;
     }, {});
-    const missingAssets = allRows.filter((row: any) => row.match_method === 'planner_declared_missing_asset').length;
+    const missingAssets = allRows.filter((row: any) => MISSING_ASSET_METHODS.has(row.match_method)).length;
+    const systemResolvedMissingAssets = allRows.filter((row: any) => row.match_method === 'system_verified_missing_asset').length;
+    const plannerDeclaredMissingAssets = allRows.filter((row: any) => row.match_method === 'planner_declared_missing_asset').length;
 
     return NextResponse.json({
       rows: rowsResult.data || [],
       assets: (assetsResult.data || []).map((asset: any) => ({ ...asset, location: null })),
       counts,
       missingAssets,
+      systemResolvedMissingAssets,
+      plannerDeclaredMissingAssets,
       canReview: access.canWrite,
       semantics: {
-        authority: 'Ariel responde una aclaración a la vez. Puede identificar el mismo equipo, declarar que falta en MOTIL o posponer la respuesta. Ninguna opción modifica el activo canónico.',
+        authority: 'MOTIL resuelve sólo los casos demostrables con el maestro canónico actual. Ariel recibe únicamente las identidades que siguen siendo ambiguas y mantiene la decisión final sobre esos casos.',
         source: 'nuevo_maestro_v11_dj09sep.xlsx preservado como evidencia de Ariel López.',
       },
     });
