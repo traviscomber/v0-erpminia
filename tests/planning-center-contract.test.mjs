@@ -15,8 +15,8 @@ test('planning feed is tenant scoped and derives from canonical operational sour
 });
 
 test('planning center preserves human planning authority', () => {
-  assert.match(page, /Ariel confirma prioridades, ventanas y decisiones/);
-  assert.match(page, /La recomendación no ejecuta cambios por sí sola/);
+  assert.match(page, /MOTIL calcula; Ariel valida y programa/);
+  assert.match(api, /Ariel confirma la programación, ventana, responsable y siguiente acción/);
   assert.doesNotMatch(api, /export async function (POST|PATCH|DELETE)/);
 });
 
