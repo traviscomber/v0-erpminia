@@ -6,9 +6,11 @@ const api = await readFile(new URL('../app/api/planificacion/reconciliacion/rout
 const page = await readFile(new URL('../app/dashboard/planificacion/datos/page.tsx', import.meta.url), 'utf8');
 const nav = await readFile(new URL('../components/layout/operational-attention-context-nav.tsx', import.meta.url), 'utf8');
 
-test('planner reconciliation is organization scoped and admin reviewed', () => {
-  assert.match(api, /requireAdmin/);
-  assert.match(api, /\.eq\('organization_id', auth\.organizationId\)/);
+test('planner reconciliation is organization scoped and writable by authorized planner role', () => {
+  assert.match(api, /requireModuleAccess/);
+  assert.match(api, /MODULE_KEYS\.MANT_OPERACIONES/);
+  assert.match(api, /requireModuleAccess\(request, MODULE_KEYS\.MANT_OPERACIONES, true\)/);
+  assert.match(api, /\.eq\('organization_id', access\.organizationId\)/);
   assert.match(api, /manual_planner_review/);
   assert.match(api, /reconciliation_reviewed_by/);
   assert.match(api, /reconciliation_reviewed_at/);
