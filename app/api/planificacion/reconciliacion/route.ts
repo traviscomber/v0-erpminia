@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
         .limit(250),
       context.supabase
         .from('maintenance_canonical_assets_v1')
-        .select('id,asset_code,name,asset_type,location')
+        .select('id,asset_code,name,asset_type')
         .eq('organization_id', context.organizationId)
         .order('asset_code', { ascending: true })
         .limit(5000),
@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       rows: rowsResult.data || [],
-      assets: assetsResult.data || [],
+      assets: (assetsResult.data || []).map((asset: any) => ({ ...asset, location: null })),
       counts,
       canReview: access.canWrite,
       semantics: {
