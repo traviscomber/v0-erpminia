@@ -63,10 +63,19 @@ export async function requireAdmin(
   }
 
   const supabase = getSupabaseServerClient();
+
+  const { data: identityLink } = await supabase
+    .from('auth_profile_identity_links')
+    .select('profile_id')
+    .eq('auth_user_id', auth.user.id)
+    .maybeSingle();
+
+  const applicationUserId = identityLink?.profile_id || auth.user.id;
+
   const { data: userData } = await supabase
     .from('user_roles')
     .select('role')
-    .eq('user_id', auth.user.id)
+    .eq('user_id', applicationUserId)
     .eq('organization_id', auth.organizationId)
     .order('created_at', { ascending: false })
     .limit(1)
