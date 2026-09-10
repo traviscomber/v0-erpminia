@@ -25,12 +25,21 @@ test('planner reconciliation preserves canonical asset ownership and evidence li
   assert.doesNotMatch(api, /from\('maintenance_canonical_assets_v1'\)\s*\.update\(/);
 });
 
-test('Ariel data workspace frames unresolved rows as clarification, not errors', () => {
-  assert.match(page, /Esta no es una lista de errores/);
-  assert.match(page, /Por aclarar con Ariel/);
-  assert.match(page, /Ariel mantiene la última palabra/);
-  assert.match(page, /Seleccionar sólo si es inequívoco/);
-  assert.match(page, /Confirmar identidad/);
-  assert.match(page, /no implica error de fuente/);
+test('Ariel resolves one clarification at a time with explicit answers', () => {
+  assert.match(page, /Una pregunta a la vez/);
+  assert.match(page, /Pregunta para Ariel/);
+  assert.match(page, /¿Este equipo ya existe en MOTIL\?/);
+  assert.match(page, /Sí, es este/);
+  assert.match(page, /Falta en MOTIL/);
+  assert.match(page, /No sé todavía/);
+  assert.match(page, /Buscar otro activo/);
   assert.match(nav, /Data de Ariel/);
+});
+
+test('missing asset answer is classified without creating or mutating canonical assets', () => {
+  assert.match(api, /missing_asset/);
+  assert.match(api, /planner_declared_missing_asset/);
+  assert.match(api, /reconciliation_status: 'unmatched'/);
+  assert.match(api, /canonical_asset_id: null/);
+  assert.doesNotMatch(api, /from\('maintenance_canonical_assets_v1'\)\s*\.(?:insert|upsert|update)\(/);
 });
