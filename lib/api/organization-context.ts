@@ -9,6 +9,13 @@ const maintenanceWriteRoles = new Set([
   'jefe_mantencion',
 ]);
 
+// These endpoints only persist a user's own non-canonical conversation state.
+// Their operational access is enforced by the endpoint's module guard; they do
+// not create, alter, close, prioritize, or approve maintenance records.
+const maintenanceSelfServiceMutationPaths = new Set([
+  '/api/maintenance/senior-assistant',
+]);
+
 const productionWriteRoles = new Set([
   'superadmin',
   'admin',
@@ -62,6 +69,13 @@ function isProductionSelfServiceMutation(request: NextRequest) {
   );
 }
 
+function isMaintenanceSelfServiceMutation(request: NextRequest) {
+  return (
+    !['GET', 'HEAD', 'OPTIONS'].includes(request.method.toUpperCase()) &&
+    maintenanceSelfServiceMutationPaths.has(request.nextUrl.pathname)
+  );
+}
+
 export async function getOrganizationContext(
   request: NextRequest
 ): Promise<OrganizationContext> {
@@ -76,7 +90,11 @@ export async function getOrganizationContext(
   }
 
   const role = normalizeRole(auth.role);
-  if (isMutation(request, '/api/maintenance/') && !maintenanceWriteRoles.has(role)) {
+  if (
+    isMutation(request, '/api/maintenance/') &&
+    !isMaintenanceSelfServiceMutation(request) &&
+    !maintenanceWriteRoles.has(role)
+  ) {
     return {
       ok: false,
       response: NextResponse.json(
