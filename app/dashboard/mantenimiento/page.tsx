@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
+import { MobileTerrainPanel } from '@/components/maintenance/mobile-terrain-panel';
 
 type ActionItem = { id:string; kind:string; priority:number; title:string; description:string; evidence:string; href:string; assetHref?:string|null };
 type Response = {
@@ -120,6 +121,8 @@ export default function MantenimientoPage(){
       : 'Cada etapa usa su fuente canónica. Bodega y Compras preparan recursos; Mantenimiento conserva la ejecución y el cierre.';
 
   return <div className="mx-auto w-full max-w-[1600px] space-y-6">
+    {mode==='execution' ? <div className="md:hidden"><MobileTerrainPanel /></div> : null}
+    <div className={mode==='execution' ? 'hidden md:block' : undefined}>
     <PageHeader>
       <PageHeaderContent>
         <PageHeaderEyebrow>Mantenimiento{viewer?.cargoName ? ` · ${viewer.cargoName}` : ' · Centro operacional'}</PageHeaderEyebrow>
@@ -186,6 +189,7 @@ export default function MantenimientoPage(){
         <Link className="hover:text-foreground" href="/dashboard/mantenimiento/confiabilidad">Confiabilidad</Link>
         <Link className="hover:text-foreground" href="/dashboard/mantenimiento/horometros">Horómetros</Link>
       </>}
+    </div>
     </div>
   </div>;
 }
