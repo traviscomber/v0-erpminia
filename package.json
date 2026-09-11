@@ -9,7 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "pnpm lint:eslint && pnpm typecheck",
-    "lint:eslint": "pnpm dlx eslint@9.35.0 tests scripts --max-warnings=0",
+    "lint:eslint": "pnpm dlx eslint@10.10.0 tests scripts --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "test": "node --test tests/*.test.mjs",
     "migrations:check": "node scripts/check-migration-versions.mjs",
