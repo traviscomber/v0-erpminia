@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { DailyManagementContextNav } from '@/components/layout/daily-management-context-nav';
@@ -9,17 +10,28 @@ import { OperationalAttentionContextNav } from '@/components/layout/operational-
 import { SeniorAssistantWidget } from '@/components/intelligence/senior-assistant-widget';
 import { cn } from '@/lib/utils';
 import { DashboardPeriodProvider } from '@/components/dashboard/dashboard-period-provider';
+import { useAuth } from '@/hooks/use-auth';
+import { resolveMaintenanceViewerMode } from '@/lib/maintenance/viewer-mode';
 
 const STORAGE_KEY = 'motil-sidebar-collapsed';
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [ready, setReady] = useState(false);
+  const pathname = usePathname();
+  const router = useRouter();
+  const { user } = useAuth();
 
   useEffect(() => {
     setCollapsed(window.localStorage.getItem(STORAGE_KEY) === 'true');
     setReady(true);
   }, []);
+
+  useEffect(() => {
+    if (pathname !== '/dashboard') return;
+    if (resolveMaintenanceViewerMode(user?.cargo || null) !== 'execution') return;
+    router.replace('/dashboard/mantenimiento');
+  }, [pathname, router, user?.cargo]);
 
   const toggleSidebar = () => {
     setCollapsed((current) => {
