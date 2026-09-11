@@ -6,12 +6,15 @@ const dashboard = await readFile(new URL('../app/dashboard/mantenimiento/page.ts
 const terrain = await readFile(new URL('../components/maintenance/mobile-terrain-panel.tsx', import.meta.url), 'utf8');
 const myWork = await readFile(new URL('../app/api/maintenance/my-work/route.ts', import.meta.url), 'utf8');
 
-test('execution users receive a dedicated minimal mobile surface', () => {
-  assert.match(dashboard, /mode==='execution' \? <div className="md:hidden"><MobileTerrainPanel \/><\/div> : null/);
-  assert.match(dashboard, /mode==='execution' \? 'hidden md:block' : undefined/);
+test('execution users receive the dedicated assigned-work surface on every viewport', () => {
+  assert.match(dashboard, /if\(mode==='execution'\)\{/);
+  assert.match(dashboard, /<MobileTerrainPanel \/>/);
+  assert.match(dashboard, /max-w-xl/);
+  assert.doesNotMatch(dashboard, /md:hidden"><MobileTerrainPanel/);
+  assert.doesNotMatch(dashboard, /mode==='execution' \? 'hidden md:block' : undefined/);
 });
 
-test('mobile terrain surface exposes one assigned next action without global maintenance queues', () => {
+test('terrain surface exposes one assigned next action without global maintenance queues', () => {
   assert.match(terrain, /\/api\/maintenance\/my-work/);
   assert.doesNotMatch(terrain, /\/api\/maintenance\/control-center/);
   assert.match(terrain, /Siguiente trabajo/);
