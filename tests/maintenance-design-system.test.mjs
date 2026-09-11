@@ -8,29 +8,27 @@ const assistant = await fs.readFile('components/maintenance/maintenance-senior-a
 test('maintenance workspaces simplify progressively down the role chain', () => {
   assert.match(page, /leadership:\[/);
   assert.match(page, /planning:\[/);
-  assert.match(page, /execution:\[/);
-  assert.match(page, /metrics.length===4\?'xl:grid-cols-4':'xl:grid-cols-3'/);
-  assert.match(page, /mode==='execution'\s*\? maintenanceFlow\.slice\(2,4\)/s);
+  assert.match(page, /general:\[/);
+  assert.match(page, /if\(mode==='execution'\)\{/);
+  assert.match(page, /<MobileTerrainPanel \/>/);
   assert.match(page, /mode==='planning'\s*\? maintenanceFlow\.slice\(0,3\)/s);
-  assert.match(page, /Órdenes, bloqueos y evidencia\. Nada más\./);
   assert.match(page, /Planificar → Preparar → Ejecutar/);
-  assert.match(page, /Ejecutar → Validar/);
 });
 
 test('maintenance role queues stay focused on the decisions each level owns', () => {
-  assert.match(page, /executionKinds = new Set\(\['operational_blocker','plan_step','closure_evidence'\]\)/);
   assert.match(page, /planningKinds = new Set\(\['operational_review','preventive_overdue','meter_review','operational_blocker'\]\)/);
-  assert.match(page, /Cola de ejecución/);
   assert.match(page, /Cola de planificación/);
+  assert.doesNotMatch(page, /Cola de ejecución/);
+  assert.doesNotMatch(page, /executionKinds = new Set/);
 });
 
-test('maintenance header exposes one secondary action and one role-aware primary action', () => {
+test('maintenance header exposes one secondary action and one role-aware primary action for planning and leadership', () => {
   const actions = page.match(/<PageHeaderActions>(.*?)<\/PageHeaderActions>/s)?.[1] || '';
   assert.match(actions, /variant="outline"/);
   assert.match(actions, />Actualizar</);
-  assert.match(actions, />Ver órdenes</);
   assert.match(actions, />Planificar</);
   assert.match(actions, />Crear orden</);
+  assert.doesNotMatch(actions, />Ver órdenes</);
   assert.equal((actions.match(/variant="outline"/g) || []).length, 1);
 });
 
