@@ -15,6 +15,7 @@ import { WorkOrderPartsPanel } from '@/components/maintenance/work-order-parts-p
 import { WorkOrderPurchasingFlow } from '@/components/maintenance/work-order-purchasing-flow';
 import { WorkOrderStandardPlanPanel } from '@/components/maintenance/work-order-standard-plan-panel';
 import { WorkOrderTimer } from '@/components/maintenance/work-order-timer';
+import { MobileWorkOrderFlow } from '@/components/maintenance/mobile-work-order-flow';
 import { EntityTimeline } from '@/components/shared/entity-timeline';
 
 const fetcher = async (url: string) => { const response = await fetch(url, { credentials: 'include' }); const payload = await response.json().catch(() => null); if (!response.ok) throw new Error(payload?.error || 'No se pudo cargar la orden de trabajo'); return payload; };
@@ -26,11 +27,13 @@ export default function WorkOrderDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const { data, error, isLoading, mutate } = useSWR(id ? `/api/maintenance/work-orders/${id}` : null, fetcher);
+  const { data: viewer } = useSWR('/api/maintenance/viewer-context', fetcher);
   const workOrder = data?.data;
   const costCenters = data?.costCenters || [];
   const isHistorical = workOrder?.record_scope === 'historical' || data?.record_scope === 'historical';
   const canEdit = Boolean(data?.canEdit) && !isHistorical;
   const selectedCostCenter = costCenters.find((row:any) => row.id === workOrder?.cost_center_id);
+  const isExecutionMobile = viewer?.mode === 'execution';
 
   const patchOrder = async (payload: Record<string,unknown>) => {
     if (isHistorical) throw new Error('La OT pertenece al histórico importado y es de solo lectura.');
@@ -44,6 +47,8 @@ export default function WorkOrderDetailPage() {
   if (!workOrder) return <Card className="shadow-none"><CardContent className="p-10 text-center"><p className="font-medium">{error ? 'No se pudo cargar la orden' : 'Orden no disponible'}</p><Button asChild variant="outline" className="mt-4"><Link href="/dashboard/mantenimiento/ordenes-trabajo">Volver a órdenes</Link></Button></CardContent></Card>;
 
   return <div className="space-y-6">
+    {isExecutionMobile ? <MobileWorkOrderFlow workOrderId={id} workOrderNumber={workOrder.work_order_number} title={workOrder.title} status={workOrder.status} canEdit={canEdit} onWorkOrderChange={mutate} /> : null}
+    <div className={isExecutionMobile ? 'hidden md:block' : undefined}>
     <section className="flex flex-col gap-4 border-b border-border/70 pb-6 lg:flex-row lg:items-start lg:justify-between">
       <div><Button asChild variant="ghost" size="sm" className="-ml-3 mb-2"><Link href="/dashboard/mantenimiento/ordenes-trabajo"><ArrowLeft className="mr-2 h-4 w-4"/>Órdenes de trabajo</Link></Button><div className="flex flex-wrap items-center gap-2"><span className="font-mono text-sm text-muted-foreground">{workOrder.work_order_number}</span><Badge variant="outline">{statusLabel(workOrder.status)}</Badge>{isHistorical ? <Badge variant="secondary">Histórico</Badge> : <Badge variant="outline">Operación Motil</Badge>}</div><h1 className="mt-2 text-3xl font-semibold tracking-tight">{workOrder.title || 'Orden de trabajo'}</h1><p className="mt-2 text-sm text-muted-foreground">{workOrder.asset_code || 'Sin código'} · {workOrder.asset_name || 'Sin equipo asociado'}</p></div>
       {!isHistorical ? <div className="flex gap-2">{workOrder.status !== 'in_progress' && workOrder.status !== 'completed' ? <Button onClick={()=>void patchOrder({status:'in_progress'})} disabled={!canEdit}><PlayCircle className="mr-2 h-4 w-4"/>Iniciar trabajo</Button> : null}{workOrder.status === 'in_progress' ? <Button asChild><Link href={`/dashboard/mantenimiento/ordenes-trabajo/cierre?workOrderId=${id}`}><CheckCircle2 className="mr-2 h-4 w-4"/>Continuar cierre</Link></Button> : null}<DropdownMenu><DropdownMenuTrigger asChild><Button variant="outline" size="icon" aria-label="Más acciones"><MoreHorizontal className="h-4 w-4"/></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem disabled={!canEdit} onClick={()=>void patchOrder({status:'open'})}><RotateCcw className="mr-2 h-4 w-4"/>Reabrir orden</DropdownMenuItem></DropdownMenuContent></DropdownMenu></div> : null}
@@ -65,5 +70,6 @@ export default function WorkOrderDetailPage() {
       <WorkOrderExecutionPanel workOrderId={id}/>
     </> : null}
     <EntityTimeline entity="work_order" id={id} limit={50}/>
+    </div>
   </div>;
 }
