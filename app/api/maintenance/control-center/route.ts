@@ -40,13 +40,15 @@ export async function GET(request: NextRequest) {
       context.supabase.from('work_order_close_readiness_v2').select('*').eq('organization_id', context.organizationId),
       context.supabase.from('preventive_maintenance_hour_status_v1').select('*').eq('organization_id', context.organizationId),
       context.supabase.from('maintenance_reliability_by_asset_v1').select('canonical_asset_id,asset_code,asset_name,audited_closures,recurring_cause_count,max_same_cause_occurrences,has_recurring_root_cause').eq('organization_id', context.organizationId),
-      context.supabase.from('maintenance_work_orders').select('id').eq('organization_id', context.organizationId).not('created_by', 'is', null).neq('status', 'completed'),
+      context.supabase.from('maintenance_work_orders').select('id,work_order_number,title,canonical_asset_id,assigned_person_id').eq('organization_id', context.organizationId).not('created_by', 'is', null).neq('status', 'completed'),
       context.supabase.from('drilling_maintenance_review_queue_v1').select('review_id,canonical_asset_id,asset_code,asset_name,operation_date,review_reason,equipment_status_raw,machine_observations,review_status,linked_work_order_id,has_linked_work_order').eq('organization_id', context.organizationId).eq('review_status', 'pending').eq('has_linked_work_order', false).order('operation_date', { ascending: true }).limit(50),
     ]);
     const error = closeResult.error || preventiveResult.error || reliabilityResult.error || operationalOrdersResult.error || drillingReviewResult.error;
     if (error) throw error;
 
-    const operationalWorkOrderIds = new Set((operationalOrdersResult.data || []).map((row:any) => String(row.id)));
+    const operationalOrderRows = operationalOrdersResult.data || [];
+    const operationalWorkOrderIds = new Set(operationalOrderRows.map((row:any) => String(row.id)));
+    const unassignedOperationalOrders = operationalOrderRows.filter((row:any) => !row.assigned_person_id);
     const allCloseRows = closeResult.data || [];
     const closeRows = allCloseRows.filter((row:any) => operationalWorkOrderIds.has(String(row.work_order_id)));
     const preventiveRows = preventiveResult.data || [];
@@ -68,6 +70,19 @@ export async function GET(request: NextRequest) {
         description: `${row.asset_name || equipment} · ${row.equipment_status_raw || 'Observación de terreno'}`,
         evidence: `${observation}${dateEvidence}`,
         href: `/dashboard/mantenimiento/ordenes-trabajo/create?reviewId=${encodeURIComponent(String(row.review_id))}&workType=corrective&priority=${reviewPriority}`,
+        assetHref: assetHref(row.canonical_asset_id),
+      });
+    }
+
+    for (const row of unassignedOperationalOrders) {
+      actions.push({
+        id: `assignment:${row.id}`,
+        kind: 'assignment_needed',
+        priority: 12,
+        title: `Asignar responsable · ${row.work_order_number || 'OT'}`,
+        description: row.title || 'Orden de trabajo abierta sin responsable operativo',
+        evidence: 'La OT no puede iniciar ejecución hasta quedar vinculada a una persona operativa.',
+        href: `/dashboard/mantenimiento/ordenes-trabajo/${encodeURIComponent(String(row.id))}`,
         assetHref: assetHref(row.canonical_asset_id),
       });
     }
@@ -148,6 +163,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       summary: {
         openWorkOrders: closeRows.length,
+        unassignedOpenWorkOrders: unassignedOperationalOrders.length,
         historicalOpenWorkOrders: Math.max(0, allCloseRows.length - closeRows.length),
         overdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue').length,
         unplannedOverdueHourSchedules: preventiveRows.filter((row:any) => row.hour_status === 'overdue' && !row.generated_work_order_id).length,
