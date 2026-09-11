@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { AlertTriangle, ArrowRight, Search, Upload } from 'lucide-react';
+import { AlertTriangle, ArrowRight, Fuel, Search, Upload } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,10 +22,12 @@ const fetcher = async (url: string) => {
 
 const number = (value: unknown) => new Intl.NumberFormat('es-CL').format(Number(value || 0));
 const money = (value: unknown) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(Number(value || 0));
+const date = (value: unknown) => value ? new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeZone: 'UTC' }).format(new Date(`${String(value)}T00:00:00Z`)) : 'Sin fecha de evidencia';
 const statusLabels: Record<string, string> = { healthy: 'Disponible', reorder: 'Reponer', out_of_stock: 'Sin stock', negative: 'Revisar saldo', expired: 'Vencido', expiring: 'Próximo a vencer' };
 function statusVariant(status: string) { if (['out_of_stock', 'negative', 'expired'].includes(status)) return 'destructive' as const; if (['reorder', 'expiring'].includes(status)) return 'secondary' as const; return 'outline' as const; }
 
 type InventoryPosition = { stock_id: string; product_id: string; product_code: string; product_name: string; family?: string | null; unit?: string | null; quantity_available: number; quantity_reserved: number; stock_value: number; stock_status: string; };
+type DieselPosition = InventoryPosition & { unit_cost?: number | null; last_counted_date?: string | null; warehouse_code?: string | null; validation_status?: string | null; };
 
 export default function BodegaPage() {
   const { canEdit, ready } = useModuleAccess();
@@ -39,6 +41,7 @@ export default function BodegaPage() {
   const { data, error, isLoading, mutate } = useSWR(endpoint, fetcher, { revalidateOnFocus: false, keepPreviousData: true });
   const overview = data?.overview || {};
   const positions: InventoryPosition[] = data?.positions || [];
+  const diesel: DieselPosition | null = data?.diesel || null;
 
   return <div className="space-y-6">
     <PageHeader><PageHeaderContent><PageHeaderEyebrow>Abastecimiento</PageHeaderEyebrow><PageHeaderTitle>{negativeStockMode ? 'Conciliar stock negativo' : 'Inventario'}</PageHeaderTitle><PageHeaderDescription>{negativeStockMode ? 'Revisa únicamente posiciones con saldo negativo antes de usar disponibilidad, reposición o cobertura para decidir.' : 'Busca existencias, revisa stock y detecta qué necesita reposición.'}</PageHeaderDescription></PageHeaderContent><PageHeaderActions>{negativeStockMode ? <Button asChild variant="outline"><Link href="/dashboard/bodega">Ver todo el inventario</Link></Button> : null}{ready && canEdit('bodega_inventario') && canEdit('fin_compras') ? <Button asChild><Link href="/dashboard/compras/importar-existencias"><Upload className="h-4 w-4" />Importar existencias</Link></Button> : null}</PageHeaderActions></PageHeader>
@@ -46,6 +49,11 @@ export default function BodegaPage() {
     {negativeStockMode ? <div className="flex gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive"/><div><p className="font-medium">Data Health · saldo negativo</p><p className="mt-1 text-muted-foreground">Esta vista filtra posiciones cuyo saldo disponible quedó bajo cero. Antes de corregir el saldo, concilia movimientos, reservas e importación fuente. Motil no ajusta cantidades automáticamente.</p></div></div> : null}
 
     {error ? <StatePanel tone="error" title="No fue posible cargar el inventario" description={error.message} actions={<Button variant="outline" onClick={() => void mutate()}>Reintentar</Button>} className="min-h-0 py-5" /> : null}
+
+    {!negativeStockMode && diesel ? <section aria-label="Estado de petróleo diésel" className="grid gap-4 rounded-lg border bg-card p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+      <div className="flex gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border bg-background"><Fuel className="h-5 w-5" /></div><div><div className="flex flex-wrap items-center gap-2"><h2 className="text-lg font-semibold">Petróleo Diesel</h2><Badge variant={statusVariant(diesel.stock_status)}>{statusLabels[diesel.stock_status] || 'Revisar'}</Badge></div><p className="mt-1 text-sm text-muted-foreground">Stock vigente según la evidencia canónica más reciente. No se mezclan snapshots históricos con disponibilidad actual.</p><p className="mt-2 text-xs text-muted-foreground">Última evidencia: {date(diesel.last_counted_date)} · {diesel.warehouse_code || 'Bodega sin código'}</p></div></div>
+      <div className="grid grid-cols-2 gap-x-8 gap-y-2 lg:text-right"><div><p className="text-xs text-muted-foreground">Disponible</p><p className="text-2xl font-semibold tabular-nums">{number(diesel.quantity_available)} {diesel.unit || 'unidad'}</p></div><div><p className="text-xs text-muted-foreground">Costo unitario</p><p className="text-lg font-medium tabular-nums">{money(diesel.unit_cost)}</p></div></div>
+    </section> : null}
 
     <section aria-label="Resumen de inventario" className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-4">{[
       ['Productos disponibles', number(overview.products_with_stock)],
