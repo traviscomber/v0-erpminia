@@ -194,7 +194,7 @@ export function MobileWorkOrderFlow({
 
       <p className="flex gap-2 px-2 text-xs leading-5 text-muted-foreground">
         <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-        Al terminar, MOTIL pedirá sólo la evidencia necesaria para entregar el trabajo a validación.
+        El cierre requiere causa, acción preventiva, horas reales y evidencia de horómetro cuando corresponda.
       </p>
       {message ? <StatePanel tone="error" title="No se pudo guardar" description={message} /> : null}
     </section>
