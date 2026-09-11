@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useModuleAccess } from '@/hooks/use-module-access';
 
 const operationItems = [
   { href: '/dashboard/finanzas', label: 'Resumen' },
@@ -24,6 +25,8 @@ function isActive(pathname: string, href: string) {
 
 export default function FinanceLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { canEdit, ready } = useModuleAccess();
+  const visibleOperationItems = operationItems.filter((item) => item.href !== '/dashboard/finanzas/pagos' || (ready && canEdit('fin_finanzas')));
 
   return (
     <div className="space-y-5">
@@ -34,7 +37,7 @@ export default function FinanceLayout({ children }: { children: ReactNode }) {
               Operación
             </span>
             <nav className="flex items-stretch" aria-label="Operación financiera">
-              {operationItems.map((item) => {
+              {visibleOperationItems.map((item) => {
                 const active = isActive(pathname, item.href);
                 return (
                   <Link
