@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getOrganizationContext } from '@/lib/api/organization-context';
+import { resolveMaintenanceViewerMode } from '@/lib/maintenance/viewer-mode';
 
 type WorkOrderRow = {
   id: string;
@@ -80,15 +81,57 @@ async function loadAssetMap(context: Awaited<ReturnType<typeof getOrganizationCo
   return new Map(((data || []) as CanonicalAssetRow[]).map((asset) => [asset.id, asset]));
 }
 
+async function resolveExecutionPersonId(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }) {
+  const { data: profile, error: profileError } = await context.supabase
+    .from('profiles')
+    .select('cargo_id')
+    .eq('id', context.userId)
+    .eq('organization_id', context.organizationId)
+    .maybeSingle();
+  if (profileError) throw profileError;
+
+  let cargoName: string | null = null;
+  if (profile?.cargo_id) {
+    const { data: cargo, error: cargoError } = await context.supabase
+      .from('cargos')
+      .select('name')
+      .eq('id', profile.cargo_id)
+      .maybeSingle();
+    if (cargoError) throw cargoError;
+    cargoName = cargo?.name || null;
+  }
+
+  if (resolveMaintenanceViewerMode(cargoName) !== 'execution') {
+    return { execution: false, personId: null as string | null };
+  }
+
+  const { data: person, error: personError } = await context.supabase
+    .from('people')
+    .select('id')
+    .eq('organization_id', context.organizationId)
+    .eq('profile_id', context.userId)
+    .maybeSingle();
+  if (personError) throw personError;
+
+  return { execution: true, personId: person?.id || null };
+}
+
 export async function GET(request: NextRequest) {
   const context = await getOrganizationContext(request);
   if (!context.ok) return context.response;
   try {
+    const executionScope = await resolveExecutionPersonId(context);
+    const executionWithoutPerson = executionScope.execution && !executionScope.personId;
+    if (executionWithoutPerson) {
+      return NextResponse.json({ workOrders: [], canonical: true, assignedOnly: true });
+    }
+
     const status = request.nextUrl.searchParams.get('status')?.trim();
     const priority = request.nextUrl.searchParams.get('priority')?.trim();
     const scope = request.nextUrl.searchParams.get('scope')?.trim();
     const limit = Number(request.nextUrl.searchParams.get('limit') || '0');
     let query = context.supabase.from('maintenance_work_orders').select('*').eq('organization_id', context.organizationId).order('created_at', { ascending: false });
+    if (executionScope.execution && executionScope.personId) query = query.eq('assigned_person_id', executionScope.personId);
     if (status) query = query.eq('status', status);
     if (priority) query = query.eq('priority', priority);
     if (scope === 'operational') query = query.not('created_by', 'is', null);
@@ -98,7 +141,11 @@ export async function GET(request: NextRequest) {
     if (error) throw error;
     const rows = (data || []) as WorkOrderRow[];
     const assetMap = await loadAssetMap(context, rows);
-    return NextResponse.json({ workOrders: rows.map((row) => mapWorkOrder(row, row.canonical_asset_id ? assetMap.get(row.canonical_asset_id) : null)), canonical: true });
+    return NextResponse.json({
+      workOrders: rows.map((row) => mapWorkOrder(row, row.canonical_asset_id ? assetMap.get(row.canonical_asset_id) : null)),
+      canonical: true,
+      assignedOnly: executionScope.execution,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudieron obtener las órdenes de trabajo';
     console.error('[maintenance/work-orders:get]', error);
