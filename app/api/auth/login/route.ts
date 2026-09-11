@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
-      .select('id, email, full_name, password_hash, organization_id, role, cargo_id')
+      .select('id, email, full_name, password_hash, organization_id, role, cargo_id, status')
       .eq('email', email)
       .limit(1);
 
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const profile = profileData?.[0];
-    if (!profile) {
+    if (!profile || profile.status !== 'active') {
       return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 });
     }
 
