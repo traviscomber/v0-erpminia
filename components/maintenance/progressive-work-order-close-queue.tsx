@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
-import { AlertCircle, ArrowRight, CheckCircle2, RefreshCw } from 'lucide-react';
+import { AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -66,7 +66,8 @@ const actionCopy: Record<string, { title: string; description: string }> = {
   close_work_order: { title: 'Cerrar OT', description: 'Todos los controles obligatorios están satisfechos. El cierre congelará el costo auditado.' },
 };
 
-function money(value: unknown) { return `$${Number(value || 0).toLocaleString('es-CL')}`; }
+function money(value: unknown) { return value == null ? '—' : `$${Number(value).toLocaleString('es-CL')}`; }
+function metric(value: number | undefined) { return value == null ? '—' : value.toLocaleString('es-CL'); }
 function localDateTimeValue() { const now = new Date(); const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000); return local.toISOString().slice(0, 16); }
 
 export function ProgressiveWorkOrderCloseQueue() {
@@ -137,14 +138,17 @@ export function ProgressiveWorkOrderCloseQueue() {
   const inline = current && ['complete_standard_plan_step','record_root_cause','record_preventive_actions','record_actual_hours','record_runtime_evidence','close_work_order'].includes(current.next_action);
 
   return <div className="space-y-6">
-    <div className="grid grid-cols-2 gap-3 lg:grid-cols-6">
+    <section aria-label="Estado de cierre" className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 lg:grid-cols-4">
       {[
-        ['OT abiertas',summary?.openOrders||0],['Listas para cerrar',summary?.readyToClose||0],['OT con plan pendiente',summary?.workOrdersWithPendingPlan||0],['Pasos pendientes',summary?.pendingPlanSteps||0],['Sin horas reales',summary?.missingActualHours||0],['Sin horómetro',summary?.missingRuntimeEvidence||0],
-      ].map(([label,value]) => <Card key={String(label)} className="shadow-none"><CardContent className="p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold">{value}</p></CardContent></Card>)}
-    </div>
+        ['OT abiertas', metric(summary?.openOrders)],
+        ['Listas para cerrar', metric(summary?.readyToClose)],
+        ['Bloqueadas', metric(summary?.blocked)],
+        ['Pasos pendientes', metric(summary?.pendingPlanSteps)],
+      ].map(([label,value]) => <div key={String(label)} className="bg-card p-4"><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p></div>)}
+    </section>
 
     {!current ? <Card className="shadow-none"><CardContent className="flex items-start gap-3 p-6"><CheckCircle2 className="mt-0.5 h-5 w-5"/><div><p className="font-medium">No hay OT pendientes de cierre</p><p className="mt-1 text-sm text-muted-foreground">La cola aparecerá automáticamente cuando existan órdenes abiertas.</p></div></CardContent></Card> : <Card className="shadow-none">
-      <CardHeader className="border-b border-border/70 pb-4"><div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between"><div><div className="flex flex-wrap items-center gap-2"><Badge variant="outline">Siguiente acción</Badge><span className="font-mono text-xs text-muted-foreground">{current.work_order_number||'OT'}</span>{Number(current.standard_plan_steps_total||0)>0 ? <Badge variant="secondary">Plan {current.standard_plan_steps_completed}/{current.standard_plan_steps_total}</Badge> : null}</div><CardTitle className="mt-3 text-xl">{copy?.title}</CardTitle><p className="mt-1 text-sm text-muted-foreground">{copy?.description}</p></div><Button variant="outline" size="sm" onClick={() => void mutate()}><RefreshCw className="mr-2 h-4 w-4"/>Actualizar</Button></div></CardHeader>
+      <CardHeader className="border-b border-border/70 pb-4"><div><div className="flex flex-wrap items-center gap-2"><Badge variant="outline">Siguiente acción</Badge><span className="font-mono text-xs text-muted-foreground">{current.work_order_number||'OT'}</span>{Number(current.standard_plan_steps_total||0)>0 ? <Badge variant="secondary">Plan {current.standard_plan_steps_completed}/{current.standard_plan_steps_total}</Badge> : null}</div><CardTitle className="mt-3 text-xl">{copy?.title}</CardTitle><p className="mt-1 text-sm text-muted-foreground">{copy?.description}</p></div></CardHeader>
       <CardContent className="space-y-5 p-6">
         <div className="grid gap-3 md:grid-cols-3"><div><p className="text-xs text-muted-foreground">Equipo</p><p className="mt-1 font-medium">{current.asset?.name||'Sin activo'}</p><p className="text-xs text-muted-foreground">{current.asset?.asset_code||''}</p></div><div><p className="text-xs text-muted-foreground">Trabajo</p><p className="mt-1 font-medium">{current.title||'Sin título'}</p><p className="text-xs text-muted-foreground">{current.work_type||'Sin tipo'} · {current.priority||'Sin prioridad'}</p></div><div><p className="text-xs text-muted-foreground">Costo actual</p><p className="mt-1 font-medium">{money(current.total_cost)}</p><p className="text-xs text-muted-foreground">Se congela al cierre.</p></div></div>
         {current.next_action==='complete_standard_plan_step' ? <div className="rounded-lg border p-4"><div className="flex items-center gap-2"><Badge variant="outline">Paso {current.next_plan_step_sequence}</Badge><p className="font-medium">{current.next_plan_step_title}</p></div>{current.next_plan_step_instructions ? <p className="mt-2 text-sm text-muted-foreground">{current.next_plan_step_instructions}</p> : null}{current.next_plan_step_control_requirement ? <p className="mt-2 text-sm"><span className="font-medium">Control:</span> {current.next_plan_step_control_requirement}</p> : null}{current.next_plan_step_document_reference ? <p className="mt-1 text-xs text-muted-foreground">Documento: {current.next_plan_step_document_reference}</p> : null}<textarea className="mt-4 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" rows={3} value={stepObservation} onChange={(e)=>setStepObservation(e.target.value)} placeholder="Observación de ejecución (opcional)"/></div> : null}
