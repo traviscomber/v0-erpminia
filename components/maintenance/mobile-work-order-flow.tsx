@@ -30,6 +30,7 @@ export function MobileWorkOrderFlow({
   workOrderNumber,
   title,
   status,
+  assignedPersonId,
   canEdit,
   onWorkOrderChange,
 }: {
@@ -37,12 +38,14 @@ export function MobileWorkOrderFlow({
   workOrderNumber?: string | null;
   title?: string | null;
   status?: string | null;
+  assignedPersonId?: string | null;
   canEdit: boolean;
   onWorkOrderChange: () => Promise<unknown> | void;
 }) {
   const router = useRouter();
+  const hasCanonicalAssignee = Boolean(assignedPersonId);
   const { data, error, isLoading, mutate } = useSWR<TimerResponse>(
-    canEdit && status !== 'completed' ? `/api/maintenance/work-orders/${workOrderId}/timer` : null,
+    canEdit && hasCanonicalAssignee && status !== 'completed' ? `/api/maintenance/work-orders/${workOrderId}/timer` : null,
     fetcher,
     { refreshInterval: 30_000, revalidateOnFocus: true },
   );
@@ -58,6 +61,7 @@ export function MobileWorkOrderFlow({
   }
 
   async function startWork() {
+    if (!hasCanonicalAssignee) return;
     setBusy(true); setMessage(null);
     try {
       await request(`/api/maintenance/work-orders/${workOrderId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'in_progress' }) });
@@ -84,6 +88,7 @@ export function MobileWorkOrderFlow({
 
   if (!canEdit) return <StatePanel tone="neutral" title="Orden de solo lectura" description="Este registro no admite ejecución desde terreno." className="md:hidden" />;
   if (status === 'completed') return <StatePanel tone="neutral" title="Trabajo terminado" description="La OT ya fue cerrada y permanece disponible como trazabilidad." className="md:hidden" />;
+  if (!hasCanonicalAssignee) return <StatePanel tone="warning" title="Falta asignar responsable" description="Esta OT aún no está vinculada a una persona operativa. Pide a tu jefatura o planificación que asigne el responsable antes de iniciar el trabajo." className="md:hidden" />;
   if (isLoading) return <StatePanel tone="loading" title="Cargando trabajo" className="md:hidden" />;
   if (error) return <StatePanel tone="error" title="No se pudo cargar el trabajo" description={error.message} className="md:hidden" />;
 
