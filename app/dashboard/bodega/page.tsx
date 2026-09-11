@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
+import { useModuleAccess } from '@/hooks/use-module-access';
 
 const fetcher = async (url: string) => {
   const response = await fetch(url, { credentials: 'include' });
@@ -27,6 +28,7 @@ function statusVariant(status: string) { if (['out_of_stock', 'negative', 'expir
 type InventoryPosition = { stock_id: string; product_id: string; product_code: string; product_name: string; family?: string | null; unit?: string | null; quantity_available: number; quantity_reserved: number; stock_value: number; stock_status: string; };
 
 export default function BodegaPage() {
+  const { canEdit, ready } = useModuleAccess();
   const searchParams = useSearchParams();
   const initialStatus = searchParams.get('status') || 'all';
   const dataHealth = searchParams.get('dataHealth');
@@ -39,7 +41,7 @@ export default function BodegaPage() {
   const positions: InventoryPosition[] = data?.positions || [];
 
   return <div className="space-y-6">
-    <PageHeader><PageHeaderContent><PageHeaderEyebrow>Abastecimiento</PageHeaderEyebrow><PageHeaderTitle>{negativeStockMode ? 'Conciliar stock negativo' : 'Inventario'}</PageHeaderTitle><PageHeaderDescription>{negativeStockMode ? 'Revisa únicamente posiciones con saldo negativo antes de usar disponibilidad, reposición o cobertura para decidir.' : 'Busca existencias, revisa stock y detecta qué necesita reposición.'}</PageHeaderDescription></PageHeaderContent><PageHeaderActions>{negativeStockMode ? <Button asChild variant="outline"><Link href="/dashboard/bodega">Ver todo el inventario</Link></Button> : null}<Button asChild><Link href="/dashboard/compras/importar-existencias"><Upload className="h-4 w-4" />Importar existencias</Link></Button></PageHeaderActions></PageHeader>
+    <PageHeader><PageHeaderContent><PageHeaderEyebrow>Abastecimiento</PageHeaderEyebrow><PageHeaderTitle>{negativeStockMode ? 'Conciliar stock negativo' : 'Inventario'}</PageHeaderTitle><PageHeaderDescription>{negativeStockMode ? 'Revisa únicamente posiciones con saldo negativo antes de usar disponibilidad, reposición o cobertura para decidir.' : 'Busca existencias, revisa stock y detecta qué necesita reposición.'}</PageHeaderDescription></PageHeaderContent><PageHeaderActions>{negativeStockMode ? <Button asChild variant="outline"><Link href="/dashboard/bodega">Ver todo el inventario</Link></Button> : null}{ready && canEdit('bodega_inventario') && canEdit('fin_compras') ? <Button asChild><Link href="/dashboard/compras/importar-existencias"><Upload className="h-4 w-4" />Importar existencias</Link></Button> : null}</PageHeaderActions></PageHeader>
 
     {negativeStockMode ? <div className="flex gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-4 text-sm"><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-destructive"/><div><p className="font-medium">Data Health · saldo negativo</p><p className="mt-1 text-muted-foreground">Esta vista filtra posiciones cuyo saldo disponible quedó bajo cero. Antes de corregir el saldo, concilia movimientos, reservas e importación fuente. Motil no ajusta cantidades automáticamente.</p></div></div> : null}
 
