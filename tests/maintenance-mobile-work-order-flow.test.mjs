@@ -8,7 +8,15 @@ const flow = await readFile(new URL('../components/maintenance/mobile-work-order
 test('only execution maintenance profiles receive the condensed work-order flow on mobile', () => {
   assert.match(page, /viewer\?\.mode === 'execution'/);
   assert.match(page, /<MobileWorkOrderFlow/);
+  assert.match(page, /assignedPersonId=\{workOrder\.assigned_person_id\}/);
   assert.match(page, /isExecutionMobile \? 'hidden md:block' : undefined/);
+});
+
+test('the terrain flow blocks start before a canonical person is assigned', () => {
+  assert.match(flow, /hasCanonicalAssignee = Boolean\(assignedPersonId\)/);
+  assert.match(flow, /Falta asignar responsable/);
+  assert.match(flow, /vinculada a una persona operativa/);
+  assert.match(flow, /canEdit && hasCanonicalAssignee && status !== 'completed'/);
 });
 
 test('the terrain flow preserves the start pause resume and evidence-gated close sequence', () => {
