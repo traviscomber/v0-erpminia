@@ -15,9 +15,12 @@ test('maintenance workspaces simplify progressively down the role chain', () => 
   assert.match(page, /Planificar → Preparar → Ejecutar/);
 });
 
-test('maintenance role queues stay focused on the decisions each level owns', () => {
-  assert.match(page, /planningKinds = new Set\(\['operational_review','preventive_overdue','meter_review','operational_blocker'\]\)/);
+test('maintenance planning queue stays focused on decisions that make work executable', () => {
+  assert.match(page, /planningKinds = new Set\(\['operational_review','preventive_overdue','assignment_needed','meter_review','operational_blocker'\]\)/);
   assert.match(page, /Cola de planificación/);
+  assert.match(page, /Por asignar/);
+  assert.match(page, /Asignar trabajo/);
+  assert.match(page, /Qué debo dejar listo hoy/);
   assert.doesNotMatch(page, /Cola de ejecución/);
   assert.doesNotMatch(page, /executionKinds = new Set/);
 });
@@ -26,7 +29,8 @@ test('maintenance header exposes one secondary action and one role-aware primary
   const actions = page.match(/<PageHeaderActions>(.*?)<\/PageHeaderActions>/s)?.[1] || '';
   assert.match(actions, /variant="outline"/);
   assert.match(actions, />Actualizar</);
-  assert.match(actions, />Planificar</);
+  assert.match(actions, /Asignar trabajo/);
+  assert.match(actions, /Planificar/);
   assert.match(actions, />Crear orden</);
   assert.doesNotMatch(actions, />Ver órdenes</);
   assert.equal((actions.match(/variant="outline"/g) || []).length, 1);
