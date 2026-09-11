@@ -27,8 +27,20 @@ test('conflicted diesel cannot contaminate trusted inventory valuation in the UI
   const page = await readFile(pagePath, 'utf8');
   assert.match(page, /const valuationTrusted = !diesel\?\.hasConflict/);
   assert.match(page, /valuationTrusted \? money\(overview\.total_stock_value\) : 'En conciliación'/);
-  assert.match(page, /Petróleo excluye una valorización confiable hasta conciliar fuentes/);
-  assert.match(page, /conflictedDiesel \? 'En conciliación' : number\(row\.quantity_available\)/);
-  assert.match(page, /conflictedDiesel \? '—' : money\(row\.stock_value\)/);
+  assert.match(page, /Petróleo impide una valorización confiable hasta conciliar fuentes/);
+  assert.match(page, /conflictedDiesel \? 'En conciliación' : `\$\{number\(row\.quantity_available\)\}/);
   assert.match(page, /Revisar fuente/);
+});
+
+test('bodega is an operational workspace, not a thin inventory table', async () => {
+  const page = await readFile(pagePath, 'utf8');
+  assert.match(page, /<PageHeaderTitle>\{negativeStockMode \? 'Conciliar stock negativo' : 'Bodega'\}<\/PageHeaderTitle>/);
+  assert.match(page, /Qué requiere atención hoy/);
+  assert.match(page, /Saldos negativos/);
+  assert.match(page, /Sin stock/);
+  assert.match(page, /Por reponer/);
+  assert.match(page, /Posición de inventario/);
+  assert.match(page, /<span>Bodega<\/span><span>Evidencia<\/span>/);
+  assert.doesNotMatch(page, /<span>Reservado<\/span>/);
+  assert.match(page, /Busca por producto o código y abre la posición para revisar su evidencia/);
 });
