@@ -54,6 +54,8 @@ test('inactive profiles cannot receive a new session or retain an existing one',
   assert.match(authSession, /full_name, first_name, last_name, status/);
   assert.match(authSession, /if \(profile && profile\.status !== 'active'\)/);
   assert.match(authSession, /if \(identity\.active === false\) return null;/);
+  assert.match(proxy, /isActiveCustomSessionProfile/);
+  assert.match(proxy, /customSession && !\(await isActiveCustomSessionProfile\(customSession\.user\.id\)\)/);
 });
 
 test('login confirms the authenticated session before redirecting', () => {
