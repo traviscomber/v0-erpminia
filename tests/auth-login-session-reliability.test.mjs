@@ -46,6 +46,16 @@ test('stale legacy hashes can recover only through the linked Supabase Auth iden
   assert.doesNotMatch(loginRoute, /encrypted_password/);
 });
 
+test('inactive profiles cannot receive a new session or retain an existing one', async () => {
+  const authSession = await readFile(new URL('../lib/api/auth-session.ts', import.meta.url), 'utf8');
+
+  assert.match(loginRoute, /cargo_id, status/);
+  assert.match(loginRoute, /!profile \|\| profile\.status !== 'active'/);
+  assert.match(authSession, /full_name, first_name, last_name, status/);
+  assert.match(authSession, /if \(profile && profile\.status !== 'active'\)/);
+  assert.match(authSession, /if \(identity\.active === false\) return null;/);
+});
+
 test('login confirms the authenticated session before redirecting', () => {
   const loginRequest = loginPage.indexOf("fetch('/api/auth/login'");
   const sessionCheck = loginPage.indexOf("fetch('/api/me/access'");
