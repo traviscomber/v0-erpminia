@@ -4,6 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { FileSearch } from 'lucide-react';
+import { useModuleAccess } from '@/hooks/use-module-access';
 
 type Row = Record<string, string | number | null>;
 type Response = { overview?: Row | null; topAssets?: Row[]; topProducts?: Row[]; topSuppliers?: Row[]; topCostCenters?: Row[]; validation?: Row | null; recentEvents?: Row[]; operationalProcurement?: Row | null; operationalProcurementEvents?: Row[]; treasury?: Row[]; treasuryAging?: Row[]; cashForecast?: Row[] };
@@ -25,6 +26,7 @@ const agingLabels: Record<string, string> = { no_due_date: 'Sin vencimiento', cu
 
 export default function FinanzasPage() {
   const { data, error, isLoading } = useSWR<Response>('/api/finance/executive', fetcher);
+  const { canEdit, ready } = useModuleAccess();
   const [activeConcentration, setActiveConcentration] = useState<ConcentrationKey>('assets');
   const overview = data?.overview || {};
   const operationalProcurement = data?.operationalProcurement || {};
@@ -55,7 +57,7 @@ export default function FinanzasPage() {
       </section>
 
       <section className="space-y-3 border-t pt-5">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-lg font-semibold">Tesorería</h2><p className="text-sm text-muted-foreground">Saldo por pagar, vencimientos y conciliación. No modifica el costo reconocido.</p></div><Link href="/dashboard/finanzas/pagos" className="text-sm font-medium text-primary hover:underline">Operar pagos</Link></div>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"><div><h2 className="text-lg font-semibold">Tesorería</h2><p className="text-sm text-muted-foreground">Saldo por pagar, vencimientos y conciliación. No modifica el costo reconocido.</p></div>{ready && canEdit('fin_finanzas') ? <Link href="/dashboard/finanzas/pagos" className="text-sm font-medium text-primary hover:underline">Operar pagos</Link> : null}</div>
         {treasury.length === 0 ? <div className="rounded-lg border px-4 py-5 text-sm text-muted-foreground">No hay cuentas por pagar aprobadas.</div> : treasury.map((row) => <div key={String(row.currency)} className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-5">
           {[
             [`Saldo ${String(row.currency || '')}`, currencyMoney(row.outstanding_amount, row.currency)],
