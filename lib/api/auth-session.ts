@@ -24,6 +24,7 @@ type EnrichedIdentity = {
   role?: string;
   organizationId?: string;
   fullName?: string;
+  active?: boolean;
 };
 
 function normalizeEmail(email?: string | null) {
@@ -52,7 +53,7 @@ async function enrichIdentity(
 ): Promise<EnrichedIdentity> {
   try {
     const adminClient = getSupabaseServerClient();
-    const profileFields = 'id, organization_id, role, full_name, first_name, last_name';
+    const profileFields = 'id, organization_id, role, full_name, first_name, last_name, status';
 
     const { data: profileById } = await adminClient
       .from('profiles')
@@ -119,6 +120,13 @@ async function enrichIdentity(
     }
 
     const applicationUserId = profile?.id || userId;
+    // A disabled profile must invalidate both a fresh Supabase session and the
+    // compatibility cookie issued by MOTIL. Do not rely on UI visibility here:
+    // every API guard resolves through this function.
+    if (profile && profile.status !== 'active') {
+      return { applicationUserId, authUserId, active: false };
+    }
+
     let roleQuery = adminClient
       .from('user_roles')
       .select('role, organization_id')
@@ -143,6 +151,7 @@ async function enrichIdentity(
         profile?.full_name ||
         [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') ||
         undefined,
+      active: true,
     };
   } catch {
     return {};
@@ -177,6 +186,7 @@ async function resolveSupabaseAuth(request: NextRequest): Promise<AuthContext | 
     user.email,
     Boolean(user.email_confirmed_at)
   );
+  if (identity.active === false) return null;
   const applicationUserId = identity.applicationUserId || user.id;
 
   return {
@@ -202,6 +212,7 @@ export async function resolveAuthContext(request: NextRequest): Promise<AuthCont
       customSession.user.email,
       true
     );
+    if (identity.active === false) return null;
     const applicationUserId = identity.applicationUserId || customSession.user.id;
     const organizationId = identity.organizationId || customSession.user.organization_id || undefined;
     const role = identity.role || customSession.role || undefined;
