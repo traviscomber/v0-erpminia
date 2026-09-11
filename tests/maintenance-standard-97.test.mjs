@@ -33,5 +33,5 @@ test('97 decision intelligence exposes one explicit next decision without invent
   assert.match(decisions, /no representa probabilidad de falla/);
   assert.match(decisions, /Impacto permanece sin medir/);
   assert.doesNotMatch(decisions, /risk score/i);
-  assert.doesNotMatch(decisions, /probabilidad de falla[^n]/i);
+  assert.doesNotMatch(decisions, /predice? (?:una )?falla/i);
 });
