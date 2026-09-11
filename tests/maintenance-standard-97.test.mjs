@@ -18,7 +18,7 @@ test('97 reliability surface asks one decision question and never converts missi
 
 test('97 horometer surface separates unknown readings from zero and prioritizes reconciliation', () => {
   assert.match(runtime, /Qué lectura falta para planificar con confianza/);
-  assert.match(runtime, /Primero: resolver evidencia pendiente/);
+  assert.match(runtime, /Primero[:,] resolver evidencia pendiente/);
   assert.match(runtime, /Ausencia de lectura no equivale a cero/);
   assert.match(runtime, /Una lectura faltante se presenta como desconocida, nunca como 0/);
   assert.match(runtime, /Guardar lectura/);
