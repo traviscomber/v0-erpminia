@@ -71,7 +71,7 @@ test('maintenance learning excludes UAT simulated and imported closures', async 
   assert.match(route, /\\buat\\b\|simulad\|prueba\|test controlado/i);
   assert.match(route, /\.not\('created_by', 'is', null\)/);
   assert.match(route, /reliabilityClosuresExcludedAsSyntheticOrNonOperational/);
-  assert.match(page, /excluidos de aprendizaje por ser UAT\/simulados o no operacionales/i);
+  assert.match(page, /UAT, simulados o no operacionales fueron excluidos del aprendizaje/i);
 });
 
 test('observed 90 day degraded states remain reviewable patterns rather than diagnosed failures', async () => {
