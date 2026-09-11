@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
+import { useModuleAccess } from '@/hooks/use-module-access';
 
 const operationItems = [
   { href: '/dashboard/bodega', label: 'Inventario' },
@@ -25,6 +26,8 @@ function isActive(pathname: string, href: string) {
 
 export default function WarehouseLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { canEdit, ready } = useModuleAccess();
+  const visibleSupportItems = supportItems.filter((item) => item.href !== '/dashboard/bodega/importar-datos' || (ready && canEdit('bodega_inventario')));
 
   return (
     <div className="space-y-5">
@@ -62,7 +65,7 @@ export default function WarehouseLayout({ children }: { children: ReactNode }) {
               Herramientas
             </span>
             <nav className="flex items-stretch" aria-label="Herramientas de Bodega">
-              {supportItems.map((item) => {
+              {visibleSupportItems.map((item) => {
                 const active = isActive(pathname, item.href);
                 return (
                   <Link
