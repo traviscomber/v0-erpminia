@@ -6,6 +6,7 @@ import { Activity, AlertTriangle, ArrowRight, Beaker, CheckCircle2, CircleDashed
 import { Button } from '@/components/ui/button';
 import { PageHeader, PageHeaderActions, PageHeaderContent, PageHeaderDescription, PageHeaderEyebrow, PageHeaderTitle } from '@/components/ui/page-header';
 import { StatePanel } from '@/components/ui/state-panel';
+import { useModuleAccess } from '@/hooks/use-module-access';
 
 type Overview = {
   counts: { materialMovements:number; plantShifts:number; metallurgyResults:number; concentrateShipments:number; drillingReports:number; drillingHoles:number };
@@ -46,6 +47,7 @@ const domains=[
 
 export function ProduccionDashboard(){
   const {data,error,isLoading,mutate}=useSWR<Overview>('/api/produccion/canonical-overview',fetcher);
+  const { canEdit, ready } = useModuleAccess();
   if(error) return <StatePanel tone="error" title="No fue posible cargar Producción" description={error.message} actions={<Button variant="outline" onClick={()=>void mutate()}>Reintentar</Button>}/>;
   if(isLoading||!data) return <StatePanel tone="neutral" title="Cargando Producción" description="Leyendo KPI desde la capa canónica."/>;
 
@@ -61,7 +63,7 @@ export function ProduccionDashboard(){
         <PageHeaderTitle>Producción</PageHeaderTitle>
         <PageHeaderDescription>{p?`${period(p.periodStart)} · Planta hasta ${date(p.dataThrough)}. Transporte sólo hasta ${date(data.freshness.transportSourceThrough)}.`:'Sin período operacional disponible.'}</PageHeaderDescription>
       </PageHeaderContent>
-      <PageHeaderActions><Button asChild variant="outline"><Link href="/dashboard/produccion/ingreso-datos"><Upload className="h-4 w-4"/>Ingresar datos</Link></Button></PageHeaderActions>
+      <PageHeaderActions>{ready && canEdit('prod_operaciones') ? <Button asChild variant="outline"><Link href="/dashboard/produccion/ingreso-datos"><Upload className="h-4 w-4"/>Ingresar datos</Link></Button> : null}</PageHeaderActions>
     </PageHeader>
 
     <section aria-label="Operación actual" className="space-y-3">
