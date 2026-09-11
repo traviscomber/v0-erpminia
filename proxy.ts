@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { verifyCustomSession } from '@/lib/auth/signed-session';
+import { resolveMaintenanceViewerMode } from '@/lib/maintenance/viewer-mode';
 
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
@@ -242,6 +243,14 @@ export async function proxy(request: NextRequest) {
   }
 
   if (pathname.startsWith('/dashboard') && customSession) {
+    const cargoName = request.cookies.get('user_cargo')?.value || null;
+    if (
+      pathname === '/dashboard/mantenimiento/ordenes-trabajo' &&
+      resolveMaintenanceViewerMode(cargoName) === 'execution'
+    ) {
+      return withSecurityHeaders(NextResponse.redirect(new URL('/dashboard/mantenimiento', request.url)));
+    }
+
     try {
       const allowed = await canAccessDashboardRoute(customSession.user.id, customSession.role, pathname);
       if (!allowed) {
