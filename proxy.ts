@@ -30,9 +30,6 @@ const DASHBOARD_ROUTE_MODULES: Array<{ prefix: string; modules: string[] }> = [
   { prefix: '/dashboard/finanzas', modules: ['fin_finanzas'] },
 ];
 
-// These screens change canonical operational or financial records. A LEC user
-// may read the surrounding domain but must never reach the mutation workspace,
-// including through a copied or bookmarked URL.
 const DASHBOARD_EDIT_ROUTE_MODULES: Array<{ prefix: string; module: string }> = [
   { prefix: '/dashboard/produccion/ingreso-datos', module: 'prod_operaciones' },
   { prefix: '/dashboard/bodega/importar-datos', module: 'bodega_inventario' },
@@ -49,6 +46,14 @@ function requiredModulesForDashboardPath(pathname: string) {
 
 function requiredEditModuleForDashboardPath(pathname: string) {
   return DASHBOARD_EDIT_ROUTE_MODULES.find(({ prefix }) => pathname === prefix || pathname.startsWith(`${prefix}/`))?.module ?? null;
+}
+
+function safePostLoginPath(request: NextRequest) {
+  const redirect = request.nextUrl.searchParams.get('redirect');
+  if (!redirect || !redirect.startsWith('/') || redirect.startsWith('//') || redirect.startsWith('/auth/login')) {
+    return '/dashboard';
+  }
+  return redirect;
 }
 
 async function canAccessDashboardRoute(profileId: string, role: string | null | undefined, pathname: string) {
@@ -176,9 +181,6 @@ export async function proxy(request: NextRequest) {
     return withSecurityHeaders(NextResponse.json({ error: 'Debug endpoints disabled in production' }, { status: 404 }));
   }
 
-  // Public auth endpoints must run before custom-session validation. If an old
-  // auth_token is invalid, clearing it in middleware on the login request can
-  // conflict with the fresh Set-Cookie emitted by the login route.
   if (pathname.startsWith('/api/') && isPublicApiRoute(pathname)) {
     return withSecurityHeaders(response);
   }
@@ -190,9 +192,6 @@ export async function proxy(request: NextRequest) {
   const authToken = request.cookies.get('auth_token')?.value;
   let customSession = await verifyCustomSession(authToken);
 
-  // A custom MOTIL cookie is not sufficient on its own: its profile must
-  // remain active. This makes deactivation effective on the next navigation,
-  // rather than waiting for the seven-day cookie to expire.
   if (customSession && !(await isActiveCustomSessionProfile(customSession.user.id))) {
     customSession = null;
     response = clearCustomSession(response);
@@ -204,11 +203,14 @@ export async function proxy(request: NextRequest) {
     response = clearCustomSession(response);
   }
 
+  if (pathname === '/auth/login' && isAuthenticated) {
+    return withSecurityHeaders(NextResponse.redirect(new URL(safePostLoginPath(request), request.url)));
+  }
+
   if (pathname.startsWith('/api/')) {
     const isDemoMode = process.env.DEMO_PUBLIC_READ === 'true';
     const isReadRequest = request.method === 'GET';
 
-    // Admin canonical import is guarded by ADMIN_INIT_TOKEN instead of a session.
     if (pathname.startsWith('/api/admin/canonical-import') || pathname.startsWith('/api/admin/hse-canonical-import') || pathname.startsWith('/api/admin/hse-workbooks-import')) {
       const adminToken = process.env.ADMIN_INIT_TOKEN;
       const authHeader = request.headers.get('authorization') || '';
