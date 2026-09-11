@@ -54,7 +54,8 @@ test('maintenance decision intelligence separates fact interpretation hypothesis
   assert.match(route, /evidence_against/);
   assert.match(route, /missing_evidence/);
   assert.match(route, /human_checkpoint/);
-  assert.match(page, /Dato canónico → interpretación profesional → hipótesis revisable → evidencia faltante → próxima acción → validación humana/);
+  assert.match(page, /Cada caso separa hecho, interpretación, hipótesis, brecha de evidencia y próxima acción/);
+  assert.match(page, /Checkpoint humano/);
 });
 
 test('maintenance priority is not represented as failure probability or autonomous decision', async () => {
