@@ -186,7 +186,7 @@ export function MobileWorkOrderFlow({
           {status === 'in_progress' ? (
             <Button size="lg" variant="outline" className="h-14 w-full text-base" disabled={busy} onClick={() => void finishWork()}>
               <SquareStop className="mr-2 h-5 w-5" />
-              Terminar trabajo
+              Terminar y registrar evidencia
             </Button>
           ) : null}
         </CardContent>
