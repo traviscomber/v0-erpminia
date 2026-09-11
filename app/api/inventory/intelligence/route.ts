@@ -26,17 +26,24 @@ export async function GET(request: NextRequest) {
     if (status) positionsQuery = positionsQuery.eq('stock_status', status);
     if (query) positionsQuery = positionsQuery.or(`product_code.ilike.%${query}%,product_name.ilike.%${query}%`);
 
-    const [overviewResult, positionsResult] = await Promise.all([
+    const [overviewResult, positionsResult, dieselResult] = await Promise.all([
       context.supabase.from('inventory_intelligence_overview_v1').select('*').eq('organization_id', organizationId).maybeSingle(),
       positionsQuery,
+      context.supabase
+        .from('inventory_intelligence_position_v1')
+        .select('stock_id,product_id,product_code,product_name,family,unit,quantity_available,quantity_reserved,unit_cost,stock_value,stock_status,last_counted_date,warehouse_code,validation_status')
+        .eq('organization_id', organizationId)
+        .eq('product_code', 'Combustible001')
+        .maybeSingle(),
     ]);
 
-    const error = overviewResult.error || positionsResult.error;
+    const error = overviewResult.error || positionsResult.error || dieselResult.error;
     if (error) throw error;
 
     return NextResponse.json({
       overview: overviewResult.data || null,
       positions: positionsResult.data || [],
+      diesel: dieselResult.data || null,
       source: 'public.inventory_intelligence_position_v1',
       canonical: true,
     });
