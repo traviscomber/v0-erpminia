@@ -7,7 +7,7 @@ import { requireOperationalMaintenanceWorkOrder } from '@/lib/maintenance/work-o
 
 type WorkOrderPatchPayload = {
   status?: string;
-  assigned_to_name?: string | null;
+  assigned_person_id?: string | null;
   actual_duration_hours?: number | string | null;
   root_cause?: string | null;
   preventive_actions?: string | null;
@@ -42,6 +42,30 @@ async function loadCostCenters(context: Awaited<ReturnType<typeof getOrganizatio
   const { data, error } = await context.supabase.from('cost_centers').select('id,code,name,status').eq('organization_id', context.organizationId).or('status.is.null,status.eq.active').order('code');
   if (error) throw error;
   return data || [];
+}
+
+async function loadAssignees(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }) {
+  const { data, error } = await context.supabase.from('people')
+    .select('id,full_name,role_title,profile_id')
+    .eq('organization_id', context.organizationId)
+    .eq('employment_status', 'active')
+    .not('profile_id', 'is', null)
+    .order('full_name');
+  if (error) throw error;
+  return data || [];
+}
+
+async function resolveAssignee(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, personId: string) {
+  const { data, error } = await context.supabase.from('people')
+    .select('id,full_name,role_title,profile_id,employment_status')
+    .eq('organization_id', context.organizationId)
+    .eq('id', personId)
+    .eq('employment_status', 'active')
+    .not('profile_id', 'is', null)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) throw new Error('El responsable seleccionado no es una persona operativa activa y vinculada.');
+  return data;
 }
 
 async function loadCloseReadiness(context: Awaited<ReturnType<typeof getOrganizationContext>> & { ok: true }, workOrderId: string) {
@@ -97,14 +121,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const { data, error } = await context.supabase.from('maintenance_work_orders').select('*').eq('id', id).eq('organization_id', context.organizationId).maybeSingle();
     if (error) throw error;
     if (!data) return NextResponse.json({ error: 'No se encontró la orden de trabajo' }, { status: 404 });
-    const [asset, costSummary, costCenters, closeReadiness] = await Promise.all([
+    const [asset, costSummary, costCenters, assignees, closeReadiness] = await Promise.all([
       loadCanonicalAsset(context, data.canonical_asset_id || null),
       loadCostSummary(context, id),
       loadCostCenters(context),
+      loadAssignees(context),
       loadCloseReadiness(context, id),
     ]);
     const recordScope = data.created_by ? 'operational' : 'historical';
-    return NextResponse.json({ data: mapWorkOrder(data, asset, costSummary), costCenters, closeReadiness, canEdit: access.canWrite && recordScope === 'operational', record_scope: recordScope, canonical: true });
+    return NextResponse.json({ data: mapWorkOrder(data, asset, costSummary), costCenters, assignees, closeReadiness, canEdit: access.canWrite && recordScope === 'operational', record_scope: recordScope, canonical: true });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'No se pudo cargar la orden de trabajo';
     return NextResponse.json({ error: message }, { status: 500 });
@@ -149,7 +174,16 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
     const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (body.status) updateData.status = body.status;
-    if (body.assigned_to_name !== undefined) updateData.assigned_to_name = body.assigned_to_name;
+    if (body.assigned_person_id !== undefined) {
+      if (body.assigned_person_id) {
+        const assignee = await resolveAssignee(context, body.assigned_person_id);
+        updateData.assigned_person_id = assignee.id;
+        updateData.assigned_to_name = assignee.full_name;
+      } else {
+        updateData.assigned_person_id = null;
+        updateData.assigned_to_name = null;
+      }
+    }
     if (body.actual_duration_hours !== undefined) updateData.actual_duration_hours = body.actual_duration_hours;
     if (body.root_cause !== undefined) updateData.root_cause = body.root_cause;
     if (body.preventive_actions !== undefined) updateData.preventive_actions = body.preventive_actions;
