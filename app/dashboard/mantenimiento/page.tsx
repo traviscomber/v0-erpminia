@@ -47,6 +47,7 @@ const maintenanceFlow = [
 ] as const;
 
 const planningKinds = new Set(['operational_review','preventive_overdue','assignment_needed','meter_review','operational_blocker']);
+const leadershipKinds = new Set(['operational_review','preventive_overdue','operational_blocker','ready_to_close','reliability']);
 
 export default function MantenimientoPage(){
   const {data:viewer,isLoading:viewerLoading}=useSWR<ViewerContext>('/api/maintenance/viewer-context',(url)=>fetcher<ViewerContext>(url),{revalidateOnFocus:false});
@@ -65,8 +66,11 @@ export default function MantenimientoPage(){
   const rawActions=data?.actions || [];
   const actions=mode==='planning'
     ? rawActions.filter((action)=>planningKinds.has(action.kind))
-    : rawActions;
+    : mode==='leadership'
+      ? rawActions.filter((action)=>leadershipKinds.has(action.kind))
+      : rawActions;
   const firstAssignment = mode==='planning' ? actions.find((action)=>action.kind==='assignment_needed') : undefined;
+  const firstLeadershipAction = mode==='leadership' ? actions[0] : undefined;
   const preventiveGroupDetail = summary?.unplannedOverdueInterventionGroups != null
     ? `${summary.unplannedOverdueInterventionGroups} intervención(es)`
     : 'Por planificar';
@@ -96,12 +100,12 @@ export default function MantenimientoPage(){
   const pageTitle = mode==='planning'
     ? 'Qué debo dejar listo hoy'
     : mode==='leadership'
-      ? 'Estado y decisiones de mantenimiento'
+      ? 'Qué debo decidir o destrabar'
       : 'Qué requiere acción ahora';
   const pageDescription = mode==='planning'
     ? 'Vencimientos, responsables y bloqueos. La salida es trabajo ejecutable para terreno.'
     : mode==='leadership'
-      ? 'Disponibilidad, trabajo pendiente y bloqueos para priorizar y destrabar al equipo.'
+      ? 'Sólo decisiones de jefatura: disponibilidad, vencimientos, bloqueos, cierres y recurrencias relevantes.'
       : 'Una bandeja priorizada desde señales de terreno, preventivos, órdenes de trabajo, cierre y confiabilidad.';
 
   const visibleFlow = mode==='planning'
@@ -125,7 +129,9 @@ export default function MantenimientoPage(){
         <Button variant="outline" onClick={()=>void mutate()} disabled={isLoading}><RefreshCw className="h-4 w-4"/>Actualizar</Button>
         {mode==='planning'
           ? <Button asChild><Link href={firstAssignment?.href || '/dashboard/mantenimiento/preventivo-horas'}><Clock3 className="h-4 w-4"/>{firstAssignment?'Asignar trabajo':'Planificar'}</Link></Button>
-          : <Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create"><Plus className="h-4 w-4"/>Crear orden</Link></Button>}
+          : mode==='leadership' && firstLeadershipAction
+            ? <Button asChild><Link href={firstLeadershipAction.href}><ArrowRight className="h-4 w-4"/>Atender prioridad</Link></Button>
+            : <Button asChild><Link href="/dashboard/mantenimiento/ordenes-trabajo/create"><Plus className="h-4 w-4"/>Crear orden</Link></Button>}
       </PageHeaderActions>
     </PageHeader>
 
@@ -158,9 +164,9 @@ export default function MantenimientoPage(){
     {error?<StatePanel tone="error" title="No fue posible cargar el centro de mantenimiento" description={error.message} actions={<Button variant="outline" onClick={()=>void mutate()}>Reintentar</Button>} className="min-h-0 py-5"/>:null}
 
     <Card className="shadow-none">
-      <CardHeader className="flex flex-row items-start justify-between gap-4"><div><CardTitle className="text-lg">{mode==='planning'?'Cola de planificación':'Bandeja priorizada'}</CardTitle><CardDescription>{mode==='planning'?'Ordenada por lo que puede impedir que terreno reciba trabajo ejecutable: vencimientos, falta de responsable, señales y bloqueos.':'La prioridad deriva de evidencia operacional, vencimientos, bloqueos y readiness de cierre. No representa probabilidad de falla.'}</CardDescription></div>{!isLoading&&!error?<Badge variant="outline">{actions.length} acciones</Badge>:null}</CardHeader>
+      <CardHeader className="flex flex-row items-start justify-between gap-4"><div><CardTitle className="text-lg">{mode==='planning'?'Cola de planificación':mode==='leadership'?'Decisiones de jefatura':'Bandeja priorizada'}</CardTitle><CardDescription>{mode==='planning'?'Ordenada por lo que puede impedir que terreno reciba trabajo ejecutable: vencimientos, falta de responsable, señales y bloqueos.':mode==='leadership'?'Sólo escalaciones que requieren decisión, desbloqueo, validación de cierre o revisión de recurrencia.':'La prioridad deriva de evidencia operacional, vencimientos, bloqueos y readiness de cierre. No representa probabilidad de falla.'}</CardDescription></div>{!isLoading&&!error?<Badge variant="outline">{actions.length} acciones</Badge>:null}</CardHeader>
       <CardContent>
-        {isLoading?<StatePanel tone="loading" title="Calculando prioridades" className="min-h-64 border-0 bg-transparent"/>:!error&&actions.length===0?<StatePanel tone="neutral" title="No hay acciones pendientes" description={mode==='planning'?'No hay vencimientos, asignaciones, señales ni bloqueos pendientes para programación.':'No existen revisiones de terreno, vencimientos, bloqueos ni evidencias de cierre pendientes en las fuentes actuales.'} className="min-h-64 border-0 bg-transparent"/>:!error?<div className="divide-y rounded-lg border">{actions.map((action,index)=>{const meta=kindCopy[action.kind]||kindCopy.closure_evidence;const Icon=meta.icon;return <div key={action.id} className="grid gap-3 p-4 md:grid-cols-[40px_1fr_auto] md:items-center"><div className="flex h-9 w-9 items-center justify-center rounded-md border bg-background"><Icon className="h-4 w-4"/></div><Link href={action.href} className="min-w-0 rounded-sm outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"><div className="flex flex-wrap items-center gap-2"><span className="text-xs tabular-nums text-muted-foreground">#{index+1}</span><Badge variant={meta.variant}>{meta.label}</Badge><p className="font-medium">{action.title}</p></div><p className="mt-1 text-sm text-muted-foreground">{action.description}</p><p className="mt-1 text-xs text-muted-foreground">Evidencia: {action.evidence}</p></Link><Button asChild variant="ghost" size="icon-sm" aria-label="Abrir acción"><Link href={action.href}><ArrowRight className="h-4 w-4"/></Link></Button></div>})}</div>:null}
+        {isLoading?<StatePanel tone="loading" title="Calculando prioridades" className="min-h-64 border-0 bg-transparent"/>:!error&&actions.length===0?<StatePanel tone="neutral" title="No hay acciones pendientes" description={mode==='planning'?'No hay vencimientos, asignaciones, señales ni bloqueos pendientes para programación.':mode==='leadership'?'No hay escalaciones de jefatura pendientes en las fuentes actuales.':'No existen revisiones de terreno, vencimientos, bloqueos ni evidencias de cierre pendientes en las fuentes actuales.'} className="min-h-64 border-0 bg-transparent"/>:!error?<div className="divide-y rounded-lg border">{actions.map((action,index)=>{const meta=kindCopy[action.kind]||kindCopy.closure_evidence;const Icon=meta.icon;return <div key={action.id} className="grid gap-3 p-4 md:grid-cols-[40px_1fr_auto] md:items-center"><div className="flex h-9 w-9 items-center justify-center rounded-md border bg-background"><Icon className="h-4 w-4"/></div><Link href={action.href} className="min-w-0 rounded-sm outline-none hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"><div className="flex flex-wrap items-center gap-2"><span className="text-xs tabular-nums text-muted-foreground">#{index+1}</span><Badge variant={meta.variant}>{meta.label}</Badge><p className="font-medium">{action.title}</p></div><p className="mt-1 text-sm text-muted-foreground">{action.description}</p><p className="mt-1 text-xs text-muted-foreground">Evidencia: {action.evidence}</p></Link><Button asChild variant="ghost" size="icon-sm" aria-label="Abrir acción"><Link href={action.href}><ArrowRight className="h-4 w-4"/></Link></Button></div>})}</div>:null}
       </CardContent>
     </Card>
 
