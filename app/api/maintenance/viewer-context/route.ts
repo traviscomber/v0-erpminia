@@ -8,7 +8,13 @@ const resolveMode = (cargoName: string | null) => {
   const cargo = String(cargoName || '').trim().toLowerCase();
   if (cargo === 'jefe departamento de mantenimiento') return 'leadership';
   if (cargo === 'jefe de planificación') return 'planning';
-  if (cargo.startsWith('mecánico')) return 'execution';
+  if (cargo === 'jefe de equipos móviles y estacionarios') return 'leadership';
+  if (
+    cargo.startsWith('mecánico') ||
+    cargo.startsWith('jefe de taller mina') ||
+    cargo === 'encargado de camionetas y camiones' ||
+    cargo === 'soldador'
+  ) return 'execution';
   return 'general';
 };
 
