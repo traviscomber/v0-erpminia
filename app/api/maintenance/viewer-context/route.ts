@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       mode,
-      cargoName: mode === 'general' ? null : cargoName,
+      cargoName,
       canEdit: access.canWrite,
     });
   } catch (error) {

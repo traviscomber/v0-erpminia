@@ -8,6 +8,7 @@ const assistant = await fs.readFile('components/maintenance/maintenance-senior-a
 test('maintenance workspaces simplify progressively down the role chain', () => {
   assert.match(page, /leadership:\[/);
   assert.match(page, /planning:\[/);
+  assert.match(page, /oversight:\[/);
   assert.match(page, /general:\[/);
   assert.match(page, /if\(mode==='execution'\)\{/);
   assert.match(page, /<MobileTerrainPanel \/>/);
@@ -33,15 +34,24 @@ test('maintenance leadership queue contains only decisions owned by leadership',
   assert.match(page, /Atender prioridad/);
 });
 
-test('maintenance header exposes one secondary action and one role-aware primary action for planning and leadership', () => {
+test('maintenance transversal oversight is read-focused and does not inherit operational ownership', () => {
+  assert.match(page, /oversightKinds = new Set\(\['operational_review','operational_blocker','reliability'\]\)/);
+  assert.match(page, /Impacto operativo de mantenimiento/);
+  assert.match(page, /Revisar impacto/);
+  assert.match(page, /Esta vista no asigna, ejecuta ni cierra trabajo/);
+  assert.match(page, /const showOwnedFlow = mode==='planning' \|\| mode==='leadership'/);
+});
+
+test('maintenance header exposes one secondary action and one role-aware primary action', () => {
   const actions = page.match(/<PageHeaderActions>(.*?)<\/PageHeaderActions>/s)?.[1] || '';
   assert.match(actions, /variant="outline"/);
   assert.match(actions, />Actualizar</);
   assert.match(actions, /Asignar trabajo/);
   assert.match(actions, /Planificar/);
   assert.match(actions, /Atender prioridad/);
-  assert.match(actions, />Crear orden</);
-  assert.doesNotMatch(actions, />Ver órdenes</);
+  assert.match(actions, /Revisar impacto/);
+  assert.match(actions, /Revisar órdenes/);
+  assert.doesNotMatch(actions, />Crear orden</);
   assert.equal((actions.match(/variant="outline"/g) || []).length, 1);
 });
 
