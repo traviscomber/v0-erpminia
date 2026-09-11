@@ -50,14 +50,15 @@ test('control center excludes historical work orders from operational actions',(
   assert.match(api,/historicalOpenWorkOrders/);
 });
 
-test('maintenance home is an action center with direct operational routes',()=>{
-  assert.match(page,/Qué requiere acción ahora/);
-  assert.match(page,/Bandeja priorizada/);
+test('maintenance home stays role-aware while preserving direct factual routes',()=>{
+  assert.match(page,/Qué debo dejar listo hoy/);
+  assert.match(page,/Qué debo decidir o destrabar/);
+  assert.match(page,/Impacto operativo de mantenimiento/);
+  assert.match(page,/Estado de mantenimiento/);
   assert.match(page,/Fuera de servicio/);
   assert.match(page,/equipo\(s\) fuera de servicio requieren revisión humana/);
   assert.match(page,/Preventivos pendientes/);
   assert.match(page,/OT abiertas/);
-  assert.match(page,/Listas para cerrar/);
   assert.match(page,/Decision Intelligence/);
   assert.match(page,/preventivo-horas/);
   assert.match(page,/ordenes-trabajo\/cierre/);
