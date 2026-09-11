@@ -64,7 +64,7 @@ async function canAccessDashboardRoute(profileId: string, role: string | null | 
   const { data: profile } = await admin.from('profiles').select('cargo_id').eq('id', profileId).maybeSingle();
   if (!profile?.cargo_id) return false;
 
-  const modulesToCheck = requiredEditModule ? [requiredEditModule] : requiredModules;
+  const modulesToCheck = requiredEditModule ? [requiredEditModule] : requiredModules ?? [];
   const { data: accessRows } = await admin
     .from('role_matrix')
     .select('module_key, access_level')
