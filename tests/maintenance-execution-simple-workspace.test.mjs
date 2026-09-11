@@ -19,8 +19,8 @@ test('execution workspace exposes only job context, timer and controlled finish 
   assert.match(flow, /Iniciar trabajo/);
   assert.match(flow, /Pausar trabajo/);
   assert.match(flow, /Reanudar trabajo/);
-  assert.match(flow, /Terminar trabajo/);
-  assert.match(flow, /MOTIL pedirá sólo la evidencia necesaria/);
+  assert.match(flow, /Terminar y registrar evidencia/);
+  assert.match(flow, /causa, acción preventiva, horas reales y evidencia de horómetro/);
 });
 
 test('administrative detail remains outside the execution-role early return', () => {
