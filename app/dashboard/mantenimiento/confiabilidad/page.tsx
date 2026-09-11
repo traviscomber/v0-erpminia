@@ -71,7 +71,7 @@ export default function ReliabilityPage() {
       </CardContent>
     </Card>
 
-    <div className="border-t pt-4 text-xs leading-5 text-muted-foreground"><AlertTriangle className="mr-1 inline h-3.5 w-3.5"/>MTBF usa diferencias de horómetro entre cierres correctivos auditados consecutivos. Si falta una lectura o existe reinicio del medidor, el intervalo se excluye. MTTR usa horas reales registradas en la OT.</div>
+    <div className="border-t pt-4 text-xs leading-5 text-muted-foreground"><AlertTriangle className="mr-1 inline h-3.5 w-3.5"/>MTBF usa diferencias de horómetro entre cierres correctivos auditados consecutivos. Si falta una lectura o se detecta reinicio del medidor, ese intervalo se excluye. MTTR usa horas reales registradas en la OT.</div>
   </div>;
 }
 
