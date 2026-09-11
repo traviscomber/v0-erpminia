@@ -76,6 +76,21 @@ async function canAccessDashboardRoute(profileId: string, role: string | null | 
     : (accessRows ?? []).some((row) => row.access_level === 'ED' || row.access_level === 'LEC');
 }
 
+async function isActiveCustomSessionProfile(profileId: string) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceRoleKey) return false;
+
+  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data: profile } = await admin
+    .from('profiles')
+    .select('status')
+    .eq('id', profileId)
+    .maybeSingle();
+
+  return profile?.status === 'active';
+}
+
 function isPublicApiRoute(pathname: string) {
   return (
     PUBLIC_API_ROUTES.has(pathname) ||
@@ -173,7 +188,16 @@ export async function proxy(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const authToken = request.cookies.get('auth_token')?.value;
-  const customSession = await verifyCustomSession(authToken);
+  let customSession = await verifyCustomSession(authToken);
+
+  // A custom MOTIL cookie is not sufficient on its own: its profile must
+  // remain active. This makes deactivation effective on the next navigation,
+  // rather than waiting for the seven-day cookie to expire.
+  if (customSession && !(await isActiveCustomSessionProfile(customSession.user.id))) {
+    customSession = null;
+    response = clearCustomSession(response);
+  }
+
   const isAuthenticated = Boolean(user || customSession);
 
   if (authToken && !customSession) {
