@@ -25,12 +25,21 @@ test('maintenance planning queue stays focused on decisions that make work execu
   assert.doesNotMatch(page, /executionKinds = new Set/);
 });
 
+test('maintenance leadership queue contains only decisions owned by leadership', () => {
+  assert.match(page, /leadershipKinds = new Set\(\['operational_review','preventive_overdue','operational_blocker','ready_to_close','reliability'\]\)/);
+  assert.match(page, /rawActions\.filter\(\(action\)=>leadershipKinds\.has\(action\.kind\)\)/);
+  assert.match(page, /Qué debo decidir o destrabar/);
+  assert.match(page, /Decisiones de jefatura/);
+  assert.match(page, /Atender prioridad/);
+});
+
 test('maintenance header exposes one secondary action and one role-aware primary action for planning and leadership', () => {
   const actions = page.match(/<PageHeaderActions>(.*?)<\/PageHeaderActions>/s)?.[1] || '';
   assert.match(actions, /variant="outline"/);
   assert.match(actions, />Actualizar</);
   assert.match(actions, /Asignar trabajo/);
   assert.match(actions, /Planificar/);
+  assert.match(actions, /Atender prioridad/);
   assert.match(actions, />Crear orden</);
   assert.doesNotMatch(actions, />Ver órdenes</);
   assert.equal((actions.match(/variant="outline"/g) || []).length, 1);
