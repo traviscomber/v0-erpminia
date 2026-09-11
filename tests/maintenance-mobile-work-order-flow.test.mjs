@@ -1,0 +1,22 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+
+const page = await readFile(new URL('../app/dashboard/mantenimiento/ordenes-trabajo/[id]/page.tsx', import.meta.url), 'utf8');
+const flow = await readFile(new URL('../components/maintenance/mobile-work-order-flow.tsx', import.meta.url), 'utf8');
+
+test('only execution maintenance profiles receive the condensed work-order flow on mobile', () => {
+  assert.match(page, /viewer\?\.mode === 'execution'/);
+  assert.match(page, /<MobileWorkOrderFlow/);
+  assert.match(page, /isExecutionMobile \? 'hidden md:block' : undefined/);
+});
+
+test('the terrain flow preserves the start pause resume and evidence-gated close sequence', () => {
+  assert.match(flow, /Iniciar trabajo/);
+  assert.match(flow, /Pausar trabajo/);
+  assert.match(flow, /Reanudar trabajo/);
+  assert.match(flow, /Terminar y registrar evidencia/);
+  assert.match(flow, /ordenes-trabajo\/cierre\?workOrderId=/);
+  assert.match(flow, /causa, acción preventiva, horas reales y evidencia de horómetro/);
+  assert.doesNotMatch(flow, /status:\s*'completed'/);
+});
