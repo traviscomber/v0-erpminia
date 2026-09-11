@@ -40,7 +40,7 @@ const kindCopy: Record<string,{label:string; icon:any; variant:'default'|'second
 
 const maintenanceFlow = [
   { step:'01', label:'Planificar', detail:'Vencimientos, criticidad y prioridad', href:'/dashboard/planificacion' },
-  { step:'02', label:'Preparar', detail:'Responsable, repuestos y brechas', href:'/dashboard/mantenimiento/ordenes-trabajo' },
+  { step:'02', label:'Preparar', detail:'Repuestos disponibles y brechas de compra', href:'/dashboard/bodega' },
   { step:'03', label:'Ejecutar', detail:'Trabajo asignado y evidencia real', href:'/dashboard/mantenimiento/ordenes-trabajo' },
   { step:'04', label:'Validar', detail:'Cierre supervisado y trazabilidad', href:'/dashboard/mantenimiento/ordenes-trabajo/cierre' },
   { step:'05', label:'Aprender', detail:'Historial, confiabilidad y próxima acción', href:'/dashboard/mantenimiento/decision-intelligence' },
