@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { verifyCustomSession } from '@/lib/auth/signed-session';
 
@@ -20,6 +21,60 @@ const PUBLIC_API_ROUTES = new Set([
   '/api/auth/register',
   '/api/auth/logout',
 ]);
+
+const DASHBOARD_ROUTE_MODULES: Array<{ prefix: string; modules: string[] }> = [
+  { prefix: '/dashboard/mantenimiento', modules: ['mant_operaciones', 'mant_gerencial', 'mant_recursos', 'mant_documentos'] },
+  { prefix: '/dashboard/produccion', modules: ['prod_operaciones', 'prod_geologia', 'prod_topografia', 'prod_quimica', 'prod_sondaje_exploracion', 'prod_sondaje_produccion', 'prod_telemetria'] },
+  { prefix: '/dashboard/bodega', modules: ['bodega_inventario', 'bodega_documentos'] },
+  { prefix: '/dashboard/compras', modules: ['fin_compras'] },
+  { prefix: '/dashboard/finanzas', modules: ['fin_finanzas'] },
+];
+
+// These screens change canonical operational or financial records. A LEC user
+// may read the surrounding domain but must never reach the mutation workspace,
+// including through a copied or bookmarked URL.
+const DASHBOARD_EDIT_ROUTE_MODULES: Array<{ prefix: string; module: string }> = [
+  { prefix: '/dashboard/produccion/ingreso-datos', module: 'prod_operaciones' },
+  { prefix: '/dashboard/bodega/importar-datos', module: 'bodega_inventario' },
+  { prefix: '/dashboard/bodega/documentos/importar', module: 'bodega_documentos' },
+  { prefix: '/dashboard/compras/importar-existencias', module: 'fin_compras' },
+  { prefix: '/dashboard/finanzas/pagos', module: 'fin_finanzas' },
+];
+
+const ADMIN_ROLES = new Set(['admin', 'superadmin', 'super_admin']);
+
+function requiredModulesForDashboardPath(pathname: string) {
+  return DASHBOARD_ROUTE_MODULES.find(({ prefix }) => pathname === prefix || pathname.startsWith(`${prefix}/`))?.modules ?? null;
+}
+
+function requiredEditModuleForDashboardPath(pathname: string) {
+  return DASHBOARD_EDIT_ROUTE_MODULES.find(({ prefix }) => pathname === prefix || pathname.startsWith(`${prefix}/`))?.module ?? null;
+}
+
+async function canAccessDashboardRoute(profileId: string, role: string | null | undefined, pathname: string) {
+  const requiredEditModule = requiredEditModuleForDashboardPath(pathname);
+  const requiredModules = requiredModulesForDashboardPath(pathname);
+  if ((!requiredModules && !requiredEditModule) || ADMIN_ROLES.has(role || '')) return true;
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !serviceRoleKey) return false;
+
+  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data: profile } = await admin.from('profiles').select('cargo_id').eq('id', profileId).maybeSingle();
+  if (!profile?.cargo_id) return false;
+
+  const modulesToCheck = requiredEditModule ? [requiredEditModule] : requiredModules;
+  const { data: accessRows } = await admin
+    .from('role_matrix')
+    .select('module_key, access_level')
+    .eq('cargo_id', profile.cargo_id)
+    .in('module_key', modulesToCheck);
+
+  return requiredEditModule
+    ? (accessRows ?? []).some((row) => row.module_key === requiredEditModule && row.access_level === 'ED')
+    : (accessRows ?? []).some((row) => row.access_level === 'ED' || row.access_level === 'LEC');
+}
 
 function isPublicApiRoute(pathname: string) {
   return (
@@ -158,6 +213,18 @@ export async function proxy(request: NextRequest) {
     const loginUrl = new URL('/auth/login', request.url);
     loginUrl.searchParams.set('redirect', `${pathname}${request.nextUrl.search}`);
     return withSecurityHeaders(clearCustomSession(NextResponse.redirect(loginUrl)));
+  }
+
+  if (pathname.startsWith('/dashboard') && customSession) {
+    try {
+      const allowed = await canAccessDashboardRoute(customSession.user.id, customSession.role, pathname);
+      if (!allowed) {
+        return withSecurityHeaders(NextResponse.redirect(new URL('/dashboard?error=module_access_denied', request.url)));
+      }
+    } catch (error) {
+      console.error('[access] Dashboard route guard failed:', error instanceof Error ? error.message : String(error));
+      return withSecurityHeaders(NextResponse.redirect(new URL('/dashboard?error=module_access_unavailable', request.url)));
+    }
   }
 
   return withSecurityHeaders(response);
