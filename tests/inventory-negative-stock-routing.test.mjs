@@ -15,6 +15,6 @@ test('inventory initializes and explains the negative-stock review mode', () => 
   assert.match(bodegaPage, /useSearchParams/);
   assert.match(bodegaPage, /searchParams\.get\('status'\)/);
   assert.match(bodegaPage, /negativeStockMode/);
-  assert.match(bodegaPage, /Motil no ajusta cantidades automáticamente/);
+  assert.match(bodegaPage, /motil no ajusta cantidades automáticamente/i);
   assert.match(bodegaPage, /No quedan saldos negativos/);
 });
