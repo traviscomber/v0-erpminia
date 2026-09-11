@@ -30,11 +30,11 @@ test('reliability API is managerial tenant scoped and includes runtime evidence'
   assert.match(api, /eq\('organization_id', context\.organizationId\)/);
 });
 
-test('reliability UI separates calendar interval from evidence-backed MTBF', () => {
-  assert.match(page, /Intervalo:/);
+test('reliability UI exposes only evidence-backed reliability semantics', () => {
   assert.match(page, /MTBF con evidencia/);
   assert.match(page, /MTBF pendiente/);
   assert.match(page, /reinicio del medidor/);
+  assert.match(page, /Sin base suficiente todavía/);
+  assert.match(page, /no convierte frecuencia en probabilidad de falla/);
   assert.doesNotMatch(page, /MTBF observado/);
-  assert.match(page, /Todavía no hay cierres auditados/);
 });
