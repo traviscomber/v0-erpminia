@@ -126,7 +126,7 @@ export function MobileWorkOrderFlow({
 
   if (!canEdit) return <StatePanel tone="neutral" title="Orden de solo lectura" description="Este registro no admite ejecución desde terreno." />;
   if (status === 'completed') return <StatePanel tone="neutral" title="Trabajo terminado" description="La OT ya fue cerrada y permanece disponible como trazabilidad." />;
-  if (!hasCanonicalAssignee) return <StatePanel tone="warning" title="Falta asignar responsable" description="Pide a tu jefatura o planificación que asigne esta OT antes de iniciar." />;
+  if (!hasCanonicalAssignee) return <StatePanel tone="warning" title="Falta asignar responsable" description="Esta OT aún no está vinculada a una persona operativa. Pide a tu jefatura o planificación que asigne el responsable antes de iniciar." />;
   if (isLoading) return <StatePanel tone="loading" title="Cargando trabajo" />;
   if (error) return <StatePanel tone="error" title="No se pudo cargar el trabajo" description={error.message} />;
 
