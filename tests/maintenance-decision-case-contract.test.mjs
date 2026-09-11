@@ -28,8 +28,8 @@ test('maintenance decision intelligence exposes derived cases without autonomous
 test('maintenance decision cockpit makes human review and unmeasured impact explicit', async () => {
   const page = await readFile(pagePath, 'utf8')
 
-  assert.match(page, /Decisiones que requieren validación humana/)
-  assert.match(page, /La IA no aprueba, ejecuta ni cierra trabajo/)
+  assert.match(page, /Qué decisión necesita revisión humana ahora/)
+  assert.match(page, /la IA no aprueba, ejecuta ni cierra trabajo/i)
   assert.match(page, /Revisión humana/)
   assert.match(page, /Impacto aún no medido/)
   assert.match(page, /sin beneficio atribuido/i)
