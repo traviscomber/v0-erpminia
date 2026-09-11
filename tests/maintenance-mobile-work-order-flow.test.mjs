@@ -5,11 +5,14 @@ import { readFile } from 'node:fs/promises';
 const page = await readFile(new URL('../app/dashboard/mantenimiento/ordenes-trabajo/[id]/page.tsx', import.meta.url), 'utf8');
 const flow = await readFile(new URL('../components/maintenance/mobile-work-order-flow.tsx', import.meta.url), 'utf8');
 
-test('only execution maintenance profiles receive the condensed work-order flow on mobile', () => {
+test('only execution maintenance profiles receive the condensed work-order workspace', () => {
   assert.match(page, /viewer\?\.mode === 'execution'/);
+  assert.match(page, /if \(isExecution\)/);
   assert.match(page, /<MobileWorkOrderFlow/);
+  assert.match(page, /assetName=\{workOrder\.asset_name \|\| workOrder\.asset_code\}/);
+  assert.match(page, /description=\{workOrder\.description\}/);
   assert.match(page, /assignedPersonId=\{workOrder\.assigned_person_id\}/);
-  assert.match(page, /isExecutionMobile \? 'hidden md:block' : undefined/);
+  assert.doesNotMatch(page, /isExecutionMobile \? 'hidden md:block' : undefined/);
 });
 
 test('the terrain flow blocks start before a canonical person is assigned', () => {
