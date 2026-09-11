@@ -22,3 +22,13 @@ test('bodega makes conflicting diesel evidence explicit and blocks false certain
   assert.match(page, /Referencia canónica más reciente/);
   assert.match(page, /No usar esta cifra para compra, consumo ni valorización hasta conciliar el origen/);
 });
+
+test('conflicted diesel cannot contaminate trusted inventory valuation in the UI', async () => {
+  const page = await readFile(pagePath, 'utf8');
+  assert.match(page, /const valuationTrusted = !diesel\?\.hasConflict/);
+  assert.match(page, /valuationTrusted \? money\(overview\.total_stock_value\) : 'En conciliación'/);
+  assert.match(page, /Petróleo excluye una valorización confiable hasta conciliar fuentes/);
+  assert.match(page, /conflictedDiesel \? 'En conciliación' : number\(row\.quantity_available\)/);
+  assert.match(page, /conflictedDiesel \? '—' : money\(row\.stock_value\)/);
+  assert.match(page, /Revisar fuente/);
+});
