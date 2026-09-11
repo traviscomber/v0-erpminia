@@ -45,7 +45,8 @@ test('progressive closure exposes one next action and requires an explicit close
   assert.match(component, /complete_standard_plan_step/);
   assert.match(component, /setStepObservation\(''\)/);
   assert.match(component, /searchParams\.get\('workOrderId'\)/);
-  assert.match(page, /Cierre progresivo de OT/);
+  assert.match(page, /Qué falta para cerrar la siguiente OT/);
+  assert.match(page, /decisión final en el usuario autorizado/);
 });
 
 test('scheduled maintenance hands completion to the safe progressive closure flow', () => {
