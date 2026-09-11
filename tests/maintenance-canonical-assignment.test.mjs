@@ -21,7 +21,7 @@ test('work order detail exposes only linked active people as assignee choices', 
   assert.match(route, /costCenters, assignees, closeReadiness/);
   assert.match(page, /const assignees = data\?\.assignees \|\| \[\]/);
   assert.match(page, /id="assignee"/);
-  assert.match(page, /patchOrder\(\{assigned_person_id:event\.target\.value \|\| null\}\)/);
+  assert.match(page, /patchOrder\(\{\s*assigned_person_id:\s*event\.target\.value \|\| null\s*\}\)/);
   assert.match(page, /Debe asignarse una persona operativa antes de iniciar/);
 });
 
