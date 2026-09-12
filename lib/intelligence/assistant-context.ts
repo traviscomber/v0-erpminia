@@ -141,6 +141,19 @@ const CONTEXTS: Array<AssistantContext & { prefixes: string[] }> = [
   },
 ];
 
+const HOME_CONTEXT: AssistantContext = {
+  domain: 'executive',
+  label: 'MOTIL',
+  title: 'Asistente Senior MOTIL',
+  scopeHint: 'Parte desde tu cargo y permisos efectivos, y amplía el análisis sólo hacia dominios autorizados cuando aporta evidencia útil.',
+  capabilities: ['executive_decisions', 'executive_escalations', 'data_health'],
+  suggestedPrompts: [
+    '¿Qué requiere mi atención ahora?',
+    '¿Cuáles son mis tres prioridades y qué evidencia las respalda?',
+    '¿Qué está bloqueado y qué debería validar primero?',
+  ],
+};
+
 const GLOBAL_CONTEXT: AssistantContext = {
   domain: 'global',
   label: 'MOTIL',
@@ -156,6 +169,7 @@ const GLOBAL_CONTEXT: AssistantContext = {
 
 export function resolveAssistantContext(pathname: string): AssistantContext {
   const normalized = String(pathname || '').toLowerCase();
+  if (normalized === '/dashboard' || normalized === '/dashboard/') return HOME_CONTEXT;
   const match = CONTEXTS.find((context) => context.prefixes.some((prefix) => normalized.startsWith(prefix)));
   if (!match) return GLOBAL_CONTEXT;
   const { prefixes: _prefixes, ...context } = match;
