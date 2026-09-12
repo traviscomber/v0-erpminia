@@ -86,7 +86,11 @@ export async function GET(request: NextRequest) {
           .order('updated_at', { ascending: false })
           .limit(100);
         if (error) throw error;
-        return { domain, accessLevel, rows: (data || []) as Record<string, unknown>[] };
+        return {
+          domain,
+          accessLevel,
+          rows: (data || []) as unknown as Record<string, unknown>[],
+        };
       }),
     );
 
