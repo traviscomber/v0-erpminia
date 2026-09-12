@@ -30,9 +30,9 @@ test('finance owns the primary navigation for reports and cost centers', () => {
 test('performance remains available inside the management context', () => {
   assert.match(performancePage, /Desempeño operacional/);
   assert.match(performancePage, /api\/desempeno\/scorecards/);
-  assert.match(managementNav, /href: '\/dashboard\/desempeno'.*label: 'Desempeño'/);
-  assert.match(managementNav, /href: '\/dashboard\/decisiones'.*label: 'Centro ejecutivo'/);
-  assert.match(managementNav, /href: '\/dashboard\/calidad-datos\/salud'.*label: 'Data Health'/);
+  assert.match(managementNav, /href: '\/dashboard\/desempeno'\s*,\s*label: 'Desempeño'/);
+  assert.match(managementNav, /href: '\/dashboard\/decisiones'\s*,\s*label: 'Centro ejecutivo'/);
+  assert.match(managementNav, /href: '\/dashboard\/calidad-datos\/salud'\s*,\s*label: 'Data Health'/);
   assert.match(performanceLayout, /ManagementContextNav/);
   assert.match(decisionLayout, /ManagementContextNav/);
   assert.match(dataHealthLayout, /ManagementContextNav/);
