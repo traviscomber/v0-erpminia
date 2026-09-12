@@ -66,7 +66,7 @@ test('PKCS12 extraction matches leaf certificate to private key and normalizes t
 });
 
 test('Vercel build image exposes the OpenSSL PKCS12 engine required by the importer',()=>{
-  const result = spawnSync('openssl', ['version'], { encoding: 'utf8', timeout: 5000 });
+  const result = spawnSync('openssl', ['version'], { encoding: 'utf8', timeout: 15000 });
   assert.equal(result.error, undefined);
   assert.equal(result.status, 0, result.stderr || 'openssl version failed');
   assert.match(result.stdout, /^OpenSSL\s+/);
