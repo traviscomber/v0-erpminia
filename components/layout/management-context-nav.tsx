@@ -2,12 +2,42 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useModuleAccess } from '@/hooks/use-module-access';
 import { cn } from '@/lib/utils';
 
-const items = [
-  { href: '/dashboard/decisiones', label: 'Centro ejecutivo' },
-  { href: '/dashboard/desempeno', label: 'Desempeño' },
-  { href: '/dashboard/calidad-datos/salud', label: 'Data Health' },
+type ManagementItem = {
+  href: string;
+  label: string;
+  canView: (check: (moduleKey: string) => boolean) => boolean;
+};
+
+const items: ManagementItem[] = [
+  {
+    href: '/dashboard/decisiones',
+    label: 'Centro ejecutivo',
+    canView: (check) => [
+      'prod_operaciones',
+      'mant_gerencial',
+      'bodega_inventario',
+      'fin_compras',
+      'fin_finanzas',
+    ].some(check),
+  },
+  {
+    href: '/dashboard/desempeno',
+    label: 'Desempeño',
+    canView: (check) => check('core_desempeno'),
+  },
+  {
+    href: '/dashboard/calidad-datos/salud',
+    label: 'Data Health',
+    canView: (check) => [
+      'prod_operaciones',
+      'mant_operaciones',
+      'bodega_inventario',
+      'fin_compras',
+    ].some(check),
+  },
 ];
 
 function isActive(pathname: string, href: string) {
@@ -16,6 +46,10 @@ function isActive(pathname: string, href: string) {
 
 export function ManagementContextNav() {
   const pathname = usePathname();
+  const { canView, ready } = useModuleAccess();
+  const visibleItems = ready ? items.filter((item) => item.canView(canView)) : [];
+
+  if (!ready || visibleItems.length === 0) return null;
 
   return (
     <section className="border-b border-border" aria-label="Contexto de Gerencia">
@@ -24,7 +58,7 @@ export function ManagementContextNav() {
           Gerencia
         </span>
         <nav className="flex items-stretch" aria-label="Navegación gerencial">
-          {items.map((item) => {
+          {visibleItems.map((item) => {
             const active = isActive(pathname, item.href);
             return (
               <Link
