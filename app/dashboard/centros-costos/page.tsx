@@ -1,3 +1,4 @@
+import { CostCenterCoverageQueue } from '@/components/dashboard/cost-center-coverage-queue';
 import { CostCentersWorkspace } from '@/components/dashboard/cost-centers-workspace';
 import {
   PageHeader,
@@ -20,10 +21,11 @@ export default function CostCentersPage() {
           <PageHeaderEyebrow>Control transversal</PageHeaderEyebrow>
           <PageHeaderTitle>Centros de costos</PageHeaderTitle>
           <PageHeaderDescription>
-            Consulta la estructura canónica vigente por código, nombre y unidad responsable. La importación queda separada como herramienta administrativa secundaria.
+            Consulta la estructura canónica vigente y resuelve referencias faltantes de Producción, Mantención y Compras sin inferir asignaciones.
           </PageHeaderDescription>
         </PageHeaderContent>
       </PageHeader>
+      <CostCenterCoverageQueue />
       <CostCentersWorkspace />
     </div>
   );
