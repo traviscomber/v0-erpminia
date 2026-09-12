@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 const widgetUrl = new URL('../components/intelligence/senior-assistant-widget.tsx', import.meta.url);
 const runtimeUrl = new URL('../lib/intelligence/operational-domain-assistant.ts', import.meta.url);
+const accessUrl = new URL('../lib/intelligence/operational-domain-access.ts', import.meta.url);
 const inventoryRouteUrl = new URL('../app/api/inventory/assistant/route.ts', import.meta.url);
 const procurementRouteUrl = new URL('../app/api/procurement/assistant/route.ts', import.meta.url);
 const productionRouteUrl = new URL('../app/api/production/assistant/route.ts', import.meta.url);
@@ -24,36 +25,35 @@ test('inventory procurement production and finance use the shared specialist con
 });
 
 test('local module permission is mandatory and cross-domain expansion is permission bounded', async () => {
-  const [inventoryRoute, procurementRoute, productionRoute, financeRoute, inventoryIntelligence] = await Promise.all([
+  const [inventoryRoute, procurementRoute, productionRoute, financeRoute, inventoryIntelligence, access] = await Promise.all([
     readFile(inventoryRouteUrl, 'utf8'),
     readFile(procurementRouteUrl, 'utf8'),
     readFile(productionRouteUrl, 'utf8'),
     readFile(financeRouteUrl, 'utf8'),
     readFile(inventoryIntelligenceUrl, 'utf8'),
+    readFile(accessUrl, 'utf8'),
   ]);
 
-  assert.match(inventoryRoute, /MODULE_KEYS\.BODEGA_INVENTARIO/);
-  assert.match(inventoryRoute, /MODULE_KEYS\.FIN_COMPRAS/);
-  assert.match(inventoryRoute, /procurementAccess\.authorized \? \['inventory', 'procurement'\] : \['inventory'\]/);
+  const routeCases = [
+    [inventoryRoute, 'BODEGA_INVENTARIO', 'inventory'],
+    [procurementRoute, 'FIN_COMPRAS', 'procurement'],
+    [productionRoute, 'PROD_OPERACIONES', 'production'],
+    [financeRoute, 'FIN_FINANZAS', 'finance'],
+  ];
 
-  assert.match(procurementRoute, /MODULE_KEYS\.FIN_COMPRAS/);
-  assert.match(procurementRoute, /MODULE_KEYS\.BODEGA_INVENTARIO/);
-  assert.match(procurementRoute, /inventoryAccess\.authorized \? \['procurement', 'inventory'\] : \['procurement'\]/);
+  for (const [route, primaryModule, primaryDomain] of routeCases) {
+    assert.match(route, new RegExp(`requireModuleAccess\\(request, MODULE_KEYS\\.${primaryModule}\\)`));
+    assert.match(route, /resolveAllowedOperationalDomains\(/);
+    assert.match(route, new RegExp(`primaryDomain:\\s*'${primaryDomain}'`));
+    assert.match(route, /allowedDomains,/);
+  }
 
-  assert.match(productionRoute, /MODULE_KEYS\.PROD_OPERACIONES/);
-  assert.match(productionRoute, /MODULE_KEYS\.BODEGA_INVENTARIO/);
-  assert.match(productionRoute, /MODULE_KEYS\.FIN_COMPRAS/);
-  assert.match(productionRoute, /allowedDomains\.push\('inventory'\)/);
-  assert.match(productionRoute, /allowedDomains\.push\('procurement'\)/);
-
-  assert.match(financeRoute, /MODULE_KEYS\.FIN_FINANZAS/);
-  assert.match(financeRoute, /MODULE_KEYS\.BODEGA_INVENTARIO/);
-  assert.match(financeRoute, /MODULE_KEYS\.FIN_COMPRAS/);
-  assert.match(financeRoute, /MODULE_KEYS\.PROD_OPERACIONES/);
-  assert.match(financeRoute, /allowedDomains\.push\('inventory'\)/);
-  assert.match(financeRoute, /allowedDomains\.push\('procurement'\)/);
-  assert.match(financeRoute, /allowedDomains\.push\('production'\)/);
-
+  assert.match(access, /inventory:\s*MODULE_KEYS\.BODEGA_INVENTARIO/);
+  assert.match(access, /procurement:\s*MODULE_KEYS\.FIN_COMPRAS/);
+  assert.match(access, /production:\s*MODULE_KEYS\.PROD_OPERACIONES/);
+  assert.match(access, /finance:\s*MODULE_KEYS\.FIN_FINANZAS/);
+  assert.match(access, /getUserModuleAccess\(userId\)/);
+  assert.match(access, /canRead\(access\[OPERATIONAL_DOMAIN_MODULE_KEYS\[domain\]\]\)/);
   assert.match(inventoryIntelligence, /requireModuleAccess\(request, MODULE_KEYS\.BODEGA_INVENTARIO\)/);
 });
 
