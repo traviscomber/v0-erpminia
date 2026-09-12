@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { ProductionSectionShell } from '@/components/production/production-section-shell';
+import { OperationalMaintenanceReviews } from '@/components/production/operational-maintenance-reviews';
 
 type PlanLine={id:string;line_type:string;mine_name_raw:string|null;sector_raw:string|null;level_raw:string|null;section_raw:string|null;planned_tons:number|null;planned_grade_pct:number|null;planned_advance_m:number|null;planned_drilling_m:number|null;priority:number|null};
 type Report={id:string;operation_date:string;hole_code_raw:string|null;rig_name_raw:string;operator_name_raw:string|null;meter_initial:number|null;meter_final:number|null;drilled_meters:number|null;equipment_status_raw:string|null};
@@ -27,6 +28,8 @@ export default function SondajeProduccionPage(){
  return <ProductionSectionShell eyebrow="Producción · Sondaje" title="Sondaje de Producción" description="Ejecución histórica de sondajes, disponibilidad de equipos, plan mensual y calidad de ubicación, con ACTUAL y PLAN separados." capabilities={['Metros y pozos ejecutados','Actividad por sonda y turno','Disponibilidad y fallas reportadas','Mantención preventiva por horómetro','Programa mensual separado del actual','Revisión priorizada de ubicación de pozos']}>
   {error?<Card><CardContent className="pt-5 text-sm text-destructive">{error.message}</CardContent></Card>:null}
   <section className="grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2 xl:grid-cols-5">{metrics.map(metric=>{const Icon=metric.icon;return <div key={metric.label} className="bg-card px-5 py-4"><div className="flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">{metric.label}</p><Icon className="h-4 w-4 text-muted-foreground"/></div><p className="mt-2 text-2xl font-semibold tracking-tight">{isLoading?'—':metric.value}</p></div>})}</section>
+
+  <OperationalMaintenanceReviews />
 
   <Card>
    <CardHeader><div className="flex flex-wrap items-start justify-between gap-3"><div><CardTitle className="flex items-center gap-2"><MapPin className="h-4 w-4"/>Ubicación de pozos · revisión priorizada</CardTitle><CardDescription>Conflictos y pozos activos aparecen primero; la deuda histórica queda separada para no contaminar la operación actual.</CardDescription></div><Badge variant={(location?.summary.sourceConflicts||0)+(location?.summary.activeAugust||0)>0?'destructive':'outline'}>{location?.summary.total||0} pendientes</Badge></div></CardHeader>
