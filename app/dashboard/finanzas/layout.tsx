@@ -12,7 +12,8 @@ const operationItems = [
 ];
 
 const controlItems = [
-  { href: '/dashboard/finanzas/centros', label: 'Centros' },
+  { href: '/dashboard/finanzas/centros', label: 'Centros de costos', moduleKey: 'core_centros_costos' },
+  { href: '/dashboard/reportes', label: 'Reportes', moduleKey: 'fin_reportes' },
   { href: '/dashboard/finanzas/proveedores', label: 'Proveedores' },
   { href: '/dashboard/finanzas/trazabilidad', label: 'Trazabilidad' },
 ];
@@ -25,8 +26,9 @@ function isActive(pathname: string, href: string) {
 
 export default function FinanceLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const { canEdit, ready } = useModuleAccess();
+  const { canEdit, canView, enforced, ready } = useModuleAccess();
   const visibleOperationItems = operationItems.filter((item) => item.href !== '/dashboard/finanzas/pagos' || (ready && canEdit('fin_finanzas')));
+  const visibleControlItems = controlItems.filter((item) => !item.moduleKey || !enforced || canView(item.moduleKey));
 
   return (
     <div className="space-y-5">
@@ -64,7 +66,7 @@ export default function FinanceLayout({ children }: { children: ReactNode }) {
               Control
             </span>
             <nav className="flex items-stretch" aria-label="Control financiero">
-              {controlItems.map((item) => {
+              {visibleControlItems.map((item) => {
                 const active = isActive(pathname, item.href);
                 return (
                   <Link
