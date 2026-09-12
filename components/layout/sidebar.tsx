@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Activity, BarChart3, Boxes, Building2, ChevronDown, CircleDollarSign, FileCheck, Gauge, Gem, HelpCircle, Home, Leaf, LogOut, Menu, ShieldCheck, ShoppingCart, Users, Wrench, X, Zap, type LucideIcon } from 'lucide-react';
+import { Activity, Boxes, ChevronDown, CircleDollarSign, FileCheck, Gauge, Gem, HelpCircle, Home, Leaf, LogOut, Menu, ShieldCheck, ShoppingCart, Users, Wrench, X, Zap, type LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { cn } from '@/lib/utils';
@@ -29,14 +29,11 @@ const menuItems: MenuItem[] = [
   { label:'RRHH',href:'/dashboard/rrhh',icon:Users,group:'Áreas',roles:['superadmin','admin','manager'] },
   { label:'Sostenibilidad',href:'/dashboard/sostenibilidad',icon:Leaf,group:'Áreas',moduleKey:'sos_tablero',roles:['superadmin','admin','Sostenibilidad-Supervisor','HSE-Supervisor'] },
   { label:'Legal',href:'/dashboard/legal',icon:FileCheck,group:'Áreas',moduleKey:'legal_modulo',roles:['superadmin','admin','manager'] },
-  { label:'Desempeño',href:'/dashboard/desempeno',icon:Gauge,group:'Transversal',moduleKey:'core_desempeno' },
-  { label:'Reportes',href:'/dashboard/reportes',icon:BarChart3,group:'Transversal',moduleKey:'fin_reportes',roles:['superadmin','admin','manager','supervisor','jefe_mantencion'] },
-  { label:'Centros de costos',href:'/dashboard/centros-costos',icon:Building2,group:'Transversal',moduleKey:'core_centros_costos',roles:['superadmin','admin','manager','Operaciones-Supervisor','Finanzas-Supervisor','jefe_mantencion'] },
   { label:'Roles y cargos',href:'/dashboard/admin/roles',icon:ShieldCheck,group:'Administración',roles:['superadmin','admin'] },
   { label:'Usuarios',href:'/dashboard/admin/users',icon:Users,group:'Administración',roles:['superadmin','admin'] },
   { label:'Ayuda',href:'/dashboard/guias',icon:HelpCircle,group:'Ayuda',roles:allStandardRoles },
 ];
-const groupOrder=['Principal','Áreas','Transversal','Administración','Ayuda'];
+const groupOrder=['Principal','Áreas','Administración','Ayuda'];
 function isItemActive(pathname:string,href:string){if(href==='/dashboard')return pathname===href;return pathname===href||pathname.startsWith(`${href}/`)}
 export function Sidebar(){
   const pathname=usePathname(); const router=useRouter(); const {role,user,logout}=useAuth(); const {enforced,canView}=useModuleAccess();

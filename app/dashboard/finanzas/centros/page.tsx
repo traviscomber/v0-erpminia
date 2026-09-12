@@ -1,5 +1,5 @@
-import { redirect } from 'next/navigation';
+import CostCentersPage from '../../centros-costos/page';
 
 export default function FinanceCostCentersPage() {
-  redirect('/dashboard/centros-costos');
+  return <CostCentersPage />;
 }
